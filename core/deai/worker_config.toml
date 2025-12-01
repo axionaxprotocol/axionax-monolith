@@ -1,0 +1,17 @@
+[worker]
+name = "axionax-worker-local"
+version = "1.0.0"
+environment = "development"
+
+[network]
+# List of Bootnodes (Validators) to discover the network
+bootnodes = [
+    "http://217.76.61.116:8545", # EU Validator
+    "http://46.250.244.4:8545"   # AU Validator
+]
+chain_id = 86137
+contract_address = "0x0000000000000000000000000000000000000000" # Placeholder
+
+[hardware]
+force_cpu = false
+max_memory_gb = 16

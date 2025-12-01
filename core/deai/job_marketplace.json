@@ -1,0 +1,56 @@
+[
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "specs",
+                "type": "string"
+            }
+        ],
+        "name": "registerWorker",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "constant": false,
+        "inputs": [
+            {
+                "name": "jobId",
+                "type": "uint256"
+            },
+            {
+                "name": "result",
+                "type": "string"
+            }
+        ],
+        "name": "submitResult",
+        "outputs": [],
+        "payable": false,
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "name": "jobId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "name": "jobType",
+                "type": "string"
+            },
+            {
+                "indexed": false,
+                "name": "params",
+                "type": "string"
+            }
+        ],
+        "name": "NewJob",
+        "type": "event"
+    }
+]
