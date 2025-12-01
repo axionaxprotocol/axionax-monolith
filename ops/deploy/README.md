@@ -391,9 +391,17 @@ Use our [Issue Manager](../issue-manager) to track:
 
 ## Documentation
 
-- **[VPS_DEPLOYMENT.md](VPS_DEPLOYMENT.md)** - Complete deployment guide
+### Deployment Guides
+- **[VPS_DEPLOYMENT.md](VPS_DEPLOYMENT.md)** - Complete VPS deployment guide
 - **[TESTNET_LAUNCH_CHECKLIST.md](TESTNET_LAUNCH_CHECKLIST.md)** - Pre-launch checklist
 - **[GITHUB_PAGES_SETUP.md](GITHUB_PAGES_SETUP.md)** - Website hosting setup
+
+### Worker Node Setup
+- **[RUNPOD_QUICK_START.md](RUNPOD_QUICK_START.md)** - Quick start for RunPod A40 GPU
+- **[WORKER_RUNPOD_A40_SETUP.md](WORKER_RUNPOD_A40_SETUP.md)** - Complete RunPod worker guide
+- **[WORKER_VERTEX_AI_SETUP.md](WORKER_VERTEX_AI_SETUP.md)** - Google Cloud Vertex AI setup
+- **[WORKER_LOCAL_WINDOWS_AMD.md](WORKER_LOCAL_WINDOWS_AMD.md)** - Local Windows AMD GPU setup
+- **[WORKER_SETUP_QUICK_GUIDE.md](WORKER_SETUP_QUICK_GUIDE.md)** - General worker setup guide
 
 ## axionax protocol Ecosystem
 
