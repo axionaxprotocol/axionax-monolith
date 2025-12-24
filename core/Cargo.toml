@@ -22,9 +22,15 @@ members = [
     "core/da",
     "core/asr",
     "core/vrf",
+    "core/cli",
+    "core/metrics",
+    "core/genesis",
+    "core/events",
     "bridge/rust-python",
     "tools/faucet"
 ]
+
+
 
 
 

@@ -21,11 +21,15 @@ pub mod health;
 pub mod middleware;
 pub mod staking_rpc;
 pub mod governance_rpc;
+pub mod server;
+pub mod http_health;
 
 pub use health::{HealthChecker, HealthStatus, NodeStatus};
 pub use middleware::{CorsConfig, RateLimitConfig, RateLimiter, RequestValidator};
 pub use staking_rpc::{StakingRpcServer, StakingRpcServerImpl, ValidatorResponse, StakingStatsResponse};
 pub use governance_rpc::{GovernanceRpcServer, GovernanceRpcServerImpl, ProposalResponse, GovernanceStatsResponse};
+pub use http_health::{HttpHealthServer, HttpHealthConfig, HealthState};
+
 
 
 /// RPC server errors

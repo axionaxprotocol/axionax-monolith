@@ -1,0 +1,12 @@
+[package]
+name = "metrics"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description = "Metrics and Monitoring - Prometheus-compatible metrics export"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+prometheus = "0.13"
+lazy_static = "1.4"

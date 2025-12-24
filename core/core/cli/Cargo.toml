@@ -1,0 +1,18 @@
+[package]
+name = "axionax-cli"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description = "Axionax Protocol CLI - Command line interface"
+
+[[bin]]
+name = "axionax"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true, features = ["full"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clap = { version = "4", features = ["derive"] }
+reqwest = { version = "0.11", features = ["json"] }
+colored = "2"
