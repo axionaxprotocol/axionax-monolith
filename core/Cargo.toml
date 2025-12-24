@@ -18,9 +18,14 @@ members = [
     "core/config",
     "core/staking",
     "core/governance",
+    "core/ppc",
+    "core/da",
+    "core/asr",
+    "core/vrf",
     "bridge/rust-python",
     "tools/faucet"
 ]
+
 
 
 resolver = "2"

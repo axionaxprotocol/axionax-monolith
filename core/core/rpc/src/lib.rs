@@ -19,9 +19,14 @@ use tokio::sync::RwLock;
 
 pub mod health;
 pub mod middleware;
+pub mod staking_rpc;
+pub mod governance_rpc;
 
 pub use health::{HealthChecker, HealthStatus, NodeStatus};
 pub use middleware::{CorsConfig, RateLimitConfig, RateLimiter, RequestValidator};
+pub use staking_rpc::{StakingRpcServer, StakingRpcServerImpl, ValidatorResponse, StakingStatsResponse};
+pub use governance_rpc::{GovernanceRpcServer, GovernanceRpcServerImpl, ProposalResponse, GovernanceStatsResponse};
+
 
 /// RPC server errors
 #[derive(Debug, thiserror::Error)]
