@@ -143,6 +143,17 @@ impl Default for ConsensusConfig {
 mod tests {
     use super::*;
 
+    fn create_test_validator(address: &str, stake: u128) -> Validator {
+        Validator {
+            address: address.to_string(),
+            stake,
+            total_votes: 0,
+            correct_votes: 0,
+            false_pass: 0,
+            is_active: true,
+        }
+    }
+
     #[tokio::test]
     async fn test_register_validator() {
         let engine = ConsensusEngine::new(ConsensusConfig::default());
@@ -173,5 +184,103 @@ mod tests {
 
         assert_eq!(challenge.job_id, "job-123");
         assert_eq!(challenge.samples.len(), 1000);
+    }
+
+    #[tokio::test]
+    async fn test_insufficient_stake_rejected() {
+        let engine = ConsensusEngine::new(ConsensusConfig::default());
+
+        // Stake below minimum (1_000_000)
+        let validator = create_test_validator("0x5678", 500_000);
+        let result = engine.register_validator(validator).await;
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Insufficient stake"));
+    }
+
+    #[test]
+    fn test_sample_size_capped_by_output_size() {
+        let engine = ConsensusEngine::new(ConsensusConfig::default());
+        
+        // Output size (100) is less than sample_size (1000)
+        let challenge = engine.generate_challenge("small-job".to_string(), 100, [42u8; 32]);
+
+        // Sample size should be capped to output size
+        assert_eq!(challenge.sample_size, 100);
+        assert_eq!(challenge.samples.len(), 100);
+    }
+
+    #[test]
+    fn test_deterministic_challenge_generation() {
+        let engine = ConsensusEngine::new(ConsensusConfig::default());
+        let seed = [123u8; 32];
+
+        let challenge1 = engine.generate_challenge("job-det".to_string(), 10000, seed);
+        let challenge2 = engine.generate_challenge("job-det".to_string(), 10000, seed);
+
+        // Same seed should produce same samples
+        assert_eq!(challenge1.samples, challenge2.samples);
+    }
+
+    #[test]
+    fn test_different_seeds_produce_different_samples() {
+        let engine = ConsensusEngine::new(ConsensusConfig::default());
+
+        let challenge1 = engine.generate_challenge("job-1".to_string(), 10000, [1u8; 32]);
+        let challenge2 = engine.generate_challenge("job-2".to_string(), 10000, [2u8; 32]);
+
+        // Different seeds should produce different samples
+        assert_ne!(challenge1.samples, challenge2.samples);
+    }
+
+    #[test]
+    fn test_fraud_detection_probability_edge_cases() {
+        // 0% fraud rate should have 0% detection
+        let prob_zero = ConsensusEngine::fraud_detection_probability(0.0, 1000);
+        assert!((prob_zero - 0.0).abs() < 0.0001);
+
+        // 100% fraud rate should have 100% detection
+        let prob_full = ConsensusEngine::fraud_detection_probability(1.0, 1);
+        assert!((prob_full - 1.0).abs() < 0.0001);
+
+        // Very low fraud rate with many samples
+        let prob_low = ConsensusEngine::fraud_detection_probability(0.001, 1000);
+        assert!(prob_low > 0.6); // Should still detect with reasonable probability
+    }
+
+    #[test]
+    fn test_verify_proof_invalid_size() {
+        let engine = ConsensusEngine::new(ConsensusConfig::default());
+        let challenge = engine.generate_challenge("job-verify".to_string(), 10000, [1u8; 32]);
+
+        // Proof data too small (needs sample_size * 32 bytes)
+        let small_proof = vec![0u8; 100];
+        assert!(!engine.verify_proof(&challenge, &small_proof));
+    }
+
+    #[test]
+    fn test_verify_proof_valid_size() {
+        let engine = ConsensusEngine::new(ConsensusConfig::default());
+        let challenge = engine.generate_challenge("job-verify".to_string(), 10000, [1u8; 32]);
+
+        // Correct size proof
+        let valid_proof = vec![0u8; challenge.sample_size * 32];
+        assert!(engine.verify_proof(&challenge, &valid_proof));
+    }
+
+    #[test]
+    fn test_custom_config() {
+        let config = ConsensusConfig {
+            sample_size: 500,
+            min_confidence: 0.95,
+            fraud_window_blocks: 360,
+            min_validator_stake: 500_000,
+            false_pass_penalty_bps: 1000,
+        };
+
+        let engine = ConsensusEngine::new(config);
+        let challenge = engine.generate_challenge("job-custom".to_string(), 10000, [1u8; 32]);
+
+        assert_eq!(challenge.sample_size, 500);
     }
 }

@@ -1,3 +1,11 @@
+[package]
+name = "axionax-core"
+version = "1.8.0"
+edition = "2021"
+authors = ["axionax protocol Team <team@axionax.org>"]
+description = "Axionax Protocol Core - High-Performance Blockchain"
+license = "AGPL-3.0"
+
 [workspace]
 members = [
     "core/consensus",
@@ -8,11 +16,43 @@ members = [
     "core/rpc",
     "core/node",
     "core/config",
+    "core/staking",
+    "core/governance",
     "bridge/rust-python",
     "tools/faucet"
 ]
 
+
 resolver = "2"
+
+# Dependencies for root package (needed for benchmarks)
+[dependencies]
+consensus = { path = "core/consensus" }
+blockchain = { path = "core/blockchain" }
+state = { path = "core/state" }
+crypto = { path = "core/crypto" }
+
+[dev-dependencies]
+criterion = { workspace = true }
+tempfile = "3.0"
+
+# Benchmark definitions
+[[bench]]
+name = "blockchain_bench"
+harness = false
+
+[[bench]]
+name = "crypto_bench"
+harness = false
+
+[[bench]]
+name = "consensus_bench"
+harness = false
+
+[[bench]]
+name = "state_bench"
+harness = false
+
 
 [workspace.package]
 version = "1.8.0"
