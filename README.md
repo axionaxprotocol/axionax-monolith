@@ -25,28 +25,39 @@
 
 ```
 axionax-core-universe/
-├── 🦀 core/              # Blockchain Protocol Core
-│   ├── blockchain/       # Block and chain management
-│   ├── consensus/        # PoPC consensus mechanism
-│   ├── crypto/           # Cryptographic primitives
-│   ├── network/          # P2P networking layer
-│   ├── state/            # State management
-│   ├── rpc/              # JSON-RPC API server
-│   ├── deai/             # DeAI (Python integration)
-│   └── examples/         # Example code & tutorials
+├── 🦀 core/                    # Blockchain Protocol Core (19 modules)
+│   ├── blockchain/             # Block and chain management
+│   ├── consensus/              # PoPC consensus mechanism
+│   ├── crypto/                 # Cryptographic primitives (Ed25519, Blake3)
+│   ├── network/                # P2P networking + reputation system
+│   ├── state/                  # RocksDB state management
+│   ├── rpc/                    # JSON-RPC API + health endpoints
+│   ├── config/                 # Protocol configuration
+│   ├── node/                   # Node runner
+│   │
+│   ├── ⭐ staking/             # NEW: Native staking (stake, delegate, slash)
+│   ├── ⭐ governance/          # NEW: On-chain governance (proposals, voting)
+│   ├── ⭐ ppc/                 # NEW: Posted Price Controller
+│   ├── ⭐ da/                  # NEW: Data Availability (erasure coding)
+│   ├── ⭐ asr/                 # NEW: Auto-Selection Router (VRF worker selection)
+│   ├── ⭐ vrf/                 # NEW: Verifiable Random Function
+│   ├── ⭐ events/              # NEW: Pub/Sub event system
+│   ├── ⭐ cli/                 # NEW: Command-line interface
+│   ├── ⭐ metrics/             # NEW: Prometheus metrics
+│   ├── ⭐ genesis/             # NEW: Genesis block generator
+│   └── deai/                   # DeAI (Python integration)
 │
-├── 🌍 ops/deploy/        # Deployment & Operations
-│   ├── docker-compose/   # Container orchestration
-│   ├── scripts/          # Setup & automation scripts
-│   ├── configs/          # Configuration files
-│   ├── monitoring/       # Prometheus & Grafana
-│   └── nginx/            # Reverse proxy configs
+├── 🌍 ops/deploy/              # Deployment & Operations
+│   ├── environments/           # Testnet/Mainnet configs
+│   ├── scripts/                # Setup & automation scripts
+│   ├── monitoring/             # Prometheus & Grafana
+│   └── nginx/                  # Reverse proxy configs
 │
-└── 🛠️ tools/devtools/    # Development Utilities
-    ├── testing/          # Test framework (42 tests)
-    ├── benchmarks/       # Performance benchmarks
-    └── utilities/        # Dev helper scripts
+└── 🛠️ tools/                   # Development Utilities
+    ├── faucet/                 # Testnet faucet
+    └── devtools/               # Testing & benchmarks
 ```
+
 
 ---
 
@@ -60,20 +71,34 @@ axionax-core-universe/
 - **EVM Compatible**: Easy migration for Ethereum dApps
 - **DeAI Integration**: Python-based decentralized AI workloads
 
+### ⭐ Self-Reliance Features (NEW)
+
+- **Native Staking**: Stake, delegate, slash, rewards distribution
+- **On-chain Governance**: Create proposals, vote, execute
+- **P2P Reputation**: Score-based peer management with banning
+- **Event System**: Real-time pub/sub for blocks, transactions, staking
+
+### 🔧 Architecture Components (NEW)
+
+- **PPC**: Posted Price Controller for dynamic compute pricing
+- **DA**: Data Availability layer with erasure coding
+- **ASR**: Auto-Selection Router with VRF-based worker selection
+- **VRF**: Verifiable Random Function with commit-reveal scheme
+
 ### 🌍 Operations & Deployment
 
 - **Docker-first**: Complete containerization for easy deployment
-- **Auto Scaling**: Ready for production workloads
+- **Kubernetes Ready**: Liveness & readiness probes, Prometheus metrics
 - **Monitoring**: Built-in Prometheus & Grafana dashboards
 - **Multi-environment**: Support for dev, testnet, mainnet
-- **One-click Setup**: Automated scripts for validators, RPC nodes, explorers
 
 ### 🛠️ Development Tools
 
-- **Comprehensive Testing**: 42 integration & unit tests
-- **Performance Benchmarks**: Measure and optimize TPS
-- **Code Quality**: Clippy, rustfmt, pre-commit hooks
-- **Developer Friendly**: Clear documentation and examples
+- **CLI**: Full-featured command-line interface (`axionax status`, `staking`, `gov`)
+- **Comprehensive Testing**: 90+ integration & unit tests
+- **Genesis Generator**: Create testnet/localnet genesis blocks
+- **Rate Limiting**: Built-in spam protection for RPC
+
 
 ---
 
