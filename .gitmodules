@@ -1,0 +1,3 @@
+[submodule "web-universe"]
+	path = web-universe
+	url = https://github.com/axionaxprotocol/axionax-web-universe.git
