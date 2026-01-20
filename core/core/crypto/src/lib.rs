@@ -1,7 +1,8 @@
 //! axionax Cryptography
 //!
 //! Cryptographic primitives for axionax blockchain:
-//! - **VRF**: Verifiable Random Functions for consensus
+//! - **ECVRF**: Production-grade VRF using schnorrkel (recommended)
+//! - **VRF**: Legacy VRF implementation (deprecated)
 //! - **Hash**: SHA3-256, Keccak256, Blake2s-256, Blake2b-512
 //! - **Signatures**: Ed25519 digital signatures
 //! - **KDF**: Argon2id key derivation and password hashing
@@ -9,10 +10,19 @@
 use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use sha3::{Digest, Sha3_256};
 
+// VRF module using schnorrkel (production-grade)
+pub mod vrf;
+pub use vrf::{ECVRF, VrfResult, VrfOutput, VrfProofBytes};
+
 // Re-export commonly used KDF functions
 pub use kdf::{derive_key, hash_password, verify_password};
 
-/// VRF (Verifiable Random Function) implementation
+/// Legacy VRF (Verifiable Random Function) implementation
+/// 
+/// **DEPRECATED**: Use `ECVRF` instead for production use.
+/// This implementation uses a simplified hash-based approach that is
+/// not cryptographically secure as a true VRF.
+#[deprecated(since = "2.0.0", note = "Use ECVRF instead for production-grade VRF")]
 pub struct VRF {
     signing_key: SigningKey,
 }
@@ -238,8 +248,9 @@ pub mod kdf {
 mod tests {
     use super::*;
 
+    #[allow(deprecated)]
     #[test]
-    fn test_vrf_prove_verify() {
+    fn test_legacy_vrf_prove_verify() {
         let vrf = VRF::new();
         let input = b"test input";
 

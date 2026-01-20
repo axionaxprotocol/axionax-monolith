@@ -12,14 +12,17 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::path::Path;
 use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
 
 pub mod mempool;
+pub mod storage;
 pub mod validation;
 
 pub use mempool::{PoolConfig, PoolError, PoolStats, TransactionPool};
+pub use storage::{BlockStore, SledBlockStore, StorageError};
 pub use validation::{BlockValidator, TransactionValidator, ValidationConfig, ValidationError};
 
 /// Blockchain error types
@@ -52,6 +55,10 @@ pub enum BlockchainError {
     /// Internal lock error
     #[error("Internal lock error")]
     LockError,
+
+    /// Storage error
+    #[error("Storage error: {0}")]
+    Storage(#[from] StorageError),
 }
 
 /// Result type for blockchain operations
@@ -97,8 +104,91 @@ pub struct BlockchainConfig {
     pub block_time_secs: u64,
     pub max_block_size: usize,
     pub gas_limit: u64,
+    /// Path to database directory (None for in-memory)
+    pub db_path: Option<String>,
 }
 
+/// Persistent Blockchain with disk-based storage
+/// 
+/// Uses `sled` database for all block storage. Data persists across restarts.
+/// 
+/// # Example
+/// ```ignore
+/// use blockchain::{PersistentBlockchain, BlockchainConfig};
+/// 
+/// let config = BlockchainConfig { db_path: Some("./data".to_string()), ..Default::default() };
+/// let blockchain = PersistentBlockchain::open(config)?;
+/// blockchain.init_with_genesis().await;
+/// ```
+pub struct PersistentBlockchain {
+    store: SledBlockStore,
+    config: BlockchainConfig,
+}
+
+impl PersistentBlockchain {
+    /// Opens a persistent blockchain at the configured path
+    pub fn open(config: BlockchainConfig) -> Result<Self> {
+        let path = config.db_path.as_ref()
+            .map(|p| p.as_str())
+            .unwrap_or("./axionax_data");
+        
+        let store = SledBlockStore::open(path)?;
+        Ok(Self { store, config })
+    }
+
+    /// Opens a temporary in-memory store (for testing)
+    pub fn open_temp(config: BlockchainConfig) -> Result<Self> {
+        let store = SledBlockStore::open_temp()?;
+        Ok(Self { store, config })
+    }
+
+    /// Adds a new block to the chain
+    pub async fn add_block(&self, block: Block) -> Result<()> {
+        let expected = self.store.get_latest_block_number()? + 1;
+        if block.number != expected {
+            return Err(BlockchainError::InvalidBlockNumber {
+                expected,
+                actual: block.number,
+            });
+        }
+
+        if self.store.block_exists(block.number)? {
+            return Err(BlockchainError::BlockExists(block.number));
+        }
+
+        self.store.put_block(&block)?;
+        Ok(())
+    }
+
+    /// Gets a block by number
+    pub async fn get_block(&self, number: u64) -> Option<Block> {
+        self.store.get_block(number).ok().flatten()
+    }
+
+    /// Gets the latest block number
+    pub async fn get_latest_block_number(&self) -> u64 {
+        self.store.get_latest_block_number().unwrap_or(0)
+    }
+
+    /// Initialize blockchain with genesis block
+    pub async fn init_with_genesis(&self) {
+        if !self.store.block_exists(0).unwrap_or(false) {
+            let genesis = Blockchain::create_genesis();
+            let _ = self.store.put_block(&genesis);
+        }
+    }
+
+    /// Flush all pending writes to disk
+    pub fn flush(&self) -> Result<()> {
+        self.store.flush()?;
+        Ok(())
+    }
+
+    /// Get the configuration
+    pub fn config(&self) -> &BlockchainConfig {
+        &self.config
+    }
+}
 
 impl Blockchain {
     /// Creates a new blockchain
@@ -174,6 +264,7 @@ impl Default for BlockchainConfig {
             block_time_secs: 5,
             max_block_size: 1_000_000,
             gas_limit: 30_000_000,
+            db_path: None, // In-memory by default for backward compatibility
         }
     }
 }
