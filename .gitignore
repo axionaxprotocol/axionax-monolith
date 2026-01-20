@@ -1,3 +1,30 @@
 target/
 __pycache__/
 .venv/
+
+# ======================
+# Security - NEVER commit!
+# ======================
+worker_key.json
+*.keystore
+*.keystore.json
+.env
+.env.local
+.env.production
+
+# Python
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
