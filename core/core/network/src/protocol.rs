@@ -112,6 +112,20 @@ pub enum ResponseMessage {
     Error { message: String },
 }
 
+/// [EVOLUTION] Node capabilities for ASR / Priority Validation (Monolith Mark-II).
+/// Lets nodes announce "I am Monolith" or "I have photonic chip" so ASR can route hard jobs.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct NodeCapabilities {
+    /// Approximate FLOPS (for capacity planning).
+    pub compute_power: u64,
+    /// "SILICON", "HYBRID", "PHOTONIC".
+    pub compute_type: String,
+    /// "DDR5", "HBM", "LIQUID_CRYSTAL", etc.
+    pub memory_type: String,
+    /// True if this node is a Monolith (God Node).
+    pub is_monolith: bool,
+}
+
 /// Peer information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PeerInfo {
@@ -119,6 +133,9 @@ pub struct PeerInfo {
     pub addresses: Vec<String>,
     pub protocols: Vec<String>,
     pub agent_version: String,
+    /// [EVOLUTION] Optional capabilities for ASR / hardware-tier routing.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capabilities: Option<NodeCapabilities>,
 }
 
 /// Message type identifier for topic subscription

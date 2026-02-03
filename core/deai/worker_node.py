@@ -29,6 +29,7 @@ from wallet_manager import WalletManager
 from contract_manager import ContractManager
 from network_manager import NetworkManager
 from sandbox import DockerSandbox, ResourceLimits, ExecutionStatus, create_sandbox, SandboxError
+from compute_backend import ComputeBackend
 
 # Configure logging
 logging.basicConfig(
@@ -208,6 +209,11 @@ class WorkerConfig:
     enable_tensor_cores: bool = True
     gpu_memory_fraction: float = 0.85
     
+    # [EVOLUTION] Experimental - Monolith Mark-II / Photonic
+    enable_optical_bridge: bool = False
+    hardware_tier: int = 1  # 1=PC, 2=Server, 3=Monolith
+    compute_type: str = "SILICON"  # SILICON, PHOTONIC, HYBRID
+    
     # Performance
     worker_threads: int = 8
     default_batch_size: int = 32
@@ -282,6 +288,13 @@ class WorkerConfig:
                 config.max_timeout_seconds = limits.get('max_timeout_seconds', config.max_timeout_seconds)
                 config.max_pids = limits.get('max_pids', config.max_pids)
             
+            # [EVOLUTION] Experimental section
+            if 'experimental' in data:
+                exp = data['experimental']
+                config.enable_optical_bridge = exp.get('enable_optical_bridge', config.enable_optical_bridge)
+                config.hardware_tier = int(exp.get('hardware_tier', config.hardware_tier))
+                config.compute_type = str(exp.get('compute_type', config.compute_type)).upper()
+            
             logger.info(f"Loaded config from {config_path}")
             
         except FileNotFoundError:
@@ -350,8 +363,11 @@ class AxionaxWorker:
             logger.warning(f"Docker sandbox unavailable: {e}")
             self.sandbox = None
         
-        # Initialize device
-        self._init_device()
+        # [EVOLUTION] Initialize compute backend (HAL: SILICON or PHOTONIC)
+        self.compute_backend = self._create_compute_backend()
+        self.device = self.compute_backend.get_device()
+        self.gpu_name = self._get_gpu_name()
+        self._init_silicon_optimizations()
         
         # Initialize model cache
         if self.config.enable_model_cache:
@@ -364,7 +380,7 @@ class AxionaxWorker:
             self.model_cache = None
         
         logger.info(f"Worker initialized: {self.config.name} v{self.config.version}")
-        logger.info(f"Device: {self.device} | GPU: {self.gpu_name or 'N/A'}")
+        logger.info(f"Compute: {self.compute_backend.type} | Device: {self.device} | GPU: {self.gpu_name or 'N/A'}")
         logger.info(f"👛 Worker Wallet: {self.wallet.get_address()}")
         
         # Preload models if configured
@@ -377,42 +393,40 @@ class AxionaxWorker:
         # Register on startup
         self.register()
     
-    def _init_device(self):
-        """Initialize compute device (CPU/GPU)"""
-        if self.config.force_cpu:
-            self.device = "cpu"
-            self.gpu_name = None
-            logger.info("Forced CPU mode enabled")
+    def _create_compute_backend(self) -> ComputeBackend:
+        """[EVOLUTION] Create HAL backend from config (SILICON or PHOTONIC)."""
+        backend_config = {
+            "compute_type": self.config.compute_type,
+            "enable_optical_bridge": self.config.enable_optical_bridge,
+            "force_cpu": self.config.force_cpu,
+            "cuda_device_id": self.config.cuda_device_id,
+        }
+        return ComputeBackend(backend_config)
+    
+    def _get_gpu_name(self) -> Optional[str]:
+        """GPU name for SILICON backend; None for PHOTONIC or CPU."""
+        if self.compute_backend.is_silicon() and TORCH_AVAILABLE and torch.cuda.is_available():
+            return torch.cuda.get_device_name(self.config.cuda_device_id)
+        return None
+    
+    def _init_silicon_optimizations(self):
+        """Apply CUDA/Tensor Core optimizations when using SILICON backend."""
+        if not self.compute_backend.is_silicon() or not TORCH_AVAILABLE or not torch.cuda.is_available():
             return
-        
-        if TORCH_AVAILABLE and torch.cuda.is_available():
-            self.device = "cuda"
-            
-            # Set GPU device
-            torch.cuda.set_device(self.config.cuda_device_id)
-            self.gpu_name = torch.cuda.get_device_name(self.config.cuda_device_id)
-            
-            # Enable optimizations
-            if self.config.enable_cudnn_benchmark:
-                torch.backends.cudnn.benchmark = True
-                logger.info("cuDNN benchmark mode enabled")
-            
-            if self.config.enable_tensor_cores:
-                # Enable TF32 for Tensor Cores (Ampere+)
-                torch.backends.cuda.matmul.allow_tf32 = True
-                torch.backends.cudnn.allow_tf32 = True
-                logger.info("Tensor Cores (TF32) enabled")
-            
-            # Set memory fraction
-            if self.config.gpu_memory_fraction < 1.0:
-                torch.cuda.set_per_process_memory_fraction(
-                    self.config.gpu_memory_fraction,
-                    self.config.cuda_device_id
-                )
-                logger.info(f"GPU memory fraction set to {self.config.gpu_memory_fraction:.0%}")
-        else:
-            self.device = "cpu"
-            self.gpu_name = None
+        torch.cuda.set_device(self.config.cuda_device_id)
+        if self.config.enable_cudnn_benchmark:
+            torch.backends.cudnn.benchmark = True
+            logger.info("cuDNN benchmark mode enabled")
+        if self.config.enable_tensor_cores:
+            torch.backends.cuda.matmul.allow_tf32 = True
+            torch.backends.cudnn.allow_tf32 = True
+            logger.info("Tensor Cores (TF32) enabled")
+        if self.config.gpu_memory_fraction < 1.0:
+            torch.cuda.set_per_process_memory_fraction(
+                self.config.gpu_memory_fraction,
+                self.config.cuda_device_id
+            )
+            logger.info(f"GPU memory fraction set to {self.config.gpu_memory_fraction:.0%}")
     
     def preload_models(self):
         """
@@ -456,37 +470,34 @@ class AxionaxWorker:
     
     def warmup(self):
         """
-        Warm up the GPU by running dummy computations.
-        
-        This helps avoid cold-start latency on the first real inference.
+        Warm up compute backend: GPU (matmul) or PHOTONIC (simulation stub).
+        Avoids cold-start latency on first real inference.
         """
-        if self.device != "cuda" or not TORCH_AVAILABLE:
+        if self.compute_backend.is_photonic():
+            logger.info("Compute backend: PHOTONIC (warm-up skipped for simulation)")
             return
-        
-        logger.info("Warming up GPU...")
-        
-        try:
-            # Run a few dummy operations to initialize CUDA context
-            for i in range(3):
-                x = torch.randn(1000, 1000, device=self.device)
-                y = torch.matmul(x, x)
-                del x, y
-            
-            torch.cuda.synchronize()
-            torch.cuda.empty_cache()
-            
-            # Get GPU memory info
-            allocated = torch.cuda.memory_allocated() / (1024**3)
-            reserved = torch.cuda.memory_reserved() / (1024**3)
-            logger.info(f"GPU warm-up complete. Memory: {allocated:.2f}GB allocated, {reserved:.2f}GB reserved")
-            
-        except Exception as e:
-            logger.warning(f"GPU warm-up failed: {e}")
+        if not TORCH_AVAILABLE:
+            return
+        device = self.device
+        if str(device).startswith("cuda"):
+            logger.info("Warming up GPU...")
+            try:
+                for _ in range(3):
+                    x = torch.randn(1000, 1000, device=device)
+                    y = self.compute_backend.matrix_multiply(x, x)
+                    del x, y
+                torch.cuda.synchronize()
+                torch.cuda.empty_cache()
+                allocated = torch.cuda.memory_allocated() / (1024**3)
+                reserved = torch.cuda.memory_reserved() / (1024**3)
+                logger.info(f"GPU warm-up complete. Memory: {allocated:.2f}GB allocated, {reserved:.2f}GB reserved")
+            except Exception as e:
+                logger.warning(f"GPU warm-up failed: {e}")
 
     def register(self):
-        """Register worker capabilities with the network"""
+        """Register worker capabilities with the network (incl. [EVOLUTION] compute_type / hardware_tier)."""
         specs = {
-            "device": self.device,
+            "device": str(self.device),
             "gpu": self.gpu_name,
             "version": self.config.version,
             "sandbox_enabled": self.sandbox is not None,
@@ -494,6 +505,10 @@ class AxionaxWorker:
             "max_timeout_s": self.config.max_timeout_seconds,
             "model_cache_enabled": self.model_cache is not None,
             "tensor_cores_enabled": self.config.enable_tensor_cores,
+            # [EVOLUTION] ASR / Priority Validation
+            "compute_type": self.compute_backend.type,
+            "hardware_tier": self.config.hardware_tier,
+            "optical_bridge_available": self.compute_backend.capabilities_dict().get("optical_bridge_available", False),
         }
         try:
             self.contract.register_worker(specs)
@@ -630,7 +645,9 @@ class AxionaxWorker:
             raise JobExecutionError(f"Sandbox error: {e}")
 
     def _get_job_limits(self, custom_limits: Dict) -> ResourceLimits:
-        """Build ResourceLimits from default + custom overrides, capped by max"""
+        """Build ResourceLimits from default + custom overrides, capped by max.
+        [EVOLUTION] Future: check custom_limits.get('min_hardware_tier') vs self.config.hardware_tier
+        for ASR / Priority Validation (Fast Lane for Monolith)."""
         return ResourceLimits(
             cpu_count=min(
                 custom_limits.get('cpu', self.DEFAULT_LIMITS.cpu_count),

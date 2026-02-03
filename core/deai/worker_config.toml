@@ -118,3 +118,14 @@ enable_metrics = true
 metrics_port = 9090            # Prometheus metrics endpoint
 health_check_interval_seconds = 30
 report_to_network = true       # Report health status to network
+
+# =============================================================================
+# [EVOLUTION] Experimental - Monolith Mark-II / Photonic
+# =============================================================================
+[experimental]
+# Optical bridge: enable when ACCEL/Taichi chip is available (simulation today)
+enable_optical_bridge = false
+# Hardware tier for ASR / Priority Validation: 1=PC, 2=Server, 3=Monolith
+hardware_tier = 1
+# Compute type: SILICON (default), PHOTONIC, HYBRID
+compute_type = "SILICON"

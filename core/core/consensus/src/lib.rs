@@ -1,14 +1,17 @@
 //! axionax Consensus Engine (PoPC)
 //!
-//! Implements Proof-of-Probabilistic-Checking consensus mechanism
+//! Implements Proof-of-Probabilistic-Checking consensus mechanism.
+//! [SIMULATION] Proof-of-Light (Monolith Mark-II) available in `proof_of_light`.
 
 pub mod merkle;
+pub mod proof_of_light;
 
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub use merkle::{MerkleProof, MerkleTree, Hash, verify_merkle_proof, verify_sample_proofs, deserialize_proofs};
+pub use proof_of_light::{BlockSim, FocusPoint, LightValidator};
 
 /// PoPC Validator represents a network validator
 #[derive(Debug, Clone)]
