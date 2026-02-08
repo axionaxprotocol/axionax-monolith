@@ -1,4 +1,4 @@
-﻿# axionax Protocol Core 🦀🐍
+# axionax Protocol Core 🦀🐍
 
 > **The Heart of axionax: High-Performance Blockchain Protocol
 > Implementation**  
@@ -444,6 +444,13 @@ This core implementation is part of the complete axionax Protocol ecosystem:
 - **[Python API Docs](docs/PYTHON_API.md)** - Python bindings reference
 - **[TypeScript SDK Docs](../axionax-sdk-ts/README.md)** - TypeScript SDK reference
 - **[Testing Guide](docs/TESTING_GUIDE.md)** - Testing strategies
+
+### Network & Hardware
+
+- **[Project Ascension](docs/PROJECT_ASCENSION.md)** — Monolith & 9 Pillars
+- **[Monolith Roadmap](docs/MONOLITH_ROADMAP.md)** — MK-I to MK-IV (Vanguard → Gaia)
+- **[Network Nodes](docs/NETWORK_NODES.md)** — All node types on the network (Validator, RPC, Worker, Explorer, Faucet)
+- **[Marketplace Worker Nodes](docs/MARKETPLACE_WORKER_NODES.md)** — Workers on Compute Marketplace
 
 ### Protocol & Economics
 

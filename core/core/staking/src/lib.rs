@@ -190,7 +190,7 @@ impl Staking {
             // Add to existing stake
             let validator = validators.get_mut(&address).unwrap();
             if validator.unlock_block > 0 {
-                let current = *self.current_block.read().await;
+                let _current = *self.current_block.read().await;
                 return Err(StakingError::StakeLocked {
                     unlock_block: validator.unlock_block,
                 });

@@ -26,6 +26,13 @@ except ImportError:
     OpticalTensor = None  # type: ignore[misc, assignment]
     OPTICAL_AVAILABLE = False
 
+# Optional: Hailo NPU (Monolith MK-I / Project HYDRA)
+try:
+    import hailo_platform  # noqa: F401
+    HAILO_AVAILABLE = True
+except ImportError:
+    HAILO_AVAILABLE = False
+
 
 # -----------------------------------------------------------------------------
 # Compute Backend (HAL)
@@ -40,20 +47,23 @@ class ComputeBackend:
     TYPE_SILICON = "SILICON"
     TYPE_PHOTONIC = "PHOTONIC"
     TYPE_HYBRID = "HYBRID"
+    TYPE_NPU = "NPU"
 
     def __init__(self, config: Dict[str, Any]) -> None:
         self.config = config
         self.type = str(config.get("compute_type", self.TYPE_SILICON)).upper()
-        if self.type not in (self.TYPE_SILICON, self.TYPE_PHOTONIC, self.TYPE_HYBRID):
+        if self.type not in (self.TYPE_SILICON, self.TYPE_PHOTONIC, self.TYPE_HYBRID, self.TYPE_NPU):
             self.type = self.TYPE_SILICON
 
         self._device: Any = None
         self._optical_ops: Optional[Any] = None
 
-        enable_optical = config.get("enable_optical_bridge", False)
-        if self.type == self.TYPE_PHOTONIC and enable_optical:
+        if self.type == self.TYPE_NPU:
+            self._init_hailo()
+        elif self.type == self.TYPE_PHOTONIC and config.get("enable_optical_bridge", False):
             self._init_optical_link()
         else:
+            enable_optical = config.get("enable_optical_bridge", False)
             if self.type == self.TYPE_PHOTONIC and not enable_optical:
                 logger.info("PHOTONIC requested but optical_bridge disabled; using SILICON")
             self._init_silicon()
@@ -77,6 +87,16 @@ class ComputeBackend:
             logger.info("ComputeBackend: PHOTONIC (simulation / optical bridge)")
         else:
             logger.warning("Optical bridge enabled but optical module unavailable; falling back to SILICON")
+            self._init_silicon()
+
+    def _init_hailo(self) -> None:
+        """Initialize Hailo-10H NPU for Monolith MK-I (Project HYDRA)."""
+        if HAILO_AVAILABLE:
+            device_id = self.config.get("npu_device_id", 0)
+            logger.info("ComputeBackend: NPU (Hailo-10H Device #%s Active)", device_id)
+            self._device = f"hailo{device_id}"
+        else:
+            logger.warning("Hailo drivers not found, falling back to SILICON (CPU)")
             self._init_silicon()
 
     def get_device(self) -> Any:
@@ -123,6 +143,10 @@ class ComputeBackend:
     def is_silicon(self) -> bool:
         """True if backend is SILICON (GPU/CPU)."""
         return self.type == self.TYPE_SILICON
+
+    def is_npu(self) -> bool:
+        """True if backend is NPU (Hailo)."""
+        return self.type == self.TYPE_NPU
 
     def capabilities_dict(self) -> Dict[str, Any]:
         """For node identity / ASR: compute_type, device label, optical capability."""

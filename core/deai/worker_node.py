@@ -206,6 +206,7 @@ class WorkerConfig:
     force_cpu: bool = False
     max_memory_gb: int = 60
     cuda_device_id: int = 0
+    npu_device_id: int = 0  # Hailo device index (Project HYDRA)
     enable_tensor_cores: bool = True
     gpu_memory_fraction: float = 0.85
     
@@ -257,6 +258,7 @@ class WorkerConfig:
                 config.force_cpu = hw.get('force_cpu', config.force_cpu)
                 config.max_memory_gb = hw.get('max_memory_gb', config.max_memory_gb)
                 config.cuda_device_id = hw.get('cuda_device_id', config.cuda_device_id)
+                config.npu_device_id = hw.get('npu_device_id', config.npu_device_id)
                 config.enable_tensor_cores = hw.get('enable_tensor_cores', config.enable_tensor_cores)
                 config.gpu_memory_fraction = hw.get('gpu_memory_fraction', config.gpu_memory_fraction)
             
@@ -394,12 +396,13 @@ class AxionaxWorker:
         self.register()
     
     def _create_compute_backend(self) -> ComputeBackend:
-        """[EVOLUTION] Create HAL backend from config (SILICON or PHOTONIC)."""
+        """[EVOLUTION] Create HAL backend from config (SILICON, PHOTONIC, or NPU)."""
         backend_config = {
             "compute_type": self.config.compute_type,
             "enable_optical_bridge": self.config.enable_optical_bridge,
             "force_cpu": self.config.force_cpu,
             "cuda_device_id": self.config.cuda_device_id,
+            "npu_device_id": self.config.npu_device_id,
         }
         return ComputeBackend(backend_config)
     

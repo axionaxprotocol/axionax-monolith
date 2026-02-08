@@ -1,0 +1,16 @@
+[worker]
+name = "monolith-mk1-worker"
+version = "1.0.0-hydra"
+environment = "production"
+
+[hardware]
+force_cpu = false
+# Use second Hailo device (/dev/hailo1)
+compute_type = "NPU"
+npu_device_id = 1
+max_memory_gb = 4
+
+[experimental]
+hardware_tier = 3
+compute_type = "NPU"  # Align with [hardware]
+task_role = "WORKER"  # General compute jobs

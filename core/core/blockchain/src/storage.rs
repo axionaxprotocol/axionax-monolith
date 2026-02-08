@@ -4,7 +4,6 @@
 //! Blocks are serialized with `bincode` for efficient storage.
 
 use std::path::Path;
-use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::Block;

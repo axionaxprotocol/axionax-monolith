@@ -9,17 +9,17 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from worker_node import AxionaxWorker
 
 def test_job_execution():
-    print("🧪 Testing Worker Job Execution Logic...")
-    
-    # Initialize worker (offline mode for this test if possible, but our init connects to RPC)
-    # We'll let it connect or fail, but we only care about execute_job here.
+    """Test worker job execution logic. Skips if worker init fails (e.g. RPC down)."""
+    import pytest
+    print("Testing Worker Job Execution Logic...")
+    worker = None
     try:
         worker = AxionaxWorker()
     except Exception as e:
-        print(f"⚠️  Worker init warning (RPC might be down): {e}")
-        # Continue anyway if we can, or mock the client
-        
-    print("\n1️⃣  Simulating 'NewJob' event...")
+        print(f"Worker init warning (RPC might be down): {e}")
+        pytest.skip("Worker init failed (network/config); skipping job execution test")
+    assert worker is not None
+    print("\n1. Simulating 'NewJob' event...")
     mock_job = {
         "id": "job_0x123abc",
         "type": "training",
@@ -31,16 +31,11 @@ def test_job_execution():
         }
     }
     print(f"   Job Details: {mock_job}")
-    
-    print("\n2️⃣  Triggering execution...")
+    print("\n2. Triggering execution...")
     start_time = time.time()
-    
-    # Manually trigger the execution method
     worker.execute_job(mock_job)
-    
     duration = time.time() - start_time
-    print(f"\n✅ Job finished in {duration:.2f}s")
-    print("   (This confirms the worker can accept and process job data)")
+    print(f"\nJob finished in {duration:.2f}s")
 
 if __name__ == "__main__":
     test_job_execution()

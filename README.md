@@ -196,6 +196,39 @@ cargo bench
 
 ---
 
+## Testing & Verification
+
+Run all tests to verify the project:
+
+```bash
+# Rust (from repo root: run from core/ — requires libclang on Windows for full build)
+cd core
+cargo test --workspace
+
+# Python DeAI (from repo root or core)
+cd core/deai
+python -m pytest . -v --tb=short --ignore=tests
+
+# Optional: run job execution test (requires RPC / worker wallet)
+python -m pytest test_job_execution.py -v -s
+```
+
+| Test suite | Location | Notes |
+|------------|----------|--------|
+| Rust unit/integration | `core/` | `cargo test --workspace`; Windows may need `LIBCLANG_PATH` for RocksDB/bindgen |
+| DeAI Python | `core/deai/` | `pytest`; `test_job_execution` skips if worker init fails (no RPC) |
+| Integration (Rust bindings) | `core/tests/` | `integration_simple.py`, `integration_test.py` |
+
+**Lint & format:**
+
+```bash
+cd core
+cargo fmt --all
+cargo clippy --workspace -- -D warnings
+```
+
+---
+
 ### 🌍 Operations (`/ops/deploy`)
 
 **Deployment & Infrastructure Automation**
@@ -347,11 +380,15 @@ python tests/integration_test.py
 
 ## 📚 Documentation
 
-- [Architecture Overview](core/docs/ARCHITECTURE.md)
+- [Architecture Overview](core/docs/ARCHITECTURE_OVERVIEW.md)
 - [API Reference](core/docs/API_REFERENCE.md)
 - [Deployment Guide](core/DEPLOYMENT_GUIDE.md)
 - [Development Guide](core/DEVELOPMENT_SUMMARY.md)
 - [Security Audit](core/SECURITY_AUDIT.md)
+- [Project Ascension](core/docs/PROJECT_ASCENSION.md) — Monolith & 9 Pillars
+- [Monolith Roadmap](core/docs/MONOLITH_ROADMAP.md) — MK-I to MK-IV hardware
+- [Network Nodes](core/docs/NETWORK_NODES.md) — All node types on the network
+- [Marketplace Worker Nodes](core/docs/MARKETPLACE_WORKER_NODES.md) — Workers on Compute Marketplace
 - [Full Documentation](https://axionaxprotocol.github.io/axionax-docs/)
 
 ---
@@ -448,7 +485,7 @@ See individual `LICENSE` files in each directory for details.
 
 **Built with ❤️ by the axionax Protocol Team**
 
-*Part of the [axionax Universe](https://github.com/axionaxprotocol) • Last Updated: November 22, 2025*
+*Part of the [axionax Universe](https://github.com/axionaxprotocol) • Last Updated: February 8, 2026*
 
 [![GitHub Stars](https://img.shields.io/github/stars/axionaxprotocol/axionax-core-universe?style=social)](https://github.com/axionaxprotocol/axionax-core-universe)
 [![GitHub Forks](https://img.shields.io/github/forks/axionaxprotocol/axionax-core-universe?style=social)](https://github.com/axionaxprotocol/axionax-core-universe/fork)

@@ -247,8 +247,7 @@ def test_model_cache():
     assert cache.stats()['models_cached'] == 0, "Clear failed"
     print(f"✅ Cache cleared")
     
-    print("\n✅ ModelCache: ALL TESTS PASSED!")
-    return True
+    print("\nModelCache: ALL TESTS PASSED!")
 
 
 def test_worker_config():
@@ -278,8 +277,7 @@ def test_worker_config():
     assert config.max_memory_gb == 60, f"Memory mismatch: {config.max_memory_gb}"
     assert config.enable_model_cache == True, "Cache should be enabled"
     
-    print("\n✅ WorkerConfig: ALL TESTS PASSED!")
-    return True
+    print("\nWorkerConfig: ALL TESTS PASSED!")
 
 
 def test_integration():
@@ -316,42 +314,34 @@ def test_integration():
     
     print(f"\n📊 Final Cache Stats: {cache.stats()}")
     
-    print("\n✅ Integration: ALL TESTS PASSED!")
-    return True
+    print("\nIntegration: ALL TESTS PASSED!")
 
 
 def main():
-    """Run all tests"""
-    print("\n" + "="*60)
-    print("🚀 Axionax v1.9.0 Optimization Test Suite")
-    print("="*60)
-    
+    """Run all tests; returns 0 if all pass, 1 otherwise."""
+    print("\n" + "=" * 60)
+    print("Axionax v1.9.0 Optimization Test Suite")
+    print("=" * 60)
     results = []
-    
-    # Run tests
-    results.append(("ModelCache", test_model_cache()))
-    results.append(("WorkerConfig", test_worker_config()))
-    results.append(("Integration", test_integration()))
-    
-    # Summary
-    print("\n" + "="*60)
-    print("📋 TEST SUMMARY")
-    print("="*60)
-    
-    all_passed = True
+    for name, fn in [
+        ("ModelCache", test_model_cache),
+        ("WorkerConfig", test_worker_config),
+        ("Integration", test_integration),
+    ]:
+        try:
+            fn()
+            results.append((name, True))
+        except Exception as e:
+            print(f"\nFAIL {name}: {e}")
+            results.append((name, False))
+    print("\n" + "=" * 60)
+    print("TEST SUMMARY")
+    print("=" * 60)
     for name, passed in results:
-        status = "✅ PASS" if passed else "❌ FAIL"
-        print(f"  {status}: {name}")
-        if not passed:
-            all_passed = False
-    
-    print("="*60)
-    if all_passed:
-        print("🎉 ALL TESTS PASSED!")
-    else:
-        print("⚠️ SOME TESTS FAILED")
-    print("="*60)
-    
+        print(f"  {'PASS' if passed else 'FAIL'}: {name}")
+    print("=" * 60)
+    all_passed = all(p for _, p in results)
+    print("ALL TESTS PASSED!" if all_passed else "SOME TESTS FAILED")
     return 0 if all_passed else 1
 
 

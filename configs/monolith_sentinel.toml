@@ -1,0 +1,16 @@
+[worker]
+name = "monolith-mk1-sentinel"
+version = "1.0.0-hydra"
+environment = "production"
+
+[hardware]
+force_cpu = false
+# Use first Hailo device (/dev/hailo0)
+compute_type = "NPU"
+npu_device_id = 0
+max_memory_gb = 4
+
+[experimental]
+hardware_tier = 3  # Monolith tier
+compute_type = "NPU"  # Align with [hardware]
+task_role = "SENTINEL"  # Security/Vision jobs only
