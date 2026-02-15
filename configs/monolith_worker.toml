@@ -3,12 +3,30 @@ name = "monolith-mk1-worker"
 version = "1.0.0-hydra"
 environment = "production"
 
+[network]
+bootnodes = [
+    "http://217.76.61.116:8545",
+    "http://46.250.244.4:8545"
+]
+chain_id = 86137
+
 [hardware]
 force_cpu = false
 # Use second Hailo device (/dev/hailo1)
 compute_type = "NPU"
 npu_device_id = 1
 max_memory_gb = 4
+
+[limits]
+# Scout/RPi: lighter limits than desktop
+default_memory_mb = 2048
+max_memory_mb = 4096
+max_models_in_memory = 2
+
+[cache]
+enable_model_cache = true
+max_cache_size_gb = 2
+preload_on_startup = false
 
 [experimental]
 hardware_tier = 3

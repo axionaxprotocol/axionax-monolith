@@ -28,6 +28,13 @@ Nodes running `axionax-node` (or equivalent), mode set via config or `--role`.
 | **Stake** | Must meet `min_validator_stake` in genesis |
 | **Refs** | `config.example.yaml`, `docker-compose` (validator), `setup_validator.sh` |
 
+**Current testnet validators (2 VPS):**
+
+| IP | Region | RPC |
+|----|--------|-----|
+| 217.76.61.116 | EU | http://217.76.61.116:8545 |
+| 46.250.244.4 | AU | http://46.250.244.4:8545 |
+
 ### 1.2 RPC Node
 
 | Item | Details |

@@ -6,6 +6,19 @@
 
 ---
 
+## วิธีที่ง่ายที่สุด: ดาวน์โหลด packaging แล้วรัน
+
+ไม่ว่าใครก็ตามที่ต้องการเข้าร่วมเป็นโหนด สามารถ **ดาวน์โหลด packaging** ของโปรเจค แล้วรันสคริปต์เดียวเพื่อ **ตรวจสอบความเหมาะสม** และ **เลือกประเภทโหนด** ได้เลย:
+
+1. ดาวน์โหลดโปรเจค (โคลนหรือ ZIP จาก GitHub) หรือใช้ชุด package ที่สร้างด้วย `python scripts/make-node-package.py`
+2. ติดตั้ง Python 3.10+ และ `pip install -r core/deai/requirements.txt`
+3. จาก root ของโฟลเดอร์ รัน: **`python scripts/join-axionax.py`**
+4. ทำตามคำแนะนำ: ตรวจความเหมาะสม → เลือกประเภทโหนด (Worker PC / Monolith Scout / HYDRA) → ตรวจ config → รันโหนด
+
+ดูรายละเอียด: [NODE_PACKAGE_README.md](NODE_PACKAGE_README.md) · [GET_STARTED.md](GET_STARTED.md)
+
+---
+
 ## สิ่งที่ต้องมี (Prerequisites)
 
 | สิ่งที่ต้องมี | หมายเหตุ |
@@ -94,4 +107,6 @@ python core/deai/worker_node.py
 
 ---
 
-**สรุป:** ติดตั้ง → รัน `scripts/join-network.py` เพื่อตรวจสอบ → รัน `python core/deai/worker_node.py` และเก็บ wallet กับรหัสผ่านให้ปลอดภัย
+**สรุป:** ติดตั้ง → รัน `scripts/join-network.py` เพื่อตรวจสอบ → รัน `python core/deai/worker_node.py` และเก็บ wallet กับรหัสผ่านให้ปลอดภัย  
+
+เส้นทางอื่น (Monolith Scout, สถานะ Testnet): ดู **[GET_STARTED.md](GET_STARTED.md)**

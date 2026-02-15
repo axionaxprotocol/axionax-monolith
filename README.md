@@ -13,6 +13,8 @@
 
 **การใช้งานหลัก:** มี **Website** ให้ใช้งาน → [axionax.org](https://axionax.org) • [Documentation](https://axionaxprotocol.github.io/axionax-docs/) • [Web Universe](https://github.com/axionaxprotocol/axionax-web-universe)
 
+**เริ่มต้น:** ผู้ใช้ทั่วไป → [Website](https://axionax.org) · **เข้าร่วมโหนด → ดาวน์โหลด packaging แล้วรัน `python scripts/join-axionax.py`** · [GET_STARTED.md](GET_STARTED.md)
+
 </div>
 
 ---
@@ -106,8 +108,9 @@ axionax-core-universe/
 
 ## 🚀 Quick Start
 
-**Run for real (Worker / HYDRA):** See **[RUN.md](RUN.md)** for production-ready steps: config, env overrides, single worker, and Project HYDRA.  
-**เข้าร่วมเครือข่าย (Join the network):** คู่มือสั้น เข้าใจง่าย เน้นความปลอดภัย → **[JOIN.md](JOIN.md)**
+**ไม่แน่ใจเริ่มตรงไหน?** → **[GET_STARTED.md](GET_STARTED.md)** (เลือกเส้นทาง: ผู้ใช้ | Worker | Monolith Scout)  
+
+**Run for real (Worker / HYDRA):** [RUN.md](RUN.md) · **เข้าร่วมเครือข่าย:** [JOIN.md](JOIN.md) · **Production / Scout:** [PRODUCTION_READINESS.md](PRODUCTION_READINESS.md)
 
 ### Prerequisites
 
@@ -386,7 +389,7 @@ python tests/integration_test.py
 ## 📚 Documentation
 
 - [**Master Summary**](MASTER_SUMMARY.md) — Project overview, vision, architecture, hardware, DeAI, tokenomics, roadmap (v2.1 Feb 2026)
-- [Run for real (Worker / HYDRA)](RUN.md) · [Join the network (easy & safe)](JOIN.md)
+- [Run for real (Worker / HYDRA)](RUN.md) · [Join the network](JOIN.md) · [Testnet readiness](TESTNET_READINESS.md) · [**Production / Monolith Scout**](PRODUCTION_READINESS.md)
 - [Architecture Overview](core/docs/ARCHITECTURE_OVERVIEW.md)
 - [API Reference](core/docs/API_REFERENCE.md)
 - [Deployment Guide](core/DEPLOYMENT_GUIDE.md)

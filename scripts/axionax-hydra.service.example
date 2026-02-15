@@ -1,0 +1,23 @@
+# Example systemd unit for Monolith MK-I HYDRA (Sentinel + Worker).
+# Copy to /etc/systemd/system/axionax-hydra.service and edit paths/user.
+#
+#   sudo cp scripts/axionax-hydra.service.example /etc/systemd/system/axionax-hydra.service
+#   sudo nano /etc/systemd/system/axionax-hydra.service
+#   sudo systemctl daemon-reload && sudo systemctl enable --now axionax-hydra
+
+[Unit]
+Description=Axionax Monolith MK-I HYDRA (Sentinel + Worker)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=axionax
+WorkingDirectory=/opt/axionax-core-universe
+Environment=PATH=/opt/axionax-core-universe/core/deai/.venv/bin:/usr/local/bin:/usr/bin
+ExecStart=/opt/axionax-core-universe/core/deai/.venv/bin/python /opt/axionax-core-universe/hydra_manager.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

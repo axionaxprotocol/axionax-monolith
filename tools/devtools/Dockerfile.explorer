@@ -1,0 +1,11 @@
+# Minimal Explorer API stub for local dev — real explorer from web-universe or Blockscout in production
+FROM node:20-alpine
+WORKDIR /app
+RUN apk add --no-cache curl
+ENV PORT=3001
+EXPOSE 3001
+# Stub server: health + placeholder so compose and healthchecks pass
+RUN echo "const http=require('http');const p=process.env.PORT||3001;const s=http.createServer((q,r)=>{r.setHeader('Content-Type','application/json');if(q.url==='/api/health'||q.url==='/health'){r.end(JSON.stringify({status:'ok',service:'explorer-stub'}));return;}r.statusCode=404;r.end(JSON.stringify({error:'Not found'}));});s.listen(p,()=>console.log('Explorer stub on',p));" > server.js
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -sf http://localhost:3001/api/health || exit 1
+CMD ["node", "server.js"]

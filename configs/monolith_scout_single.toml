@@ -1,6 +1,10 @@
+# Monolith MK-I Scout+ (Single Hailo) — Production
+# ใช้เมื่อมี Hailo ตัวเดียว (เช่น AI HAT+ 2 ตัวเดียว)
+# รัน: python core/deai/worker_node.py --config configs/monolith_scout_single.toml
+
 [worker]
-name = "monolith-mk1-sentinel"
-version = "1.0.0-hydra"
+name = "monolith-mk1-scout"
+version = "1.0.0"
 environment = "production"
 
 [network]
@@ -12,7 +16,6 @@ chain_id = 86137
 
 [hardware]
 force_cpu = false
-# Use first Hailo device (/dev/hailo0)
 compute_type = "NPU"
 npu_device_id = 0
 max_memory_gb = 4
@@ -28,6 +31,6 @@ max_cache_size_gb = 2
 preload_on_startup = false
 
 [experimental]
-hardware_tier = 3  # Monolith tier
-compute_type = "NPU"  # Align with [hardware]
-task_role = "SENTINEL"  # Security/Vision jobs only
+hardware_tier = 3
+compute_type = "NPU"
+task_role = "WORKER"

@@ -2,6 +2,8 @@
 
 **การใช้งานหลัก:** มี **Website** ให้ใช้งาน ([axionax.org](https://axionax.org)); คู่มือนี้สำหรับผู้ที่ต้องการรันโหนดเอง  
 
+**Monolith MK-I Scout / Production:** ดู **[PRODUCTION_READINESS.md](PRODUCTION_READINESS.md)** — checklist สำหรับ production และ Scout
+
 This guide gets you running the **Worker Node** and **Project HYDRA** (Monolith MK-I) for real use.
 
 ---
@@ -123,9 +125,17 @@ chmod +x scripts/run-worker.sh
 
 ## 6. Verify
 
-- **One-step join check** (แนะนำก่อนรัน worker ครั้งแรก):
+- **ตรวจความเหมาะสม + เลือกประเภทโหนด + รัน** (แนะนำสำหรับคนที่เพิ่งเข้าร่วม):
+  ```bash
+  python scripts/join-axionax.py
+  ```
+- **One-step join check** (ตรวจ config + RPC อย่างเดียว):
   ```bash
   python scripts/join-network.py
+  ```
+- **Production / Monolith Scout** (ตรวจ config + RPC + checklist):
+  ```bash
+  python scripts/verify-production-ready.py --config configs/monolith_scout_single.toml
   ```
 - **Health check script** (from repo root):
   ```bash

@@ -142,26 +142,33 @@ services:
       - axionax-core
 
   # ============================================
-  # 💧 Faucet API
+  # 💧 Faucet API (built from core/tools/faucet)
   # ============================================
   faucet:
     build:
-      context: ./tools/faucet
-      dockerfile: Dockerfile
+      context: ./core
+      dockerfile: ../ops/deploy/Dockerfile.faucet
     container_name: axionax-faucet
     restart: unless-stopped
     depends_on:
-      - axionax-node
-      - redis
+      axionax-node: { condition: service_healthy }
+      redis: { condition: service_started }
     ports:
       - "3002:3002"
     environment:
       - RPC_URL=http://axionax-node:8545
-      - REDIS_URL=redis://redis:6379
-      - FAUCET_AMOUNT=100
-      - COOLDOWN_HOURS=24
+      - PORT=3002
+      - CHAIN_ID=86137
+      # Dev only: use a test key; production must set FAUCET_PRIVATE_KEY securely
+      - FAUCET_PRIVATE_KEY=${FAUCET_PRIVATE_KEY:-0x0000000000000000000000000000000000000000000000000000000000000001}
     networks:
       - axionax-core
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # ============================================
   # 📊 Prometheus (Monitoring)
@@ -201,7 +208,7 @@ services:
       - axionax-core
 
   # ============================================
-  # 🔍 Block Explorer Backend
+  # 🔍 Block Explorer Backend (stub in dev; use real explorer in production)
   # ============================================
   explorer-api:
     build:
@@ -215,11 +222,15 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - RPC_URL=http://axionax-node:8545
-      - DATABASE_URL=postgresql://axionax:axionax_dev_2026@postgres:5432/axionax_testnet
       - PORT=3001
     networks:
       - axionax-core
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:3001/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
 volumes:
   node_data:

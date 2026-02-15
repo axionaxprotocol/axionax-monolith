@@ -2,7 +2,7 @@
 
 [network]
 network_id = "axionax-testnet-1"
-chain_id = 888
+chain_id = 86137
 listen_address = "0.0.0.0:30303"
 max_peers = 50
 enable_mdns = true

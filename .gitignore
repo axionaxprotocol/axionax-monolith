@@ -28,3 +28,6 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Built node package (optional; run scripts/make-node-package.py to create)
+axionax-node-package.zip
