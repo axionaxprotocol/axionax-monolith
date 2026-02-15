@@ -1,6 +1,7 @@
 # Core documentation
 
-Central docs for the Axionax Core Universe (blockchain, network, DeAI, hardware).
+Central docs for the Axionax Core Universe (blockchain, network, DeAI, hardware).  
+For the **project-wide master summary** (vision, tokenomics, roadmap), see [MASTER_SUMMARY.md](../MASTER_SUMMARY.md) at repo root.
 
 ## Architecture & vision
 
@@ -16,6 +17,12 @@ Central docs for the Axionax Core Universe (blockchain, network, DeAI, hardware)
 |-----|-------------|
 | [NETWORK_NODES.md](./NETWORK_NODES.md) | All node types: Validator, RPC, Full, Light, Bootnode, Explorer, Faucet, Workers |
 | [MARKETPLACE_WORKER_NODES.md](./MARKETPLACE_WORKER_NODES.md) | Worker nodes on the Compute Marketplace (specs, tiers, job types) |
+
+## DeAI & Sentinels
+
+| Doc | Description |
+|-----|-------------|
+| [SENTINELS.md](./SENTINELS.md) | The 7 Sentinels (AION-VX, SERAPH-VX, ORION-VX, DIAOCHAN-VX, VULCAN-VX, THEMIS-VX, NOESIS-VX) |
 
 ## API & specs
 

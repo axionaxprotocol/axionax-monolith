@@ -11,7 +11,7 @@
 
 **High-Performance Blockchain Protocol** • **PoPC Consensus** • **45,000+ TPS** • **<0.5s Finality**
 
-[Website](https://axionax.org) • [Documentation](https://axionaxprotocol.github.io/axionax-docs/) • [Web Universe](https://github.com/axionaxprotocol/axionax-web-universe)
+**การใช้งานหลัก:** มี **Website** ให้ใช้งาน → [axionax.org](https://axionax.org) • [Documentation](https://axionaxprotocol.github.io/axionax-docs/) • [Web Universe](https://github.com/axionaxprotocol/axionax-web-universe)
 
 </div>
 
@@ -19,7 +19,9 @@
 
 ## 📖 Overview
 
-**axionax Core Universe** เป็น monorepo ที่รวมทุกอย่างที่เกี่ยวข้องกับ backend, infrastructure และ development tools ของ axionax Protocol ไว้ในที่เดียว ทำให้การพัฒนา deployment และ maintenance ง่ายและมีประสิทธิภาพมากขึ้น
+**axionax Core Universe** เป็น monorepo ที่รวมทุกอย่างที่เกี่ยวข้องกับ backend, infrastructure และ development tools ของ axionax Protocol ไว้ในที่เดียว ทำให้การพัฒนา deployment และ maintenance ง่ายและมีประสิทธิภาพมากขึ้น  
+
+**การใช้งานหลัก:** ผู้ใช้ทั่วไปใช้งานผ่าน **Website** ([axionax.org](https://axionax.org)); repo นี้เป็น Core / โหนด / Worker สำหรับผู้ที่รัน infrastructure เองหรือเข้าร่วมเครือข่ายเป็น Node Operator
 
 ### 🎯 What's Inside?
 
@@ -103,6 +105,9 @@ axionax-core-universe/
 ---
 
 ## 🚀 Quick Start
+
+**Run for real (Worker / HYDRA):** See **[RUN.md](RUN.md)** for production-ready steps: config, env overrides, single worker, and Project HYDRA.  
+**เข้าร่วมเครือข่าย (Join the network):** คู่มือสั้น เข้าใจง่าย เน้นความปลอดภัย → **[JOIN.md](JOIN.md)**
 
 ### Prerequisites
 
@@ -380,6 +385,8 @@ python tests/integration_test.py
 
 ## 📚 Documentation
 
+- [**Master Summary**](MASTER_SUMMARY.md) — Project overview, vision, architecture, hardware, DeAI, tokenomics, roadmap (v2.1 Feb 2026)
+- [Run for real (Worker / HYDRA)](RUN.md) · [Join the network (easy & safe)](JOIN.md)
 - [Architecture Overview](core/docs/ARCHITECTURE_OVERVIEW.md)
 - [API Reference](core/docs/API_REFERENCE.md)
 - [Deployment Guide](core/DEPLOYMENT_GUIDE.md)
@@ -389,13 +396,14 @@ python tests/integration_test.py
 - [Monolith Roadmap](core/docs/MONOLITH_ROADMAP.md) — MK-I to MK-IV hardware
 - [Network Nodes](core/docs/NETWORK_NODES.md) — All node types on the network
 - [Marketplace Worker Nodes](core/docs/MARKETPLACE_WORKER_NODES.md) — Workers on Compute Marketplace
+- [Core docs index](core/docs/README.md) — All docs in `core/docs/`
 - [Full Documentation](https://axionaxprotocol.github.io/axionax-docs/)
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+We welcome contributions. See **[CONTRIBUTING.md](CONTRIBUTING.md)** for setup, testing, and PR guidelines.
 
 1. **Fork** this repository
 2. **Create** a feature branch (`git checkout -b feature/amazing`)

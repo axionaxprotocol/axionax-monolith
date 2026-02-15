@@ -166,6 +166,7 @@ End-to-end architecture of Axionax Protocol: blockchain, network, DeAI, and hard
 | [MONOLITH_ROADMAP.md](./MONOLITH_ROADMAP.md) | MK-I to MK-IV hardware specs |
 | [NETWORK_NODES.md](./NETWORK_NODES.md) | All node types on the network |
 | [MARKETPLACE_WORKER_NODES.md](./MARKETPLACE_WORKER_NODES.md) | Worker types on Compute Marketplace |
+| [SENTINELS.md](./SENTINELS.md) | The 7 Sentinels (network immune system) |
 | [API_REFERENCE.md](./API_REFERENCE.md) | RPC and API reference |
 | [RPC_API.md](./RPC_API.md) | JSON-RPC methods |
 

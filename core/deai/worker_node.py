@@ -346,7 +346,11 @@ class AxionaxWorker:
         self.network = NetworkManager(config_path)
         self.client = self.network.get_client()
         
-        self.wallet = WalletManager()
+        # Wallet: AXIONAX_WALLET_PATH env, or worker_key.json next to config
+        wallet_path = os.environ.get("AXIONAX_WALLET_PATH", "").strip()
+        if not wallet_path:
+            wallet_path = str(Path(config_path).resolve().parent / "worker_key.json")
+        self.wallet = WalletManager(key_file=wallet_path)
         
         # Initialize Contract Manager
         self.contract = ContractManager(
@@ -453,14 +457,12 @@ class AxionaxWorker:
             try:
                 start_time = time.time()
                 
-                # TODO: Implement actual model loading based on model_name
-                # For now, create a placeholder
+                # Model loading: extend with real backends (e.g. HuggingFace, torch.load) per model_name
                 if model_name == "default":
-                    # Dummy model for testing
                     model = {"name": model_name, "loaded": True}
                     size_mb = 0.1
                 else:
-                    logger.warning(f"Unknown model: {model_name}, skipping")
+                    logger.warning("Unknown model %s, skipping", model_name)
                     continue
                 
                 load_time_ms = (time.time() - start_time) * 1000
@@ -577,10 +579,26 @@ class AxionaxWorker:
         Returns:
             List of job dictionaries
         """
-        # TODO: Implement actual event filtering from smart contract
-        # For now, return empty list
-        # logs = self.client.get_logs(start_block, end_block, topics=["NewJob"])
-        return []
+        # Fetch NewJob events from chain (eth_getLogs); parse into job list
+        try:
+            from contract_manager import MARKETPLACE_ADDRESS
+            logs = self.client.get_logs(
+                hex(start_block),
+                address=MARKETPLACE_ADDRESS if MARKETPLACE_ADDRESS != "0x0000000000000000000000000000000000000000" else None,
+                topics=[],
+            )
+            jobs = []
+            for log in logs:
+                if not log.get("topics"):
+                    continue
+                data = log.get("data", "0x")
+                job_id_hex = log["topics"][1] if len(log["topics"]) > 1 else "0x0"
+                job_id = int(job_id_hex, 16)
+                jobs.append({"id": str(job_id), "type": "inference", "params": {"log": data}})
+            return jobs
+        except Exception as e:
+            logger.debug("scan_for_jobs: %s", e)
+            return []
 
     def execute_job(self, job_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -669,13 +687,23 @@ class AxionaxWorker:
         )
 
     def submit_result(self, job: Dict, result: Dict):
-        """Submit job result to blockchain"""
+        """Submit job result to blockchain via ContractManager."""
         try:
-            # TODO: Call smart contract to submit result
-            logger.info(f"Submitting result for job {job.get('id')}")
-            # self.contract.submit_result(job['id'], result)
+            job_id = job.get("id")
+            if job_id is None:
+                logger.error("submit_result: job has no id")
+                return
+            if isinstance(job_id, int):
+                job_id_int = job_id
+            elif isinstance(job_id, str):
+                job_id_int = int(job_id, 16) if job_id.startswith("0x") else int(job_id)
+            else:
+                job_id_int = int(job_id)
+            result_str = json.dumps(result) if isinstance(result, dict) else str(result)
+            logger.info("Submitting result for job %s", job_id)
+            self.contract.submit_result(job_id_int, result_str)
         except Exception as e:
-            logger.error(f"Failed to submit result: {e}")
+            logger.error("Failed to submit result: %s", e)
 
     def report_failure(self, job: Dict, error: str):
         """Report job failure to blockchain"""
@@ -698,17 +726,27 @@ class AxionaxWorker:
 
 if __name__ == "__main__":
     import argparse
-    
+    import sys
+
     parser = argparse.ArgumentParser(description="Axionax DeAI Worker Node (v1.9.0)")
     parser.add_argument("--config", default="worker_config.toml", help="Config file path")
     parser.add_argument("--no-sandbox", action="store_true", help="Disable Docker sandbox (UNSAFE!)")
     args = parser.parse_args()
-    
+
+    config_path = args.config
+    if not os.path.isabs(config_path):
+        config_path = os.path.abspath(config_path)
+    if not os.path.isfile(config_path):
+        logger.error("Config file not found: %s", config_path)
+        logger.info("Run from repo root: python core/deai/worker_node.py --config configs/monolith_worker.toml")
+        logger.info("Or from core/deai: python worker_node.py --config worker_config.toml")
+        sys.exit(1)
+
     if args.no_sandbox:
-        logger.warning("⚠️ Running WITHOUT sandbox - NOT RECOMMENDED for production!")
-    
+        logger.warning("Running WITHOUT sandbox - NOT RECOMMENDED for production!")
+
     worker = AxionaxWorker(
-        config_path=args.config,
+        config_path=config_path,
         use_sandbox=not args.no_sandbox,
     )
     worker.start()

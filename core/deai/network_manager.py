@@ -1,29 +1,62 @@
+import os
 import toml
 import time
+from pathlib import Path
 from typing import List, Optional
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from rpc_client import AxionaxRpcClient
+
+
+def _get_bootnodes_from_env() -> Optional[List[str]]:
+    """Override bootnodes from env: AXIONAX_RPC_URL (single) or AXIONAX_BOOTNODES (comma-separated)."""
+    single = os.environ.get("AXIONAX_RPC_URL", "").strip()
+    if single:
+        return [single]
+    nodes = os.environ.get("AXIONAX_BOOTNODES", "").strip()
+    if nodes:
+        return [u.strip() for u in nodes.split(",") if u.strip()]
+    return None
+
 
 class NetworkManager:
     """
     Manages network connections, node discovery, and health checks.
     Selects the best node based on Block Height (Longest Chain Rule).
+    Supports env overrides: AXIONAX_RPC_URL or AXIONAX_BOOTNODES.
     """
     def __init__(self, config_path: str = "worker_config.toml"):
         self.config = self._load_config(config_path)
-        self.bootnodes = self.config.get("network", {}).get("bootnodes", [])
+        self.bootnodes = _get_bootnodes_from_env()
+        if self.bootnodes is None:
+            self.bootnodes = self.config.get("network", {}).get("bootnodes", [])
         self.active_node_url = None
         self.active_client = None
-        
-        if not self.bootnodes:
-            raise ValueError("No bootnodes found in configuration!")
 
-        print(f"🌐 NetworkManager initialized with {len(self.bootnodes)} bootnodes.")
+        if not self.bootnodes:
+            raise ValueError(
+                "No bootnodes. Set [network] bootnodes in config, or "
+                "AXIONAX_RPC_URL / AXIONAX_BOOTNODES in .env"
+            )
+
+        print(f"NetworkManager initialized with {len(self.bootnodes)} bootnode(s).")
 
     def _load_config(self, path: str) -> dict:
         try:
-            return toml.load(path)
+            p = Path(path)
+            if not p.is_absolute():
+                p = Path.cwd() / p
+            if not p.exists():
+                return {}
+            with open(p, encoding="utf-8") as f:
+                return toml.load(f)
         except Exception as e:
-            print(f"❌ Error loading config: {e}")
+            print(f"Error loading config: {e}")
             return {}
 
     def find_best_node(self) -> Optional[str]:

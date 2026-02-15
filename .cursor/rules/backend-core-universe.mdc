@@ -1,0 +1,35 @@
+---
+description: กฎการพัฒนา Backend (Core Universe) — Rust, Python DeAI, ops, scripts
+globs: core/**/*, ops/**/*, tools/**/*, scripts/**/*, configs/**/*, *.toml, hydra_manager.py
+alwaysApply: false
+---
+
+# Backend — Core Universe
+
+โปรเจค backend อยู่ที่ราก repo นี้: **core-universe** (Rust Core + Python DeAI + ops + tools)
+
+## โครงสร้าง
+
+- **core/** — Rust blockchain (blockchain, consensus, rpc, staking, …) และ **core/deai/** — Python Worker
+- **ops/deploy/** — Deployment, environments, monitoring
+- **tools/** — faucet, devtools
+- **scripts/** — run-worker, health-check, join-network
+- **configs/** — monolith_*.toml, worker configs
+
+## Rust (core/)
+
+- รันคำสั่งจาก **core/**: `cargo build`, `cargo test --workspace`, `cargo clippy --workspace`, `cargo fmt --all`
+- ใช้ `core/Cargo.toml` เป็น workspace root; ไม่ย้าย crate ออกจาก core/
+- หลีกเลี่ยง `unsafe` เว้นแต่จำเป็น; โฟกัส memory safety และ performance
+
+## Python (core/deai/)
+
+- Python 3.10+; dependencies จาก **core/deai/requirements.txt** เท่านั้น
+- Config: **worker_config.toml**; override ด้วย env (.env จาก .env.example) — อย่า commit `.env` หรือ `worker_key.json`
+- Wallet: รองรับ `AXIONAX_WALLET_PATH`, `WORKER_PRIVATE_KEY`, `WORKER_KEY_PASSWORD`; ใช้ path อยู่ข้าง config ได้
+- รันเทส: `python -m pytest . -v --tb=short` จาก core/deai/
+
+## Config & ความปลอดภัย
+
+- ค่า secret ใส่ใน env หรือ .env; มี .env.example ไว้เป็นตัวอย่าง
+- เอกสารการรัน/เข้าร่วมเครือข่าย: RUN.md, JOIN.md

@@ -1,0 +1,27 @@
+---
+description: กฎการพัฒนา Frontend (Web Universe) — Next.js, React, SDK ใน submodule web-universe
+globs: web-universe/**/*
+alwaysApply: false
+---
+
+# Frontend — Web Universe
+
+โปรเจค frontend อยู่ที่ **web-universe/** (Git submodule): Next.js, Marketplace, TypeScript SDK
+
+## โครงสร้าง (ใน web-universe/)
+
+- **apps/web/** — Next.js 14, App Router (เว็บหลัก)
+- **apps/marketplace/** — Vite + React (marketplace)
+- **packages/sdk/** — TypeScript SDK (@axionax/sdk) — ใส่ business logic ที่นี่ ไม่ใช่ใน app
+
+## สิ่งที่ต้องทำ
+
+- ใช้ **pnpm** (workspaces); ไม่ใช้ npm/yarn ที่ root ของ web-universe
+- **Import:** ใช้ workspace alias เช่น `import { ... } from "@axionax/sdk"` — อย่าใช้ relative path ข้าม package (เช่น ../../packages/sdk)
+- **Next.js:** ใช้ Server Components เป็นค่าเริ่มต้น; ใส่ `"use client"` เฉพาะเมื่อใช้ hooks (useState, useEffect)
+- **สไตล์:** Tailwind CSS; โทน Cyberpunk/Futuristic, dark mode เป็นค่าเริ่มต้น
+
+## สิ่งที่ไม่ควรทำ
+
+- อย่าใส่ logic ที่ใช้ร่วมได้ใน apps/web หรือ apps/marketplace — ย้ายไป **packages/sdk**
+- อย่า hardcode API key หรือ secret ใน frontend; ใช้ env (NEXT_PUBLIC_* สำหรับ client)
