@@ -1,0 +1,2 @@
+# Shell scripts: always LF so they run on Linux/VPS when copied from Windows
+*.sh text eol=lf

@@ -1,17 +1,13 @@
 #!/bin/bash
 # =============================================================================
-# อัปเดต VPS Validator ทั้ง 2 ตัว (217.76.61.116, 46.250.244.4)
-# รันสคริปต์นี้บนแต่ละ VPS: อัปเดต OS, config (chain_id 86137), image, restart, ตรวจ RPC
+# Update Validator VPS (217.76.61.116, 46.250.244.4)
+# Run this script on each VPS: OS update, config (chain_id 86137), image, restart, RPC check
 #
 # Usage:
 #   scp ops/deploy/scripts/update-validator-vps.sh root@217.76.61.116:/tmp/
 #   ssh root@217.76.61.116 'bash /tmp/update-validator-vps.sh'
-#   หรือบน VPS: cd /opt/axionax-deploy && sudo bash scripts/update-validator-vps.sh
 #
-# ตัวเลือก:
-#   --skip-apt     ข้าม apt update/upgrade
-#   --skip-pull    ข้าม docker pull
-#   --dry-run      แสดงว่าจะทำอะไร ไม่รันคำสั่งจริง
+# Options: --skip-apt | --skip-pull | --dry-run
 # =============================================================================
 
 set -e
@@ -41,7 +37,6 @@ run() {
   fi
 }
 
-# โฟลเดอร์ deploy บน VPS (ถ้ารันจาก repo ที่ clone ไว้)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="$(dirname "$SCRIPT_DIR")"
 CONFIG_DIR="${DEPLOY_DIR}/configs"
@@ -54,7 +49,6 @@ echo "=============================================="
 echo "  DEPLOY_DIR = $DEPLOY_DIR"
 echo ""
 
-# 1) อัปเดต OS (optional)
 if [ -z "$SKIP_APT" ]; then
   echo "[1] Updating OS (apt)..."
   run apt-get update -qq && run apt-get upgrade -y -qq || true
@@ -63,7 +57,6 @@ else
   echo "[1] Skipping apt (--skip-apt)"
 fi
 
-# 2) ตรวจ/แก้ config ให้ chain_id = 86137
 if [ -f "$RPC_CONFIG" ]; then
   echo "[2] Checking rpc-config.toml (chain_id 86137)..."
   if grep -q 'chain_id = 888' "$RPC_CONFIG" 2>/dev/null; then
@@ -82,7 +75,6 @@ else
   echo "[2] No rpc-config.toml at $RPC_CONFIG — skip"
 fi
 
-# 3) Docker pull + restart rpc-node
 if [ -f "$COMPOSE_FILE" ]; then
   if [ -z "$SKIP_PULL" ]; then
     echo "[3] Pulling latest image and restarting rpc-node..."
@@ -93,10 +85,9 @@ if [ -f "$COMPOSE_FILE" ]; then
   run docker compose -f "$COMPOSE_FILE" up -d rpc-node 2>/dev/null || run docker-compose -f "$COMPOSE_FILE" up -d rpc-node 2>/dev/null || true
   echo -e "${GREEN}  rpc-node up${NC}"
 else
-  echo "[3] No docker-compose.vps.yml — skip (not using compose on this host?)"
+  echo "[3] No docker-compose.vps.yml — skip"
 fi
 
-# 4) Health check
 echo "[4] Health check (RPC)..."
 sleep 3
 RPC_URL="http://127.0.0.1:8545"

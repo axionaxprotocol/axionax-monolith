@@ -22,6 +22,8 @@ INCLUDE = [
     "configs/monolith_sentinel.toml",
     "configs/monolith_scout_single.toml",
     "scripts/join-axionax.py",
+    "scripts/update-node.py",
+    "scripts/update-node.sh",
     "scripts/health-check.py",
     "scripts/join-network.py",
     "scripts/verify-production-ready.py",

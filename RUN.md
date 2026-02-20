@@ -129,6 +129,10 @@ chmod +x scripts/run-worker.sh
   ```bash
   python scripts/join-axionax.py
   ```
+- **อัปเดตทุกเครื่องที่เข้าร่วมเครือข่าย (ไม่ต้องบอก IP):** รันบนเครื่องที่รันโหนด:
+  ```bash
+  python scripts/update-node.py
+  ```
 - **One-step join check** (ตรวจ config + RPC อย่างเดียว):
   ```bash
   python scripts/join-network.py

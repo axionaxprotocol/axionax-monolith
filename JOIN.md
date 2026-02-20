@@ -17,6 +17,8 @@
 
 ดูรายละเอียด: [NODE_PACKAGE_README.md](NODE_PACKAGE_README.md) · [GET_STARTED.md](GET_STARTED.md)
 
+**อัปเดต:** ทุกเครื่องที่เข้าร่วมเครือข่ายสามารถอัปเดตได้เองโดยไม่ต้องบอก IP — รันบนเครื่องที่รันโหนด: `python scripts/update-node.py`
+
 ---
 
 ## สิ่งที่ต้องมี (Prerequisites)
