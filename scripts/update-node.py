@@ -144,6 +144,7 @@ def main():
     ap = argparse.ArgumentParser(description="Update node (run on this machine, no IP needed)")
     ap.add_argument("--no-pull", action="store_true", help="Skip git pull")
     ap.add_argument("--check-only", action="store_true", help="Only run suitability check")
+    ap.add_argument("--full-deps", action="store_true", help="Also install AI/ML deps (torch, numpy, etc.)")
     args = ap.parse_args()
 
     os.chdir(ROOT)
@@ -170,16 +171,31 @@ def main():
 
     # Step 2: pip install
     if not args.check_only:
-        req = ROOT / "core" / "deai" / "requirements.txt"
-        if req.exists():
-            print("[2] ติดตั้ง dependencies...")
+        # Upgrade pip itself first (old pip can't find wheels)
+        run(
+            [sys.executable, "-m", "pip", "install", "--upgrade", "pip", "-q"],
+            allow_fail=True,
+        )
+
+        # Always install lightweight script deps (toml, requests, dotenv)
+        script_req = ROOT / "scripts" / "requirements.txt"
+        if script_req.exists():
+            print("[2] ติดตั้ง dependencies (scripts)...")
             run(
-                [sys.executable, "-m", "pip", "install", "-r", str(req), "-q", "--upgrade"],
+                [sys.executable, "-m", "pip", "install", "-r", str(script_req), "-q", "--upgrade"],
                 allow_fail=True,
             )
             print("  Done.\n")
-        else:
-            print("[2] No requirements.txt — skip.\n")
+
+        # Full AI/ML deps only if --full-deps flag is passed
+        full_req = ROOT / "core" / "deai" / "requirements.txt"
+        if args.full_deps and full_req.exists():
+            print("[2b] ติดตั้ง AI/ML dependencies (torch, numpy, ...)...")
+            run(
+                [sys.executable, "-m", "pip", "install", "-r", str(full_req), "-q", "--upgrade"],
+                allow_fail=True,
+            )
+            print("  Done.\n")
 
     # Step 3: suitability check
     print("[3] ตรวจความเหมาะสม...")
