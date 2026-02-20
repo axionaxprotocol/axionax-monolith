@@ -353,9 +353,18 @@ class AxionaxWorker:
         self.wallet = WalletManager(key_file=wallet_path)
         
         # Initialize Contract Manager
+        contract_address = os.environ.get("AXIONAX_MARKETPLACE_ADDRESS", "").strip()
+        if not contract_address:
+            try:
+                import toml as _toml
+                _cfg = _toml.load(config_path)
+                contract_address = _cfg.get("network", {}).get("contract_address", "")
+            except Exception:
+                pass
         self.contract = ContractManager(
-            rpc_url=self.network.active_node_url, 
-            private_key=self.wallet.account.key.hex()
+            rpc_url=self.network.active_node_url,
+            private_key=self.wallet.account.key.hex(),
+            contract_address=contract_address,
         )
         
         self.is_running = False
@@ -553,12 +562,16 @@ class AxionaxWorker:
                     jobs = self.scan_for_jobs(last_processed_block + 1, current_block)
                     
                     for job in jobs:
+                        job_id = job.get("id")
                         try:
+                            self.contract.assign_job(job_id)
                             result = self.execute_job(job)
                             self.submit_result(job, result)
                         except JobExecutionError as e:
-                            logger.error(f"Job {job.get('id')} failed: {e}")
+                            logger.error(f"Job {job_id} failed: {e}")
                             self.report_failure(job, str(e))
+                        except Exception as e:
+                            logger.error(f"Job {job_id} error: {e}")
                     
                     last_processed_block = current_block
                 
@@ -570,32 +583,43 @@ class AxionaxWorker:
 
     def scan_for_jobs(self, start_block: int, end_block: int) -> list:
         """
-        Scan blockchain for new jobs assigned to this worker.
-        
-        Args:
-            start_block: Starting block number
-            end_block: Ending block number
-            
+        Scan blockchain for new pending jobs via the contract.
+
+        Two strategies:
+        1. (Preferred) Call getPendingJobs() view function on the contract.
+        2. (Fallback) Scan JobCreated events between block range.
+
         Returns:
-            List of job dictionaries
+            List of job dictionaries ready for execution.
         """
-        # Fetch NewJob events from chain (eth_getLogs); parse into job list
         try:
-            from contract_manager import MARKETPLACE_ADDRESS
-            logs = self.client.get_logs(
-                hex(start_block),
-                address=MARKETPLACE_ADDRESS if MARKETPLACE_ADDRESS != "0x0000000000000000000000000000000000000000" else None,
-                topics=[],
-            )
-            jobs = []
-            for log in logs:
-                if not log.get("topics"):
-                    continue
-                data = log.get("data", "0x")
-                job_id_hex = log["topics"][1] if len(log["topics"]) > 1 else "0x0"
-                job_id = int(job_id_hex, 16)
-                jobs.append({"id": str(job_id), "type": "inference", "params": {"log": data}})
-            return jobs
+            # Strategy 1: direct contract query for pending jobs
+            pending_ids = self.contract.get_pending_jobs()
+            if pending_ids:
+                jobs = []
+                for job_id in pending_ids:
+                    job = self.contract.get_job(job_id)
+                    if job and job["status"] == 0:  # Pending
+                        jobs.append({
+                            "id": job["id"],
+                            "type": ["inference", "training", "data_processing", "custom"][job["jobType"]],
+                            "inputHash": job["inputHash"],
+                            "reward": job["reward"],
+                            "timeout": job["timeout"],
+                        })
+                return jobs
+
+            # Strategy 2: scan events
+            events = self.contract.scan_job_created_events(start_block, end_block)
+            return [
+                {
+                    "id": evt["id"],
+                    "type": ["inference", "training", "data_processing", "custom"][evt["jobType"]],
+                    "inputHash": evt["inputHash"],
+                    "reward": evt["reward"],
+                }
+                for evt in events
+            ]
         except Exception as e:
             logger.debug("scan_for_jobs: %s", e)
             return []
@@ -693,15 +717,9 @@ class AxionaxWorker:
             if job_id is None:
                 logger.error("submit_result: job has no id")
                 return
-            if isinstance(job_id, int):
-                job_id_int = job_id
-            elif isinstance(job_id, str):
-                job_id_int = int(job_id, 16) if job_id.startswith("0x") else int(job_id)
-            else:
-                job_id_int = int(job_id)
-            result_str = json.dumps(result) if isinstance(result, dict) else str(result)
+            job_id_int = int(job_id) if not isinstance(job_id, int) else job_id
             logger.info("Submitting result for job %s", job_id)
-            self.contract.submit_result(job_id_int, result_str)
+            self.contract.submit_result(job_id_int, result)
         except Exception as e:
             logger.error("Failed to submit result: %s", e)
 
