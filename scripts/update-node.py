@@ -49,6 +49,61 @@ def run(cmd: list, cwd: Path = None, allow_fail: bool = False) -> bool:
     return r.returncode == 0
 
 
+def has_pip() -> bool:
+    return subprocess.run(
+        [sys.executable, "-m", "pip", "--version"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    ).returncode == 0
+
+
+def ensure_pip() -> bool:
+    """Install pip if missing. Returns True when pip is available."""
+    if has_pip():
+        return True
+
+    print("  ⚠️ pip ไม่พบ — กำลังติดตั้งอัตโนมัติ...")
+
+    # 1) ensurepip (works on most Python installs)
+    if subprocess.run(
+        [sys.executable, "-m", "ensurepip", "--upgrade"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+    ).returncode == 0 and has_pip():
+        print("  ✅ pip ติดตั้งสำเร็จ (ensurepip)")
+        return True
+
+    # 2) apt (Debian/Ubuntu — common on VPS)
+    if sys.platform == "linux" and os.geteuid() == 0:
+        print("  กำลังรัน: apt-get install -y python3-pip python3-venv ...")
+        subprocess.run(
+            ["apt-get", "update", "-qq"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        subprocess.run(["apt-get", "install", "-y", "python3-pip", "python3-venv"])
+        if has_pip():
+            print("  ✅ pip ติดตั้งสำเร็จ (apt)")
+            return True
+
+    # 3) get-pip.py as last resort
+    try:
+        import urllib.request
+        get_pip = ROOT / "get-pip.py"
+        print("  กำลังดาวน์โหลด get-pip.py ...")
+        urllib.request.urlretrieve("https://bootstrap.pypa.io/get-pip.py", str(get_pip))
+        subprocess.run([sys.executable, str(get_pip)])
+        get_pip.unlink(missing_ok=True)
+        if has_pip():
+            print("  ✅ pip ติดตั้งสำเร็จ (get-pip.py)")
+            return True
+    except Exception:
+        pass
+
+    print("  ❌ ไม่สามารถติดตั้ง pip ได้อัตโนมัติ")
+    print("  กรุณาติดตั้งเอง:")
+    print("    Ubuntu/Debian: sudo apt install python3-pip")
+    print("    macOS:         python3 -m ensurepip --upgrade")
+    return False
+
+
 def main():
     import argparse
     ap = argparse.ArgumentParser(description="Update node (run on this machine, no IP needed)")
@@ -78,9 +133,12 @@ def main():
     if not args.check_only:
         req = ROOT / "core" / "deai" / "requirements.txt"
         if req.exists():
-            print("[2] Pip install -r requirements.txt...")
-            run([sys.executable, "-m", "pip", "install", "-r", str(req), "-q", "--upgrade"], allow_fail=True)
-            print("  Done.\n")
+            print("[2] ติดตั้ง dependencies...")
+            if ensure_pip():
+                run([sys.executable, "-m", "pip", "install", "-r", str(req), "-q", "--upgrade"], allow_fail=True)
+                print("  Done.\n")
+            else:
+                print("  ข้าม pip install — แก้ pip แล้วรันอีกครั้ง\n")
         else:
             print("[2] No requirements.txt — skip.\n")
 
