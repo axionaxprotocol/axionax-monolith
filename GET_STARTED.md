@@ -1,6 +1,6 @@
 # Get Started
 
-**เอกสารหลักอยู่ที่ [README.md](README.md)**
+**Main documentation is in [README.md](README.md)**
 
 ```bash
 git clone https://github.com/axionaxprotocol/axionax-core-universe.git

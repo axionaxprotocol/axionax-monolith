@@ -16,11 +16,11 @@
 
 ---
 
-## Quick Start — เข้าร่วมเครือข่าย
+## Quick Start — Join the Network
 
-> **ผู้ใช้ทั่วไป** ใช้งานผ่าน Website → [axionax.org](https://axionax.org)
+> **End users** interact via the Website → [axionax.org](https://axionax.org)
 >
-> ส่วนด้านล่างสำหรับ **Node Operator** ที่ต้องการรันโหนดเอง
+> The section below is for **Node Operators** who want to run their own node.
 
 ### 1. Clone & Update
 
@@ -30,41 +30,41 @@ cd axionax-core-universe
 python3 scripts/update-node.py
 ```
 
-สคริปต์จะ:
-- สร้าง `.venv` อัตโนมัติ (รองรับ Ubuntu 24.04 PEP 668)
-- ติดตั้ง dependencies ที่จำเป็น
-- ตรวจความเหมาะสมของระบบ (Python, deps, RPC)
+The script will:
+- Create a `.venv` automatically (handles Ubuntu 24.04 PEP 668)
+- Install required dependencies
+- Run a system suitability check (Python, deps, RPC)
 
-### 2. เลือกประเภทโหนดและรัน
+### 2. Choose Node Type & Run
 
 ```bash
 python3 scripts/join-axionax.py
 ```
 
-สคริปต์จะให้เลือก:
+Interactive menu:
 
-| ตัวเลือก | ประเภท | Config |
-|-----------|--------|--------|
+| Option | Type | Config |
+|--------|------|--------|
 | 1 | Worker (PC/Server) | `core/deai/worker_config.toml` |
-| 2 | Monolith Scout (Hailo ตัวเดียว) | `configs/monolith_scout_single.toml` |
+| 2 | Monolith Scout (single Hailo) | `configs/monolith_scout_single.toml` |
 | 3 | HYDRA (Sentinel + Worker) | `configs/monolith_worker.toml` |
 
-หรือรันตรง:
+Or run directly:
 
 ```bash
 # Worker
 python3 core/deai/worker_node.py
 
-# Worker ด้วย config เฉพาะ
+# Worker with specific config
 python3 core/deai/worker_node.py --config configs/monolith_scout_single.toml
 
-# HYDRA (Sentinel + Worker คู่)
+# HYDRA (Sentinel + Worker dual-core)
 python3 hydra_manager.py
 ```
 
-### 3. อัพเดทโหนด (ทุกเครื่อง)
+### 3. Update Node (all machines)
 
-รันบนเครื่องที่รันโหนด — ไม่ต้องระบุ IP:
+Run on any machine that runs a node — no IP required:
 
 ```bash
 cd ~/axionax-core-universe
@@ -72,7 +72,7 @@ git pull
 python3 scripts/update-node.py
 ```
 
-ถ้าเป็น Worker AI node ที่ต้องการ torch/numpy:
+For Worker AI nodes that need torch/numpy:
 
 ```bash
 python3 scripts/update-node.py --full-deps
@@ -80,18 +80,18 @@ python3 scripts/update-node.py --full-deps
 
 ---
 
-## เครือข่ายปัจจุบัน (Testnet)
+## Current Network (Testnet)
 
-| Validator | IP | RPC | ภูมิภาค |
-|-----------|-----|-----|---------|
+| Validator | IP | RPC | Region |
+|-----------|-----|-----|--------|
 | #1 | 217.76.61.116 | `http://217.76.61.116:8545` | EU |
 | #2 | 46.250.244.4 | `http://46.250.244.4:8545` | AU |
 
 - **Chain ID:** `86137`
 - **Phase:** Pre-Testnet (Phase 2)
-- Config ต่างๆ ชี้ไป bootnodes 2 IP นี้แล้ว
+- All configs already point to these bootnodes
 
-**ตรวจสอบ RPC:**
+**Verify RPC:**
 
 ```bash
 curl -s -X POST -H "Content-Type: application/json" \
@@ -103,18 +103,18 @@ curl -s -X POST -H "Content-Type: application/json" \
 
 ## Configuration
 
-### ไฟล์ Config
+### Config Files
 
-| ไฟล์ | ใช้กับ |
-|------|--------|
-| `core/deai/worker_config.toml` | Worker PC/Server ทั่วไป |
-| `configs/monolith_scout_single.toml` | Monolith Scout (Hailo เดียว) |
+| File | Used for |
+|------|----------|
+| `core/deai/worker_config.toml` | General Worker PC/Server |
+| `configs/monolith_scout_single.toml` | Monolith Scout (single Hailo) |
 | `configs/monolith_sentinel.toml` | HYDRA — Sentinel (Hailo #0) |
 | `configs/monolith_worker.toml` | HYDRA — Worker (Hailo #1) |
 
 ### Environment Variables (optional)
 
-Copy `.env.example` แล้วแก้:
+Copy and edit the example file:
 
 ```bash
 cp core/deai/.env.example core/deai/.env
@@ -122,37 +122,37 @@ cp core/deai/.env.example core/deai/.env
 
 | Variable | Description |
 |----------|-------------|
-| `AXIONAX_RPC_URL` | RPC URL (override bootnodes ใน config) |
+| `AXIONAX_RPC_URL` | RPC URL (overrides bootnodes in config) |
 | `AXIONAX_BOOTNODES` | Comma-separated RPC URLs |
 | `AXIONAX_CHAIN_ID` | Chain ID |
-| `AXIONAX_WALLET_PATH` | Path ไปยังไฟล์ wallet |
-| `WORKER_KEY_PASSWORD` | รหัสผ่าน wallet (ไม่ต้องพิมพ์ทุกครั้ง) |
-| `WORKER_PRIVATE_KEY` | Private key โดยตรง (แทนไฟล์) |
+| `AXIONAX_WALLET_PATH` | Path to wallet file |
+| `WORKER_KEY_PASSWORD` | Wallet password (avoids prompt on each run) |
+| `WORKER_PRIVATE_KEY` | Private key directly (instead of file) |
 
 ---
 
 ## Security
 
-- **ห้าม commit** ไฟล์ `.env`, `worker_key.json`, หรือ private key ใดๆ (มีใน `.gitignore` แล้ว)
-- **Backup wallet** หลังรันครั้งแรก: copy `worker_key.json` + รหัสผ่าน เก็บในที่ปลอดภัย
-- **Firewall:** เปิดเฉพาะพอร์ตที่จำเป็น (Worker ไม่ต้องเปิด 8545 ออกนอก)
-- **Production:** ใช้ `WORKER_PRIVATE_KEY` จาก environment แทนไฟล์
+- **Never commit** `.env`, `worker_key.json`, or any private keys (already in `.gitignore`)
+- **Backup wallet** after first run: copy `worker_key.json` + password to a safe location
+- **Firewall:** only open necessary ports (Workers don't need 8545 exposed)
+- **Production:** use `WORKER_PRIVATE_KEY` from environment instead of file
 
 ---
 
 ## Monolith MK-I Scout — Production
 
-### ฮาร์ดแวร์
+### Hardware
 
-| รายการ | หมายเหตุ |
-|--------|----------|
+| Item | Notes |
+|------|-------|
 | Raspberry Pi 5 (8GB) | Base unit |
-| Raspberry Pi AI HAT+ 2 (Hailo-10H) | NPU สำหรับ inference |
-| การระบายความร้อน | ฝาครอบ/พัดลม ให้ Hailo ไม่ร้อนเกิน |
-| SD card / SSD | ความจุเพียงพอ + คลาสเร็ว |
-| ไฟเลี้ยง | 5V 5A (USB-C PD) |
+| Raspberry Pi AI HAT+ 2 (Hailo-10H) | NPU for inference |
+| Cooling | Heatsink/fan to keep Hailo within thermal limits |
+| SD card / SSD | Sufficient capacity + fast class |
+| Power supply | 5V 5A (USB-C PD) |
 
-### Setup บน Scout
+### Setup
 
 ```bash
 sudo apt update && sudo apt upgrade -y
@@ -161,36 +161,36 @@ cd axionax-core-universe
 python3 scripts/update-node.py --full-deps
 ```
 
-### รัน
+### Run
 
 ```bash
-# Single Core (Hailo เดียว)
+# Single Core (one Hailo)
 python3 core/deai/worker_node.py --config configs/monolith_scout_single.toml
 
-# HYDRA (Sentinel + Worker — สอง Hailo)
+# HYDRA (Sentinel + Worker — dual Hailo)
 python3 hydra_manager.py
 ```
 
-### รันเป็น Service (systemd)
+### Run as systemd Service
 
 ```bash
 sudo cp scripts/axionax-hydra.service.example /etc/systemd/system/axionax-hydra.service
-# แก้ path / user ให้ตรง
+# Edit paths and user as needed
 sudo systemctl daemon-reload
 sudo systemctl enable --now axionax-hydra
 ```
 
 ### Known Limitations
 
-| รายการ | สถานะ |
-|--------|--------|
-| Worker registration / submit result | Mock — จนกว่าจะมี smart contract จริง |
-| Validator RPC | ✅ ใช้ได้จริง (217.76.61.116, 46.250.244.4) |
-| Wallet / Keys | ✅ สร้างและเข้ารหัสได้จริง |
+| Item | Status |
+|------|--------|
+| Worker registration / result submission | Mock — until real smart contract is deployed |
+| Validator RPC | Live (217.76.61.116, 46.250.244.4) |
+| Wallet / Keys | Live — creation and encryption work |
 
 ---
 
-## Overview — สิ่งที่อยู่ใน Repo
+## Repository Overview
 
 ```
 axionax-core-universe/
@@ -275,26 +275,26 @@ python3 -m pytest . -v --tb=short --ignore=tests
 
 | Script | Description |
 |--------|-------------|
-| `scripts/join-axionax.py` | ตรวจความเหมาะสม + เลือกประเภทโหนด + รัน |
-| `scripts/update-node.py` | อัพเดทโหนด (git pull + deps + check) |
-| `scripts/update-node.py --full-deps` | อัพเดท + ลง AI/ML deps (torch, numpy) |
-| `scripts/health-check.py` | ตรวจ RPC + config + wallet |
-| `scripts/join-network.py` | ตรวจ config + RPC อย่างเดียว |
-| `scripts/verify-production-ready.py` | ตรวจแบบ production เต็ม |
-| `scripts/make-node-package.py` | สร้าง ZIP package สำหรับแจกจ่าย |
+| `scripts/join-axionax.py` | System check + node type selection + run |
+| `scripts/update-node.py` | Update node (git pull + deps + check) |
+| `scripts/update-node.py --full-deps` | Update + install AI/ML deps (torch, numpy) |
+| `scripts/health-check.py` | Check RPC + config + wallet |
+| `scripts/join-network.py` | Check config + RPC only |
+| `scripts/verify-production-ready.py` | Full production readiness check |
+| `scripts/make-node-package.py` | Create ZIP package for distribution |
 
 ---
 
 ## Troubleshooting
 
-| ปัญหา | แก้ไข |
-|--------|-------|
-| `pip` ไม่มี / PEP 668 | `update-node.py` สร้าง .venv ให้อัตโนมัติ |
-| Config file not found | รันจาก repo root หรือใช้ `--config` ระบุ path เต็ม |
-| ไม่มี bootnodes | ตั้ง `[network] bootnodes` ใน TOML หรือ `AXIONAX_RPC_URL` ใน `.env` |
-| Connection refused | ตรวจ RPC URL + firewall; ตรวจว่า chain รันอยู่ |
-| Wallet password | รันครั้งแรกจะถามรหัสผ่าน; ใช้รหัสแข็งแรงและเก็บไว้ |
-| `python` not found | ใช้ `python3` แทน (Ubuntu 24.04+) |
+| Issue | Solution |
+|-------|----------|
+| `pip` missing / PEP 668 | `update-node.py` creates `.venv` automatically |
+| Config file not found | Run from repo root or use `--config` with full path |
+| No bootnodes | Set `[network] bootnodes` in TOML or `AXIONAX_RPC_URL` in `.env` |
+| Connection refused | Check RPC URL + firewall; verify chain is running |
+| Wallet password | First run prompts for password; use a strong one and store safely |
+| `python` not found | Use `python3` instead (Ubuntu 24.04+) |
 
 ---
 

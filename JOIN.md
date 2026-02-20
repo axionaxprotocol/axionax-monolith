@@ -1,6 +1,6 @@
 # Join the Network
 
-**เอกสารหลักอยู่ที่ [README.md](README.md)** — ดูหัวข้อ "Quick Start — เข้าร่วมเครือข่าย"
+**Main documentation is in [README.md](README.md)** — see "Quick Start — Join the Network"
 
 ```bash
 git clone https://github.com/axionaxprotocol/axionax-core-universe.git

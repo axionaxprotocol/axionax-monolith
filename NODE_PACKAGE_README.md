@@ -1,6 +1,6 @@
 # Axionax Node Package
 
-**เอกสารหลักอยู่ที่ [README.md](README.md)**
+**Main documentation is in [README.md](README.md)**
 
 ```bash
 python3 scripts/update-node.py

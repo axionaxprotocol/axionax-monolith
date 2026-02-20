@@ -1,3 +1,3 @@
 # Production Readiness
 
-**เอกสารหลักอยู่ที่ [README.md](README.md)** — ดูหัวข้อ "Monolith MK-I Scout — Production"
+**Main documentation is in [README.md](README.md)** — see "Monolith MK-I Scout — Production"
