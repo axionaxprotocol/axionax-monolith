@@ -6,10 +6,12 @@
 จะดึงโค้ดล่าสุด (git pull), อัปเดต dependencies, ตรวจความเหมาะสม
 ไม่มีการเก็บหรือระบุ IP ของเครื่องใดๆ
 
+Handles PEP 668 (Ubuntu 24.04+) by auto-creating a .venv if system pip is blocked.
+
 Usage:
-  python scripts/update-node.py              # อัปเดตเต็ม
-  python scripts/update-node.py --no-pull   # ข้าม git pull (แค่ pip + ตรวจ)
-  python scripts/update-node.py --check-only # แค่ตรวจความเหมาะสม
+  python3 scripts/update-node.py              # อัปเดตเต็ม
+  python3 scripts/update-node.py --no-pull   # ข้าม git pull (แค่ pip + ตรวจ)
+  python3 scripts/update-node.py --check-only # แค่ตรวจความเหมาะสม
 """
 
 import os
@@ -24,6 +26,7 @@ if sys.platform == "win32":
         pass
 
 ROOT = Path(__file__).resolve().parent.parent
+VENV_DIR = ROOT / ".venv"
 
 
 def require_project_root() -> None:
@@ -34,9 +37,6 @@ def require_project_root() -> None:
     print("ถ้ายังไม่มี โคลน repo ก่อน:")
     print("  git clone https://github.com/axionaxprotocol/axionax-core-universe.git")
     print("  cd axionax-core-universe")
-    print("  python3 scripts/update-node.py")
-    print("")
-    print("หรือดาวน์โหลด ZIP จาก GitHub แล้วแตกไฟล์ แล้วรันจากโฟลเดอร์นั้น:")
     print("  python3 scripts/update-node.py")
     sys.exit(1)
 
@@ -49,60 +49,95 @@ def run(cmd: list, cwd: Path = None, allow_fail: bool = False) -> bool:
     return r.returncode == 0
 
 
-def has_pip() -> bool:
+# ---------------------------------------------------------------------------
+# Virtual‑environment helpers (PEP 668 / Ubuntu 24.04+)
+# ---------------------------------------------------------------------------
+
+def _venv_python() -> Path:
+    if sys.platform == "win32":
+        return VENV_DIR / "Scripts" / "python.exe"
+    return VENV_DIR / "bin" / "python3"
+
+
+def _in_venv() -> bool:
+    return sys.prefix != sys.base_prefix
+
+
+def _has_pip() -> bool:
     return subprocess.run(
         [sys.executable, "-m", "pip", "--version"],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     ).returncode == 0
 
 
-def ensure_pip() -> bool:
-    """Install pip if missing. Returns True when pip is available."""
-    if has_pip():
+def _externally_managed() -> bool:
+    """PEP 668: system Python blocks global pip install."""
+    try:
+        import sysconfig
+        stdlib = Path(sysconfig.get_path("stdlib"))
+        return (stdlib / "EXTERNALLY-MANAGED").exists()
+    except Exception:
+        return False
+
+
+def _needs_venv() -> bool:
+    if _in_venv():
+        return False
+    if not _has_pip():
+        return True
+    return _externally_managed()
+
+
+def _create_venv() -> bool:
+    """Create .venv, installing python3-venv via apt if needed."""
+    vpy = _venv_python()
+    if vpy.exists():
         return True
 
-    print("  ⚠️ pip ไม่พบ — กำลังติดตั้งอัตโนมัติ...")
-
-    # 1) ensurepip (works on most Python installs)
-    if subprocess.run(
-        [sys.executable, "-m", "ensurepip", "--upgrade"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-    ).returncode == 0 and has_pip():
-        print("  ✅ pip ติดตั้งสำเร็จ (ensurepip)")
+    print("  สร้าง virtual environment (.venv) ...")
+    r = subprocess.run(
+        [sys.executable, "-m", "venv", str(VENV_DIR)],
+        capture_output=True,
+    )
+    if r.returncode == 0 and vpy.exists():
         return True
 
-    # 2) apt (Debian/Ubuntu — common on VPS)
-    if sys.platform == "linux" and os.geteuid() == 0:
-        print("  กำลังรัน: apt-get install -y python3-pip python3-venv ...")
+    # venv module not installed — try apt (Debian/Ubuntu)
+    if sys.platform == "linux":
+        pfx = [] if os.geteuid() == 0 else ["sudo"]
+        print("  กำลังติดตั้ง python3-venv ผ่าน apt ...")
         subprocess.run(
-            ["apt-get", "update", "-qq"],
+            pfx + ["apt-get", "update", "-qq"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         )
-        subprocess.run(["apt-get", "install", "-y", "python3-pip", "python3-venv"])
-        if has_pip():
-            print("  ✅ pip ติดตั้งสำเร็จ (apt)")
-            return True
+        subprocess.run(pfx + ["apt-get", "install", "-y", "--fix-missing", "python3-venv"])
+        subprocess.run([sys.executable, "-m", "venv", str(VENV_DIR)], capture_output=True)
+        return vpy.exists()
 
-    # 3) get-pip.py as last resort
-    try:
-        import urllib.request
-        get_pip = ROOT / "get-pip.py"
-        print("  กำลังดาวน์โหลด get-pip.py ...")
-        urllib.request.urlretrieve("https://bootstrap.pypa.io/get-pip.py", str(get_pip))
-        subprocess.run([sys.executable, str(get_pip)])
-        get_pip.unlink(missing_ok=True)
-        if has_pip():
-            print("  ✅ pip ติดตั้งสำเร็จ (get-pip.py)")
-            return True
-    except Exception:
-        pass
-
-    print("  ❌ ไม่สามารถติดตั้ง pip ได้อัตโนมัติ")
-    print("  กรุณาติดตั้งเอง:")
-    print("    Ubuntu/Debian: sudo apt install python3-pip")
-    print("    macOS:         python3 -m ensurepip --upgrade")
     return False
 
+
+def activate_venv_if_needed():
+    """If system pip is broken/missing, create a venv and re‑exec inside it."""
+    if not _needs_venv():
+        return
+
+    print("  pip ระบบใช้ไม่ได้ (PEP 668 / missing) — จะใช้ .venv แทน")
+
+    if not _create_venv():
+        print("  ไม่สามารถสร้าง venv — กรุณาติดตั้ง python3-venv แล้วรันใหม่")
+        print("    Ubuntu/Debian: sudo apt install python3-venv")
+        sys.exit(1)
+
+    vpy = _venv_python()
+    print(f"  venv พร้อม — กำลังรันใหม่ด้วย {vpy}\n")
+    r = subprocess.run([str(vpy)] + sys.argv)
+    sys.exit(r.returncode)
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
 
 def main():
     import argparse
@@ -113,12 +148,15 @@ def main():
 
     os.chdir(ROOT)
     require_project_root()
+    activate_venv_if_needed()
 
     print("=" * 60)
     print("  Axionax Node — Update (ทุกเครื่อง ไม่ต้องบอก IP)")
     print("=" * 60)
-    print(f"  Root: {ROOT}\n")
+    venv_note = " (venv)" if _in_venv() else ""
+    print(f"  Root: {ROOT}{venv_note}\n")
 
+    # Step 1: git pull
     if not args.check_only and not args.no_pull:
         git_dir = ROOT / ".git"
         if git_dir.exists():
@@ -128,27 +166,33 @@ def main():
                 run(["git", "submodule", "update", "--init", "--recursive"], allow_fail=True)
             print("  Done.\n")
         else:
-            print("[1] Not a git repo — skip pull. (โคลน repo ใหม่หรือดาวน์โหลด package ล่าสุดเพื่ออัปเดต)\n")
+            print("[1] Not a git repo — skip pull.\n")
 
+    # Step 2: pip install
     if not args.check_only:
         req = ROOT / "core" / "deai" / "requirements.txt"
         if req.exists():
             print("[2] ติดตั้ง dependencies...")
-            if ensure_pip():
-                run([sys.executable, "-m", "pip", "install", "-r", str(req), "-q", "--upgrade"], allow_fail=True)
-                print("  Done.\n")
-            else:
-                print("  ข้าม pip install — แก้ pip แล้วรันอีกครั้ง\n")
+            run(
+                [sys.executable, "-m", "pip", "install", "-r", str(req), "-q", "--upgrade"],
+                allow_fail=True,
+            )
+            print("  Done.\n")
         else:
             print("[2] No requirements.txt — skip.\n")
 
+    # Step 3: suitability check
     print("[3] ตรวจความเหมาะสม...")
     run([sys.executable, "scripts/join-axionax.py", "--check-only"])
     print("")
 
     print("=" * 60)
     print("  อัปเดตเสร็จ — รีสตาร์ทโหนดเมื่อพร้อม")
-    print("  เช่น: python3 core/deai/worker_node.py หรือ python3 hydra_manager.py")
+    if _in_venv():
+        vpy = _venv_python()
+        print(f"  ใช้: {vpy} core/deai/worker_node.py")
+    else:
+        print("  เช่น: python3 core/deai/worker_node.py หรือ python3 hydra_manager.py")
     print("=" * 60)
     return 0
 
