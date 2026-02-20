@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Master Refactor Script
-รันการ refactor ทั้งหมดในคำสั่งเดียว
+Run all refactoring in a single command
 """
 
 import subprocess
@@ -16,7 +16,7 @@ MAGENTA = '\033[95m'
 RESET = '\033[0m'
 
 def run_command(description: str, command: list):
-    """รันคำสั่งและแสดงผล"""
+    """Run command and display output"""
     print(f"\n{BOLD}{BLUE}{'='*80}{RESET}")
     print(f"{BOLD}{BLUE}{description}{RESET}")
     print(f"{BOLD}{BLUE}{'='*80}{RESET}\n")

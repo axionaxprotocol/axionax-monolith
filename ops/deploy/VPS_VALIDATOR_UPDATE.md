@@ -1,87 +1,87 @@
-# VPS ทั้ง 2 ตัว (Validator) — สิ่งที่ควรอัปเดต
+# Both VPS (Validator) — What to Update
 
-Checklist สำหรับอัปเดต **Validator VPS** ทั้งสอง: **217.76.61.116** (EU) และ **46.250.244.4** (AU)
+Checklist for updating both **Validator VPS**: **217.76.61.116** (EU) and **46.250.244.4** (AU)
 
 ---
 
-## รันสคริปต์อัปเดตบนทั้ง 2 VPS (แนะนำ)
+## Run the Update Script on Both VPS (Recommended)
 
-จากเครื่องที่ SSH เข้า 2 ตัวได้ รันบน**แต่ละ VPS**:
+From a machine with SSH access to both, run on **each VPS**:
 
 ```bash
-# ส่งสคริปต์ไปที่ VPS แล้วรัน (จาก root ของ repo บนเครื่องคุณ)
+# Send the script to the VPS and run it (from the repo root on your machine)
 scp ops/deploy/scripts/update-validator-vps.sh root@217.76.61.116:/tmp/
 scp ops/deploy/scripts/update-validator-vps.sh root@46.250.244.4:/tmp/
 
-# รันบน VPS ตัวที่ 1 (EU)
+# Run on VPS 1 (EU)
 ssh root@217.76.61.116 'bash /tmp/update-validator-vps.sh'
 
-# รันบน VPS ตัวที่ 2 (AU)
+# Run on VPS 2 (AU)
 ssh root@46.250.244.4 'bash /tmp/update-validator-vps.sh'
 ```
 
-หรือถ้าบน VPS มี clone repo อยู่แล้ว (เช่น `/opt/axionax-core-universe` หรือ `/opt/axionax-deploy`):
+Or if the VPS already has a cloned repo (e.g. `/opt/axionax-core-universe` or `/opt/axionax-deploy`):
 
 ```bash
-cd /opt/axionax-core-universe/ops/deploy   # หรือ path ที่มี scripts/
+cd /opt/axionax-core-universe/ops/deploy   # or the path containing scripts/
 sudo bash scripts/update-validator-vps.sh
 ```
 
-**ตัวเลือกสคริปต์:** `--skip-apt` (ข้าม apt upgrade), `--skip-pull` (ข้าม docker pull), `--dry-run` (แสดงว่าจะทำอะไร ไม่รันจริง)
+**Script options:** `--skip-apt` (skip apt upgrade), `--skip-pull` (skip docker pull), `--dry-run` (show what would be done without actually running)
 
-สคริปต์จะ: อัปเดต OS (ถ้าไม่ใช้ --skip-apt), ตรวจ/แก้ chain_id เป็น 86137, ดึง image ล่าสุด, restart rpc-node, ตรวจ RPC
+The script will: update the OS (unless --skip-apt is used), check/fix chain_id to 86137, pull the latest image, restart rpc-node, check RPC
 
-**Windows (PowerShell):** รันอัปเดตทั้ง 2 ตัวจากเครื่องเดียว:
+**Windows (PowerShell):** Run the update on both VPS from a single machine:
 ```powershell
 cd ops\deploy
 .\scripts\run-update-both-vps.ps1
-# หรือ .\scripts\run-update-both-vps.ps1 -User root -SkipApt
+# or .\scripts\run-update-both-vps.ps1 -User root -SkipApt
 ```
 
 ---
 
-## 1. ซอฟต์แวร์ / Image
+## 1. Software / Image
 
-| การทำ | คำสั่ง/หมายเหตุ |
-|--------|-------------------|
-| **ดึง image ล่าสุด** | ถ้ารันด้วย Docker: `docker pull ghcr.io/axionaxprotocol/axionax-core:latest` แล้ว `docker compose -f docker-compose.vps.yml up -d rpc-node` (หรือ restart rpc-node) |
-| **อัปเดต OS** | `sudo apt update && sudo apt upgrade -y` (เลือกเวลาที่ traffic น้อย) |
-
----
-
-## 2. Config ที่ต้องตรงกับเครือข่าย
-
-| รายการ | ค่าที่ใช้ใน repo (Worker / Client) | บน VPS |
-|--------|-------------------------------------|--------|
-| **Chain ID** | **86137** (testnet) | ใน repo แก้เป็น 86137 แล้ว — บน VPS ถ้ายังเป็น 888 ให้รัน `scripts/update-validator-vps.sh` จะแก้ให้ หรือ copy `configs/rpc-config.toml` ใหม่แล้ว restart node |
-| **พอร์ต RPC** | 8545 (HTTP), 8546 (WS) | เปิดให้ client เรียกได้ |
-| **P2P** | 30303 | เปิดระหว่าง 2 validator ถ้า sync กัน |
+| Action | Command/Notes |
+|--------|---------------|
+| **Pull latest image** | If running with Docker: `docker pull ghcr.io/axionaxprotocol/axionax-core:latest` then `docker compose -f docker-compose.vps.yml up -d rpc-node` (or restart rpc-node) |
+| **Update OS** | `sudo apt update && sudo apt upgrade -y` (choose a time with low traffic) |
 
 ---
 
-## 3. Env / Secrets (ถ้ารัน stack เต็ม)
+## 2. Config That Must Match the Network
 
-ถ้า VPS รันไม่ใช่แค่ RPC แต่มี Explorer, Faucet ด้วย (เช่น ใช้ `docker-compose.vps.yml`):
+| Item | Value Used in Repo (Worker / Client) | On VPS |
+|------|--------------------------------------|--------|
+| **Chain ID** | **86137** (testnet) | In the repo this is already set to 86137 — on the VPS, if still set to 888, run `scripts/update-validator-vps.sh` to fix it, or copy the new `configs/rpc-config.toml` and restart the node |
+| **RPC Port** | 8545 (HTTP), 8546 (WS) | Open for client access |
+| **P2P** | 30303 | Open between the 2 validators if syncing |
 
-- **.env** บน VPS ต้องมี: `DB_PASSWORD`, `REDIS_PASSWORD`, `GRAFANA_PASSWORD`, `FAUCET_PRIVATE_KEY` (และถ้าใช้ใน script: `VPS_IP`)
-- อย่า commit .env; copy จาก `.env.example` แล้วเติมค่าจริง
+---
+
+## 3. Env / Secrets (If Running the Full Stack)
+
+If the VPS runs more than just RPC but also Explorer and Faucet (e.g. using `docker-compose.vps.yml`):
+
+- **.env** on the VPS must contain: `DB_PASSWORD`, `REDIS_PASSWORD`, `GRAFANA_PASSWORD`, `FAUCET_PRIVATE_KEY` (and `VPS_IP` if used in scripts)
+- Do not commit .env; copy from `.env.example` and fill in real values
 
 ---
 
 ## 4. Firewall
 
-| พอร์ต | บริการ | การทำ |
-|-------|--------|--------|
-| 8545 | RPC HTTP | เปิดจาก internet (ให้ Worker / Web เรียก) |
-| 8546 | RPC WebSocket | เปิดถ้า client ใช้ WS |
-| 30303 | P2P | เปิดระหว่าง 2 VPS (และต่อภายหลังถ้ามี node เพิ่ม) |
-| 22 | SSH | เปิดเฉพาะ IP ที่ดูแล (แนะนำ) |
+| Port | Service | Action |
+|------|---------|--------|
+| 8545 | RPC HTTP | Open from internet (for Worker / Web access) |
+| 8546 | RPC WebSocket | Open if clients use WS |
+| 30303 | P2P | Open between the 2 VPS (and later if more nodes are added) |
+| 22 | SSH | Open only for maintenance IPs (recommended) |
 
 ---
 
-## 5. ตรวจสุขภาพหลังอัปเดต
+## 5. Health Check After Update
 
-บนแต่ละ VPS (หรือจากเครื่องอื่น):
+On each VPS (or from another machine):
 
 ```bash
 # RPC
@@ -93,32 +93,32 @@ curl -s -X POST -H "Content-Type: application/json" \
   http://46.250.244.4:8545
 ```
 
-ถ้ารัน Docker Compose บน VPS:
+If running Docker Compose on the VPS:
 
 ```bash
 cd /path/to/ops/deploy
 ./scripts/manage-services.sh status all
-./scripts/manage-services.sh restart rpc-node   # ถ้าอัปเดต image หรือ config
+./scripts/manage-services.sh restart rpc-node   # if image or config was updated
 ```
 
 ---
 
-## 6. Explorer / Faucet (ถ้ามีบน VPS นี้)
+## 6. Explorer / Faucet (If Present on This VPS)
 
-จาก [TESTNET_DEPLOYMENT_PLAN](../tools/devtools/docs/TESTNET_DEPLOYMENT_PLAN.md): ถ้า Explorer (3001) หรือ Faucet (3002) ยังไม่ขึ้น:
+From [TESTNET_DEPLOYMENT_PLAN](../tools/devtools/docs/TESTNET_DEPLOYMENT_PLAN.md): if Explorer (3001) or Faucet (3002) is not running:
 
-- **Explorer:** ตรวจ `docker logs axionax-explorer-backend`; ถ้า image ไม่มี/ไม่ทำงาน ใช้ stub หรือ build จาก `tools/devtools/Dockerfile.explorer`
-- **Faucet:** ตั้ง `FAUCET_PRIVATE_KEY` ใน .env; หรือ build จาก `ops/deploy/Dockerfile.faucet` (context = core/)
+- **Explorer:** Check `docker logs axionax-explorer-backend`; if the image is missing/not working, use a stub or build from `tools/devtools/Dockerfile.explorer`
+- **Faucet:** Set `FAUCET_PRIVATE_KEY` in .env; or build from `ops/deploy/Dockerfile.faucet` (context = core/)
 
 ---
 
-## สรุปสั้นๆ
+## Quick Summary
 
-| ลำดับ | การทำ |
-|--------|--------|
-| 1 | อัปเดต OS และดึง Docker image ล่าสุด (ถ้าใช้) |
-| 2 | ตรวจ chain_id ใน config ว่าเป็น 86137 (ให้ตรงกับ Worker / docs) |
-| 3 | ตรวจ .env และ firewall (8545, 8546, 30303) |
-| 4 | หลังอัปเดต: restart service ที่เปลี่ยน แล้วทดสอบ RPC ด้วย curl |
+| Step | Action |
+|------|--------|
+| 1 | Update OS and pull the latest Docker image (if applicable) |
+| 2 | Verify chain_id in config is 86137 (must match Worker / docs) |
+| 3 | Check .env and firewall (8545, 8546, 30303) |
+| 4 | After updating: restart changed services and test RPC with curl |
 
-**ใน repo:** ไม่ต้องแก้ IP ของ 2 validator — ใช้ 217.76.61.116 และ 46.250.244.4 ครบแล้วใน configs และ docs
+**In the repo:** No need to change the 2 validator IPs — 217.76.61.116 and 46.250.244.4 are already used in all configs and docs

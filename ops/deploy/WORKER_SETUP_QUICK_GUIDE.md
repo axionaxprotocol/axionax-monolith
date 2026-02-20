@@ -1,20 +1,20 @@
 # 🚀 axionax Worker Node - Quick Setup Guide
 
-**สำหรับ**: GCP $300 Credit  
-**เวลาที่ใช้**: 30-45 นาที  
-**วันที่**: 2025-11-25
+**For**: GCP $300 Credit  
+**Time Required**: 30-45 minutes  
+**Date**: 2025-11-25
 
 ---
 
-## 📋 Part 1: สร้าง GCP Instance (5-10 นาที)
+## 📋 Part 1: Create GCP Instance (5-10 minutes)
 
-### ขั้นตอนที่ 1: เข้า GCP Console
+### Step 1: Open GCP Console
 
-✅ **เปิดแล้ว**: https://console.cloud.google.com/compute/instances
+✅ **Open**: https://console.cloud.google.com/compute/instances
 
-### ขั้นตอนที่ 2: สร้าง Instance
+### Step 2: Create Instance
 
-**คลิก "CREATE INSTANCE"** แล้วกรอกข้อมูลดังนี้:
+**Click "CREATE INSTANCE"** and fill in the following:
 
 #### 📝 Basic Info
 ```
@@ -31,15 +31,15 @@ Machine type: n1-standard-4
   - 15 GB memory
 ```
 
-#### 🎮 GPU (สำคัญมาก!)
-**คลิก "ADD GPU"**
+#### 🎮 GPU (very important!)
+**Click "ADD GPU"**
 ```
 GPU type: NVIDIA Tesla T4
 Number of GPUs: 1
 ```
 
 #### 💾 Boot Disk
-**คลิก "CHANGE"**
+**Click "CHANGE"**
 ```
 Operating System: Ubuntu
 Version: Ubuntu 22.04 LTS
@@ -51,72 +51,72 @@ Size (GB): 100
 - ✅ Allow HTTP traffic
 - ✅ Allow HTTPS traffic
 
-**คลิก "CREATE"** 🎉
+**Click "CREATE"** 🎉
 
 ---
 
-## 📋 Part 2: SSH และติดตั้ง (20-30 นาที)
+## 📋 Part 2: SSH and Install (20-30 minutes)
 
-### ขั้นตอนที่ 3: SSH เข้า Instance
+### Step 3: SSH into Instance
 
-**วิธีที่ 1: ผ่าน Web (ง่ายที่สุด)**
+**Method 1: Via Web (easiest)**
 ```
-1. ใน GCP Console
-2. คลิกปุ่ม "SSH" ข้างชื่อ instance
-3. รอหน้าต่าง SSH เปิด
+1. In GCP Console
+2. Click the "SSH" button next to the instance name
+3. Wait for the SSH window to open
 ```
 
-**วิธีที่ 2: ผ่าน gcloud CLI**
+**Method 2: Via gcloud CLI**
 ```bash
 gcloud compute ssh axionax-worker-1 --zone=us-central1-a
 ```
 
-### ขั้นตอนที่ 4: Download Setup Script
+### Step 4: Download Setup Script
 
 ```bash
 # Download script
 wget https://raw.githubusercontent.com/axionaxprotocol/axionax-core-universe/main/ops/deploy/scripts/setup-gcp-worker.sh
 
-# หรือถ้า repo ยังไม่ public
+# Or if the repo is not yet public
 git clone https://github.com/axionaxprotocol/axionax-core-universe.git
 cd axionax-core-universe/ops/deploy/scripts
 chmod +x setup-gcp-worker.sh
 ```
 
-### ขั้นตอนที่ 5: รัน Setup Script
+### Step 5: Run Setup Script
 
 ```bash
 sudo ./setup-gcp-worker.sh
 ```
 
-**⏱️ จะใช้เวลา 15-20 นาที** - ระหว่างนี้ script จะติดตั้ง:
+**⏱️ This will take 15-20 minutes** — the script will install:
 - ✅ NVIDIA Driver 535
 - ✅ CUDA Toolkit 12.2
 - ✅ Rust toolchain
-- ✅ Python 3.10+ และ venv
+- ✅ Python 3.10+ and venv
 - ✅ PyTorch with CUDA
 - ✅ ML libraries (numpy, pandas, sklearn, etc.)
-- ✅ axionax core และ DeAI
+- ✅ axionax core and DeAI
 
-### ขั้นตอนที่ 6: Reboot (จำเป็น!)
+### Step 6: Reboot (required!)
 
 ```bash
 sudo reboot
 ```
 
-**รอ 1-2 นาที** แล้ว SSH กลับเข้าไปอีกครั้ง
+**Wait 1-2 minutes** then SSH back in
 
 ---
 
-## 📋 Part 3: Verify และ Test (5-10 นาที)
+## 📋 Part 3: Verify and Test (5-10 minutes)
 
-### ขั้นตอนที่ 7: Verify GPU
+### Step 7: Verify GPU
 
 ```bash
-# ตรวจสอบ GPU
+# Verify GPU
 nvidia-smi
 
-# ควรเห็น output:
+# Expected output:
 # +-----------------------------------------------------------------------------+
 # | NVIDIA-SMI 535.xx    Driver Version: 535.xx    CUDA Version: 12.2         |
 # |-------------------------------+----------------------+----------------------+
@@ -124,36 +124,36 @@ nvidia-smi
 # +-----------------------------------------------------------------------------+
 ```
 
-### ขั้นตอนที่ 8: Activate Environment
+### Step 8: Activate Environment
 
 ```bash
 source ~/activate-worker.sh
 
-# ควรเห็น:
+# Expected output:
 # ✅ axionax Worker environment activated
 # 🔧 CUDA: 12.2
 # 🦀 Rust: rustc 1.75.x
 # 🐍 Python: Python 3.10.x
 ```
 
-### ขั้นตอนที่ 9: Test PyTorch CUDA
+### Step 9: Test PyTorch CUDA
 
 ```bash
 python -c "import torch; print(f'CUDA Available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}')"
 
-# ควรเห็น:
+# Expected output:
 # CUDA Available: True
 # GPU: Tesla T4
 ```
 
-### ขั้นตอนที่ 10: รัน Training Example
+### Step 10: Run Training Example
 
 ```bash
 cd ~/axionax-core-universe/core/examples
 python deai_simple_training.py
 ```
 
-**ผลลัพธ์ที่คาดหวัง:**
+**Expected output:**
 ```
 🚀 axionax DeAI - Simple Training Example
 ============================================================
@@ -185,19 +185,19 @@ python deai_simple_training.py
 
 ---
 
-## 📋 Part 4: Configuration (5 นาที)
+## 📋 Part 4: Configuration (5 minutes)
 
-### ขั้นตอนที่ 11: สร้าง Worker Config
+### Step 11: Create Worker Config
 
 ```bash
 nano ~/axionax-worker/config/worker.toml
 ```
 
-**กรอกข้อมูลนี้:**
+**Enter the following:**
 
 ```toml
 [worker]
-# Worker identity (จะต้องสร้าง wallet ก่อน)
+# Worker identity (you need to generate a wallet first)
 address = "0xYOUR_WALLET_ADDRESS"
 region = "us-central1"
 name = "gcp-worker-1"
@@ -209,7 +209,7 @@ cpu_cores = 4
 ram = 15  # GB
 
 [network]
-# เชื่อมต่อกับ RPC node ของคุณ
+# Connect to your RPC node
 rpc_url = "http://217.216.109.5:8545"
 ws_url = "ws://217.216.109.5:8546"
 
@@ -226,44 +226,44 @@ logs_dir = "/home/YOUR_USERNAME/logs"
 
 **Save**: `Ctrl+X` → `Y` → `Enter`
 
-### ขั้นตอนที่ 12: Generate Worker Wallet (Optional)
+### Step 12: Generate Worker Wallet (Optional)
 
 ```bash
-# สร้าง wallet สำหรับ worker
+# Create a wallet for the worker
 cd ~/axionax-core-universe/core
 cargo run --bin keygen -- generate --output ~/axionax-worker/keys/worker-key.json
 
-# หรือถ้ามี wallet แล้ว ก็ copy private key มาใส่
+# Or if you already have a wallet, copy the private key into the config
 ```
 
 ---
 
 ## 💰 Cost Management
 
-### ตรวจสอบค่าใช้จ่าย
+### Check Costs
 
 ```bash
-# ดู billing
+# View billing
 gcloud billing accounts list
 
-# ดู current usage
+# View current usage
 gcloud compute instances list --format="table(name,zone,status)"
 ```
 
-### Start/Stop Instance (ประหยัดเครดิต)
+### Start/Stop Instance (save credit)
 
 ```bash
-# Stop instance เมื่อไม่ใช้งาน
+# Stop instance when not in use
 gcloud compute instances stop axionax-worker-1 --zone=us-central1-a
 
-# Start เมื่อต้องการใช้
+# Start when needed
 gcloud compute instances start axionax-worker-1 --zone=us-central1-a
 ```
 
 **💡 Tips:**
-- Stop instance เมื่อไม่ใช้งาน → ประหยัด ~$0.50/hour
-- ยังคงเสียค่า storage ~$10/เดือน (แต่ข้อมูลยังอยู่)
-- ใช้งาน 8 ชม./วัน → เครดิตใช้ได้ 2.5 เดือน
+- Stop instance when not in use → save ~$0.50/hour
+- Storage still costs ~$10/month (but data is preserved)
+- Use 8 hrs/day → credit lasts 2.5 months
 
 ---
 
@@ -274,7 +274,7 @@ gcloud compute instances start axionax-worker-1 --zone=us-central1-a
 # Real-time GPU usage
 watch -n 1 nvidia-smi
 
-# หรือใช้ gpustat (ติดตั้งก่อน)
+# Or use gpustat (install first)
 pip install gpustat
 gpustat -i 1
 ```
@@ -291,13 +291,13 @@ df -h
 ifconfig
 ```
 
-### Process Monitoring (ถ้ารัน training)
+### Process Monitoring (if running training)
 ```bash
-# ใช้ tmux เพื่อให้ training รันต่อได้แม้ disconnect
+# Use tmux so training continues even if disconnected
 tmux new -s training
 python deai_simple_training.py
 
-# Detach: Ctrl+B แล้วกด D
+# Detach: Ctrl+B then D
 # Reattach: tmux attach -t training
 ```
 
@@ -306,31 +306,31 @@ python deai_simple_training.py
 ## ✅ Checklist
 
 **Setup:**
-- [ ] สร้าง GCP instance with T4 GPU
-- [ ] SSH เข้า instance
-- [ ] รัน setup script
+- [ ] Create GCP instance with T4 GPU
+- [ ] SSH into instance
+- [ ] Run setup script
 - [ ] Reboot
 - [ ] Verify GPU (nvidia-smi)
 - [ ] Test PyTorch CUDA
-- [ ] รัน training example สำเร็จ
+- [ ] Run training example successfully
 
 **Configuration:**
-- [ ] สร้าง worker.toml
+- [ ] Create worker.toml
 - [ ] Generate worker wallet (optional)
-- [ ] เชื่อมต่อกับ RPC node
+- [ ] Connect to RPC node
 
 **Next Steps:**
-- [ ] เชื่อมต่อกับ axionax Network
+- [ ] Connect to axionax Network
 - [ ] Register worker on testnet
-- [ ] รับ DeAI jobs แรก
+- [ ] Receive first DeAI jobs
 
 ---
 
 ## 🆘 Troubleshooting
 
-**ปัญหา: nvidia-smi ไม่เจอ GPU**
+**Problem: nvidia-smi does not find GPU**
 ```bash
-# ตรวจสอบว่า GPU ถูก attach
+# Check that GPU is attached
 lspci | grep -i nvidia
 
 # Reinstall driver
@@ -338,18 +338,18 @@ sudo apt-get install --reinstall nvidia-driver-535
 sudo reboot
 ```
 
-**ปัญหา: PyTorch ไม่เจอ CUDA**
+**Problem: PyTorch does not find CUDA**
 ```bash
-# ติดตั้ง PyTorch ใหม่
+# Reinstall PyTorch
 source ~/axionax-env/bin/activate
 pip install --force-reinstall torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-**ปัญหา: Out of Memory**
+**Problem: Out of Memory**
 ```bash
-# ลด batch size ใน training script
-# แก้ไขใน deai_simple_training.py:
-# batch_size = 64  # จาก 128
+# Reduce batch size in training script
+# Edit deai_simple_training.py:
+# batch_size = 64  # instead of 128
 ```
 
 ---

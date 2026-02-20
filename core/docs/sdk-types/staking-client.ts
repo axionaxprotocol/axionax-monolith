@@ -2,7 +2,7 @@
  * Axionax SDK - Staking Client
  * 
  * Copy this file to: packages/sdk/src/clients/staking.ts
- * สำหรับใช้ใน @axionax/sdk
+ * For use in @axionax/sdk
  */
 
 import {
@@ -16,7 +16,7 @@ import {
 } from '../types/staking';
 
 /**
- * Staking Client สำหรับเรียก RPC
+ * Staking Client for RPC calls
  */
 export class StakingClient {
     private rpcUrl: string;
@@ -26,7 +26,7 @@ export class StakingClient {
     }
 
     /**
-     * เรียก RPC method
+     * Call an RPC method
      */
     private async call<T>(method: string, params: unknown[] = []): Promise<T> {
         const response = await fetch(this.rpcUrl, {
@@ -48,13 +48,13 @@ export class StakingClient {
     }
 
     // ===========================================================================
-    // Query Methods / สำหรับดึงข้อมูล
+    // Query Methods / For fetching data
     // ===========================================================================
 
     /**
-     * ดึงข้อมูล validator
-     * @param address ที่อยู่ validator
-     * @returns ข้อมูล validator หรือ null ถ้าไม่พบ
+     * Get validator information
+     * @param address Validator address
+     * @returns Validator info or null if not found
      */
     async getValidator(address: string): Promise<ValidatorInfo | null> {
         const result = await this.call<ValidatorResponse | null>(
@@ -65,8 +65,8 @@ export class StakingClient {
     }
 
     /**
-     * ดึงรายชื่อ validators ที่ active
-     * @returns รายชื่อ validators
+     * Get list of active validators
+     * @returns List of validators
      */
     async getActiveValidators(): Promise<ValidatorInfo[]> {
         const result = await this.call<ValidatorResponse[]>(
@@ -77,8 +77,8 @@ export class StakingClient {
     }
 
     /**
-     * ดึงจำนวน token ที่ stake ทั้งหมด
-     * @returns จำนวน token (bigint)
+     * Get total staked tokens
+     * @returns Token amount (bigint)
      */
     async getTotalStaked(): Promise<bigint> {
         const result = await this.call<string>('staking_getTotalStaked', []);
@@ -86,8 +86,8 @@ export class StakingClient {
     }
 
     /**
-     * ดึงสถิติระบบ staking
-     * @returns สถิติ
+     * Get staking system statistics
+     * @returns Statistics
      */
     async getStats(): Promise<StakingStats> {
         const result = await this.call<StakingStatsResponse>('staking_getStats', []);
@@ -95,32 +95,32 @@ export class StakingClient {
     }
 
     // ===========================================================================
-    // Action Methods / สำหรับทำ action
+    // Action Methods / For performing actions
     // ===========================================================================
 
     /**
-     * Stake tokens เพื่อเป็น validator
-     * @param address ที่อยู่
-     * @param amount จำนวน token
+     * Stake tokens to become a validator
+     * @param address Address
+     * @param amount Token amount
      */
     async stake(address: string, amount: bigint): Promise<boolean> {
         return await this.call<boolean>('staking_stake', [address, toHex(amount)]);
     }
 
     /**
-     * เริ่มถอน stake (ต้องรอ lock period)
-     * @param address ที่อยู่
-     * @param amount จำนวน token
+     * Begin unstaking (must wait for lock period)
+     * @param address Address
+     * @param amount Token amount
      */
     async unstake(address: string, amount: bigint): Promise<boolean> {
         return await this.call<boolean>('staking_unstake', [address, toHex(amount)]);
     }
 
     /**
-     * Delegate tokens ให้ validator
-     * @param delegator ผู้ delegate
-     * @param validator validator ที่รับ
-     * @param amount จำนวน token
+     * Delegate tokens to a validator
+     * @param delegator Delegator address
+     * @param validator Receiving validator
+     * @param amount Token amount
      */
     async delegate(
         delegator: string,
@@ -135,9 +135,9 @@ export class StakingClient {
     }
 
     /**
-     * รับ staking rewards
-     * @param address ที่อยู่
-     * @returns จำนวน rewards ที่ได้รับ
+     * Claim staking rewards
+     * @param address Address
+     * @returns Amount of rewards received
      */
     async claimRewards(address: string): Promise<bigint> {
         const result = await this.call<string>('staking_claimRewards', [address]);
@@ -146,11 +146,11 @@ export class StakingClient {
 }
 
 // =============================================================================
-// React Hooks (ถ้าใช้ React)
+// React Hooks (if using React)
 // =============================================================================
 
 /**
- * ตัวอย่าง hook สำหรับ React
+ * Example hook for React
  *
  * import { useStaking } from '@axionax/sdk';
  *

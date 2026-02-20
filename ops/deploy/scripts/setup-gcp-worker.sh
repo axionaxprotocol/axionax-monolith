@@ -4,8 +4,8 @@
 # axionax DeAI Worker Node - GCP Quick Setup Script
 ###############################################################################
 # 
-# ใช้สำหรับติดตั้ง Worker Node บน GCP Compute Engine
-# รองรับ: Ubuntu 22.04 LTS with NVIDIA GPU
+# For setting up a Worker Node on GCP Compute Engine
+# Supports: Ubuntu 22.04 LTS with NVIDIA GPU
 #
 # Usage:
 #   wget https://raw.githubusercontent.com/axionaxprotocol/axionax-core-universe/main/ops/deploy/scripts/setup-gcp-worker.sh

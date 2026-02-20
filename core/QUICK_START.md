@@ -2,7 +2,7 @@
 
 ## Overview
 
-**axionax-core** เป็น blockchain protocol core ที่เขียนด้วย Rust พร้อมระบบ DeAI (Decentralized AI) ที่เขียนด้วย Python
+**axionax-core** is a blockchain protocol core written in Rust with a DeAI (Decentralized AI) system written in Python
 
 **Repository:** https://github.com/axionaxprotocol/axionax-core
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-**axionax-deploy** เป็น deployment และ infrastructure repository สำหรับการ deploy axionax protocol nodes, monitoring, และ infrastructure management
+**axionax-deploy** is a deployment and infrastructure repository for deploying axionax protocol nodes, monitoring, and infrastructure management
 
 **Repository:** https://github.com/axionaxprotocol/axionax-deploy
 

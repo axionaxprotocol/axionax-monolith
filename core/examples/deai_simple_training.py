@@ -1,8 +1,8 @@
 """
 axionax DeAI - Simple Training Example
 
-ตัวอย่าง AI Training Job ง่ายๆ สำหรับทดสอบ Worker Node
-รัน MNIST digit classification
+Simple AI Training Job example for testing Worker Node
+Runs MNIST digit classification
 """
 
 import torch
@@ -14,7 +14,7 @@ import time
 import json
 from datetime import datetime
 
-# ตรวจสอบ GPU
+# Check GPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"🔧 Using device: {device}")
 if torch.cuda.is_available():

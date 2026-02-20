@@ -1,4 +1,4 @@
-﻿import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { ethers } from "ethers";
@@ -19,7 +19,7 @@ if (!PK) {
 }
 
 function compile() {
-  // --- อ่าน source และล้าง BOM ---
+  // --- Read source and strip BOM ---
   const srcPath = path.join(__dirname, "contracts", "AXX.sol");
   let source = readFileSync(srcPath, "utf8");
   if (source.charCodeAt(0) === 0xFEFF) source = source.slice(1); // strip BOM
@@ -43,7 +43,7 @@ function compile() {
     throw e;
   }
 
-  // --- ถ้ามี error ให้แสดงแล้วหยุดทันที ---
+  // --- If there are errors, display and stop immediately ---
   if (out.errors && out.errors.length) {
     const errs = out.errors.filter(e => e.severity === "error");
     if (errs.length) {
@@ -51,7 +51,7 @@ function compile() {
       errs.forEach(e => console.error(e.formattedMessage || e.message || JSON.stringify(e)));
       process.exit(1);
     } else {
-      // แสดง warning ไว้เผื่อดีบั๊ก
+      // Display warnings for debugging
       out.errors.forEach(e => console.warn(e.formattedMessage || e.message || JSON.stringify(e)));
     }
   }

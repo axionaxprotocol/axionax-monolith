@@ -1,7 +1,7 @@
 //! [SIMULATION] Consensus Engine for Monolith Mark-II
 //!
 //! Architecture: Photonic Interference Verification (Proof-of-Light).
-//! Replaces math puzzle with "สมดุลของแสง" (Optical Equilibrium).
+//! Replaces math puzzle with "Optical Equilibrium".
 //! Verification in ~picosecond scale; security from quantum physics.
 
 use std::sync::Arc;
@@ -21,9 +21,9 @@ impl BlockSim {
 /// Result of shooting light through the interference mesh.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FocusPoint {
-    /// แสงเสริมกัน = ถูกต้อง (valid block)
+    /// Constructive interference = valid (valid block)
     ConstructiveInterference,
-    /// แสงหักล้างกัน = ปลอมแปลง (tampered)
+    /// Destructive interference = tampered (tampered)
     DestructiveInterference,
     /// No clear focus (invalid)
     NoFocus,
@@ -57,7 +57,7 @@ impl LightValidator {
         }
     }
 
-    /// แปลง Hash ของ Block เป็น "ลวดลายของแสง" (Interference Pattern).
+    /// Convert block hash into an "Interference Pattern".
     /// In real hardware: phase shifters driven by hash bits.
     #[allow(dead_code)]
     pub fn encode_to_phase_shift(&self, hash: &[u8; 32]) -> Vec<f64> {
@@ -66,8 +66,8 @@ impl LightValidator {
             .collect()
     }
 
-    /// ยิงแสงผ่าน "Interference Mesh" (เขาวงกตแสง).
-    /// ถ้า Block ถูกต้อง แสงจะหักเหไปตกที่จุดโฟกัส (Focus Point) พอดีเป๊ะ.
+    /// Shoot light through the "Interference Mesh" (light labyrinth).
+    /// If the block is valid, light refracts to land exactly at the focus point.
     /// Simulation: deterministic from hash (XOR checksum -> Constructive/Destructive).
     #[allow(dead_code)]
     pub fn shoot_laser_through_mesh(&self, pattern: &[f64]) -> FocusPoint {
@@ -88,7 +88,7 @@ impl LightValidator {
     }
 
     /// Validate block: encode hash -> pattern -> mesh -> focus.
-    /// ตรวจสอบความถูกต้อง (ใช้เวลา 1 picosecond in real hardware).
+    /// Verify correctness (takes 1 picosecond in real hardware).
     pub fn validate_block(&self, block_data: &BlockSim) -> bool {
         let pattern = self.encode_to_phase_shift(&block_data.hash);
         let result = self.shoot_laser_through_mesh(&pattern);

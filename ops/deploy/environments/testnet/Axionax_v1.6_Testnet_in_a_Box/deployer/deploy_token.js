@@ -14,7 +14,7 @@ const PK  = process.env.DEPLOYER_PRIVATE_KEY || process.env.FAUCET_PRIVATE_KEY
          || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
 function compile() {
-  // --- อ่าน source และล้าง BOM ---
+  // --- Read source and strip BOM ---
   const srcPath = path.join(__dirname, "contracts", "AXX.sol");
   let source = readFileSync(srcPath, "utf8");
   if (source.charCodeAt(0) === 0xFEFF) source = source.slice(1); // strip BOM
@@ -38,7 +38,7 @@ function compile() {
     throw e;
   }
 
-  // --- ถ้ามี error ให้แสดงแล้วหยุดทันที ---
+  // --- If there are errors, display and exit immediately ---
   if (out.errors && out.errors.length) {
     const errs = out.errors.filter(e => e.severity === "error");
     if (errs.length) {
@@ -46,7 +46,7 @@ function compile() {
       errs.forEach(e => console.error(e.formattedMessage || e.message || JSON.stringify(e)));
       process.exit(1);
     } else {
-      // แสดง warning ไว้เผื่อดีบั๊ก
+      // Display warnings for debugging
       out.errors.forEach(e => console.warn(e.formattedMessage || e.message || JSON.stringify(e)));
     }
   }

@@ -63,7 +63,7 @@ axionax-core-universe/
 
 ### PoPC Consensus Algorithm Deep Dive
 
-**Proof of Probabilistic Checking (PoPC)** - ความแตกต่างจากแบบอื่น:
+**Proof of Probabilistic Checking (PoPC)** - Difference from other approaches:
 
 ```
 Traditional PoW/PoS:          PoPC:
@@ -172,9 +172,9 @@ let hash = sha3_256(&vrf_input);  // For VRF operations
 
 **Why:** Benchmarks show Blake2s is 2-3x faster (see `core/benches/crypto_bench.rs`).
 
-### Common Code Patterns (ตัวอย่างที่พบบ่อย)
+### Common Code Patterns (Common examples)
 
-#### 1. Adding a New RPC Method (เพิ่ม RPC method ใหม่)
+#### 1. Adding a New RPC Method (Add a new RPC method)
 
 ```rust
 // File: core/core/rpc/src/lib.rs
@@ -225,7 +225,7 @@ mod tests {
 }
 ```
 
-#### 2. Modifying Consensus Logic (แก้ไข consensus)
+#### 2. Modifying Consensus Logic (Modify consensus)
 
 ```rust
 // File: core/core/consensus/src/lib.rs
@@ -284,7 +284,7 @@ mod tests {
 }
 ```
 
-#### 3. Adding State Database Fields (เพิ่ม field ใน state)
+#### 3. Adding State Database Fields (Add field to state)
 
 ```rust
 // File: core/core/state/src/lib.rs
@@ -343,7 +343,7 @@ impl StateDB {
 }
 ```
 
-#### 4. Network Message Handling (จัดการ network message)
+#### 4. Network Message Handling (Handle network message)
 
 ```rust
 // File: core/core/network/src/manager.rs
@@ -440,7 +440,7 @@ def analyze_worker_history(
     ...
 ```
 
-### PyO3 Bridge: Advanced Patterns (คู่มือการใช้งาน)
+### PyO3 Bridge: Advanced Patterns (Usage guide)
 
 #### Building and Installing the Bridge
 
@@ -806,11 +806,11 @@ cd core && cargo bench
 cd tools/devtools && python tests/load_test.py --tps 50000
 ```
 
-### Performance Optimization Checklist (เช็คลิสต์เพิ่มประสิทธิภาพ)
+### Performance Optimization Checklist (Performance optimization checklist)
 
 #### 🔥 Hot Path Optimizations
 
-1. **Hash Function Selection** (เลือก hash function ที่เหมาะสม)
+1. **Hash Function Selection** (Choose the appropriate hash function)
 ```rust
 // ✅ Use Blake2s for high-frequency operations
 use crypto::hash::blake2s_256;
@@ -826,7 +826,7 @@ use crypto::hash::sha3_256;
 let vrf_input = sha3_256(&challenge_bytes);  // VRF standard
 ```
 
-2. **Avoid Unnecessary Clones** (หลีกเลี่ยง .clone() ที่ไม่จำเป็น)
+2. **Avoid Unnecessary Clones** (Avoid unnecessary .clone())
 ```rust
 // ❌ Bad: Unnecessary clone
 fn process_block(block: Block) {
@@ -844,7 +844,7 @@ let block = Arc::new(block);
 let block_ref = Arc::clone(&block);  // Cheap reference count increment
 ```
 
-3. **Batch Database Operations** (รวม database operations)
+3. **Batch Database Operations** (Batch database operations)
 ```rust
 // ❌ Bad: Multiple individual writes
 for tx in transactions {
@@ -859,7 +859,7 @@ for tx in transactions {
 state.write_batch(batch)?;  // Single disk I/O
 ```
 
-4. **Use BTreeMap for Sorted Data** (ใช้ BTreeMap สำหรับข้อมูลที่เรียงลำดับ)
+4. **Use BTreeMap for Sorted Data** (Use BTreeMap for sorted data)
 ```rust
 // ✅ Transaction pool with nonce ordering
 use std::collections::BTreeMap;
@@ -879,7 +879,7 @@ impl TransactionPool {
 }
 ```
 
-5. **Lazy Evaluation** (ประเมินค่าแบบ lazy)
+5. **Lazy Evaluation** (Lazy evaluation)
 ```rust
 // ✅ Use lazy_static for expensive initialization
 use lazy_static::lazy_static;
@@ -896,7 +896,7 @@ lazy_static! {
 
 #### 🎯 Profiling and Debugging Tips
 
-**CPU Profiling (หา bottleneck)**
+**CPU Profiling (Find bottlenecks)**
 ```bash
 # Install tools
 cargo install flamegraph
@@ -910,7 +910,7 @@ sudo cargo flamegraph --bin node -- --config testnet
 cargo instruments --bin node --template time
 ```
 
-**Memory Profiling (ตรวจสอบ memory)**
+**Memory Profiling (Check memory)**
 ```bash
 # Install valgrind
 sudo apt-get install valgrind
@@ -924,7 +924,7 @@ valgrind --tool=massif ./target/debug/node
 ms_print massif.out.<PID>
 ```
 
-**Debug Logging Strategy (การใช้ log อย่างมีประสิทธิภาพ)**
+**Debug Logging Strategy (Efficient logging)**
 ```rust
 use tracing::{debug, info, warn, error, instrument};
 
@@ -950,7 +950,7 @@ pub async fn process_transaction(tx_hash: String, data: Vec<u8>) -> Result<()> {
 // RUST_LOG=info,axionax::consensus=debug cargo run
 ```
 
-**Benchmark-Driven Development (ใช้ benchmark ขับเคลื่อน)**
+**Benchmark-Driven Development (Benchmark-driven)**
 ```rust
 // benches/crypto_bench.rs
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
@@ -976,7 +976,7 @@ criterion_main!(benches);
 // Results show Blake2s is 2-3x faster
 ```
 
-**Assert Performance in Tests (ทดสอบประสิทธิภาพ)**
+**Assert Performance in Tests (Test performance)**
 ```rust
 #[cfg(test)]
 mod tests {
@@ -1032,9 +1032,9 @@ def test_rust_python_bridge():
     assert vrf.verify(b"test_input", proof, output)
 ```
 
-### Advanced Testing Patterns (รูปแบบการทดสอบขั้นสูง)
+### Advanced Testing Patterns (Advanced testing patterns)
 
-#### Property-Based Testing (ทดสอบด้วย property)
+#### Property-Based Testing (Property-based testing)
 
 ```rust
 // Add to Cargo.toml: proptest = "1.0"
@@ -1075,7 +1075,7 @@ proptest! {
 }
 ```
 
-#### Fuzzing Tests (ทดสอบด้วย random input)
+#### Fuzzing Tests (Fuzz testing with random input)
 
 ```rust
 // File: fuzz/fuzz_targets/block_parser.rs
@@ -1126,7 +1126,7 @@ async fn test_connect_to_testnet() -> Result<()> {
 }
 ```
 
-#### Snapshot Testing (ทดสอบด้วย snapshot)
+#### Snapshot Testing (Snapshot testing)
 
 ```rust
 // tests/snapshot_tests.rs
@@ -1179,7 +1179,7 @@ mod perf_tests {
 }
 ```
 
-### CI/CD Best Practices (แนวทางปฏิบัติที่ดี)
+### CI/CD Best Practices (Best practices)
 
 #### GitHub Actions Workflow
 
@@ -1307,9 +1307,9 @@ cd core/bridge/rust-python
 python -c "import axionax_python"  # Should not error
 ```
 
-### Extended Troubleshooting Guide (คู่มือแก้ปัญหาแบบละเอียด)
+### Extended Troubleshooting Guide (Detailed troubleshooting guide)
 
-#### Build Issues (ปัญหาการ compile)
+#### Build Issues (Build issues)
 
 **Issue: "linker `cc` not found" (Linux)**
 ```bash
@@ -1356,7 +1356,7 @@ sudo make install
 rustup default stable-x86_64-pc-windows-gnu
 ```
 
-#### Runtime Issues (ปัญหาขณะรันโปรแกรม)
+#### Runtime Issues (Runtime issues)
 
 **Issue: "Too many open files" (Linux)**
 ```bash
@@ -1412,7 +1412,7 @@ valgrind --leak-check=full ./target/debug/node
 export AXIONAX_ROCKSDB_CACHE_SIZE=256  # MB
 ```
 
-#### Testing Issues (ปัญหาการทดสอบ)
+#### Testing Issues (Testing issues)
 
 **Issue: Tests fail intermittently**
 ```bash
@@ -1454,7 +1454,7 @@ cd core/bridge/rust-python
 export PYTHONPATH=$PYTHONPATH:$(pwd)/core/deai/lib
 ```
 
-#### Network/P2P Issues (ปัญหา network)
+#### Network/P2P Issues (Network issues)
 
 **Issue: "No peers connected"**
 ```bash
@@ -1487,7 +1487,7 @@ let gossipsub_config = gossipsub::ConfigBuilder::default()
     .map_err(|e| anyhow!("Gossipsub config error: {}", e))?;
 ```
 
-#### Performance Issues (ปัญหาประสิทธิภาพ)
+#### Performance Issues (Performance issues)
 
 **Issue: Slow block propagation**
 ```bash
@@ -1534,7 +1534,7 @@ max_write_buffer_number = 3
 target_file_size_base = 67108864
 ```
 
-#### Docker Issues (ปัญหา Docker)
+#### Docker Issues (Docker issues)
 
 **Issue: "Cannot connect to Docker daemon"**
 ```bash

@@ -1,11 +1,11 @@
-# Axionax Protocol — Master Summary (เอกสารสรุปโครงการฉบับสมบูรณ์)
+# Axionax Protocol — Master Summary (Complete Project Summary Document)
 
 **Status:** Series Seed Preparation  
 **Version:** 2.1 (February 2026)
 
 ---
 
-## 1. Introduction & Vision (บทนำและวิสัยทัศน์)
+## 1. Introduction & Vision (Introduction and Vision)
 
 Axionax Protocol is a **Decentralized Physical Infrastructure Network (DePIN)** focused on building a **"Civilization OS"** — an operating system for the next civilization.
 
@@ -23,7 +23,7 @@ Axionax Protocol is a **Decentralized Physical Infrastructure Network (DePIN)** 
 
 ---
 
-## 2. Technical Architecture (สถาปัตยกรรมทางเทคนิค)
+## 2. Technical Architecture (Technical Architecture)
 
 ### 2.1 The Core Protocol (Layer 1)
 
@@ -51,7 +51,7 @@ Geo-hierarchy in **5 tiers** to reduce data density:
 
 ---
 
-## 3. Hardware Ecosystem (ระบบฮาร์ดแวร์)
+## 3. Hardware Ecosystem (Hardware Ecosystem)
 
 ### 3.1 Monolith MK-I "Vanguard" (Pro Edition)
 
@@ -82,9 +82,9 @@ External hardware supported to extend the network:
 
 ---
 
-## 4. DeAI & Sentinels (ระบบปัญญาประดิษฐ์)
+## 4. DeAI & Sentinels (AI Systems)
 
-### 4.1 The 7 Sentinels (เครือข่ายภูมิคุ้มกัน)
+### 4.1 The 7 Sentinels (Immune Network)
 
 Dedicated AI models on Sentinel nodes for security and integrity:
 
@@ -115,7 +115,7 @@ Dedicated AI models on Sentinel nodes for security and integrity:
 
 ---
 
-## 6. Tokenomics & Roadmap (เศรษฐศาสตร์และแผนธุรกิจ)
+## 6. Tokenomics & Roadmap (Economics and Business Plan)
 
 ### 6.1 Revenue Model
 
@@ -134,7 +134,7 @@ Dedicated AI models on Sentinel nodes for security and integrity:
 
 ---
 
-## 7. Fundraising Data (ข้อมูลสำหรับการระดมทุน)
+## 7. Fundraising Data (Fundraising Information)
 
 | Item | Value |
 |------|--------|

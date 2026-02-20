@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Repository Health Checker
-ตรวจสอบสุขภาพและความพร้อมของทุก repository
+Checks the health and readiness of all repositories
 """
 
 import os
@@ -38,12 +38,12 @@ class RepoHealthChecker:
         print(f"\n{BOLD}{'='*80}{RESET}")
         print(f"{BOLD}{BLUE}🏥 AXIONAX REPOSITORY HEALTH CHECK{RESET}")
         print(f"{BOLD}{'='*80}{RESET}")
-        print(f"เวลา: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Workspace: {self.workspace_root}")
         print(f"{BOLD}{'='*80}{RESET}\n")
 
     def check_gitignore(self, repo_name: str) -> Dict:
-        """ตรวจสอบ .gitignore files"""
+        """Check .gitignore files"""
         repo_path = self.workspace_root / repo_name
         gitignore_path = repo_path / '.gitignore'
         
@@ -56,15 +56,15 @@ class RepoHealthChecker:
         
         if not gitignore_path.exists():
             result['status'] = 'fail'
-            result['issues'].append('ไม่มีไฟล์ .gitignore')
-            self.issues.append(f"{repo_name}: ไม่มี .gitignore")
-            self.recommendations.append(f"สร้าง .gitignore ใน {repo_name}")
+            result['issues'].append('Missing .gitignore file')
+            self.issues.append(f"{repo_name}: missing .gitignore")
+            self.recommendations.append(f"Create .gitignore in {repo_name}")
             return result
         
         with open(gitignore_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # ตรวจสอบ patterns ที่ควรมี
+        # Check required patterns
         required_patterns = {
             'rust': ['target/', 'Cargo.lock', '*.swp', '*.swo'],
             'typescript': ['node_modules/', 'dist/', 'build/', '.next/', '.env', '*.log'],
@@ -73,7 +73,7 @@ class RepoHealthChecker:
             'tools': ['*.log', '.venv/']
         }
         
-        # กำหนดประเภท repo
+        # Determine repo type
         repo_type = None
         if repo_name == 'axionax-core':
             repo_type = 'rust'
@@ -94,13 +94,13 @@ class RepoHealthChecker:
             
             if missing_patterns:
                 result['status'] = 'warn'
-                result['issues'].append(f'ควรเพิ่ม patterns: {", ".join(missing_patterns)}')
-                self.recommendations.append(f"เพิ่ม {', '.join(missing_patterns)} ใน {repo_name}/.gitignore")
+                result['issues'].append(f'Should add patterns: {", ".join(missing_patterns)}')
+                self.recommendations.append(f"Add {', '.join(missing_patterns)} to {repo_name}/.gitignore")
         
         return result
 
     def check_uncommitted_files(self, repo_name: str) -> Dict:
-        """ตรวจสอบไฟล์ที่ยังไม่ได้ commit"""
+        """Check for uncommitted files"""
         import subprocess
         
         repo_path = self.workspace_root / repo_name
@@ -112,7 +112,7 @@ class RepoHealthChecker:
         }
         
         try:
-            # ดึง git status
+            # Get git status
             cmd_result = subprocess.run(
                 ['git', 'status', '--porcelain'],
                 cwd=repo_path,
@@ -125,7 +125,7 @@ class RepoHealthChecker:
                 lines = [l for l in lines if l.strip()]
                 
                 if lines:
-                    # แยกประเภทไฟล์
+                    # Separate file types
                     untracked = []
                     modified = []
                     
@@ -138,7 +138,7 @@ class RepoHealthChecker:
                         else:
                             modified.append(filename)
                     
-                    # ตรวจสอบว่าเป็นไฟล์ที่ควร ignore หรือไม่
+                    # Check if files should be ignored
                     should_ignore = []
                     should_commit = []
                     
@@ -150,23 +150,23 @@ class RepoHealthChecker:
                     
                     if should_ignore:
                         result['status'] = 'warn'
-                        result['issues'].append(f'มีไฟล์ที่ควร ignore: {len(should_ignore)} ไฟล์')
-                        self.issues.append(f"{repo_name}: มี {len(should_ignore)} ไฟล์ที่ควร ignore")
-                        self.recommendations.append(f"ปรับปรุง .gitignore ใน {repo_name}")
+                        result['issues'].append(f'Files that should be ignored: {len(should_ignore)} files')
+                        self.issues.append(f"{repo_name}: has {len(should_ignore)} files that should be ignored")
+                        self.recommendations.append(f"Update .gitignore in {repo_name}")
                     
                     if should_commit:
                         result['status'] = 'warn'
-                        result['issues'].append(f'มีไฟล์ยังไม่ commit: {", ".join(should_commit[:3])}{"..." if len(should_commit) > 3 else ""}')
-                        self.recommendations.append(f"Commit ไฟล์ใน {repo_name}: {', '.join(should_commit)}")
+                        result['issues'].append(f'Uncommitted files: {", ".join(should_commit[:3])}{"..." if len(should_commit) > 3 else ""}')
+                        self.recommendations.append(f"Commit files in {repo_name}: {', '.join(should_commit)}")
         
         except Exception as e:
             result['status'] = 'fail'
-            result['issues'].append(f'เกิดข้อผิดพลาด: {str(e)}')
+            result['issues'].append(f'Error occurred: {str(e)}')
         
         return result
 
     def check_package_lock(self, repo_name: str) -> Dict:
-        """ตรวจสอบ package-lock.json"""
+        """Check package-lock.json"""
         repo_path = self.workspace_root / repo_name
         package_json = repo_path / 'package.json'
         package_lock = repo_path / 'package-lock.json'
@@ -184,13 +184,13 @@ class RepoHealthChecker:
         
         if not package_lock.exists():
             result['status'] = 'warn'
-            result['issues'].append('ไม่มี package-lock.json (ควร commit)')
-            self.recommendations.append(f"Run 'npm install' และ commit package-lock.json ใน {repo_name}")
+            result['issues'].append('Missing package-lock.json (should commit)')
+            self.recommendations.append(f"Run 'npm install' and commit package-lock.json in {repo_name}")
         
         return result
 
     def check_dependency_versions(self, repo_name: str) -> Dict:
-        """ตรวจสอบ dependency versions"""
+        """Check dependency versions"""
         repo_path = self.workspace_root / repo_name
         package_json = repo_path / 'package.json'
         
@@ -211,27 +211,27 @@ class RepoHealthChecker:
             
             deps = pkg.get('dependencies', {})
             
-            # ตรวจสอบ @axionax/sdk
+            # Check @axionax/sdk
             if '@axionax/sdk' in deps:
                 version = deps['@axionax/sdk']
                 
                 if not version.startswith('file:'):
                     result['status'] = 'fail'
-                    result['issues'].append(f'@axionax/sdk ใช้ {version} แทน file: link')
-                    self.issues.append(f"{repo_name}: @axionax/sdk ไม่ได้ใช้ file: link")
-                    self.recommendations.append(f"เปลี่ยน @axionax/sdk เป็น 'file:../axionax-sdk-ts' ใน {repo_name}")
+                    result['issues'].append(f'@axionax/sdk uses {version} instead of file: link')
+                    self.issues.append(f"{repo_name}: @axionax/sdk not using file: link")
+                    self.recommendations.append(f"Change @axionax/sdk to 'file:../axionax-sdk-ts' in {repo_name}")
                 elif not version.endswith('axionax-sdk-ts'):
                     result['status'] = 'warn'
-                    result['issues'].append(f'@axionax/sdk path อาจไม่ถูกต้อง: {version}')
+                    result['issues'].append(f'@axionax/sdk path may be incorrect: {version}')
         
         except Exception as e:
             result['status'] = 'fail'
-            result['issues'].append(f'เกิดข้อผิดพลาด: {str(e)}')
+            result['issues'].append(f'Error occurred: {str(e)}')
         
         return result
 
     def check_readme(self, repo_name: str) -> Dict:
-        """ตรวจสอบ README.md"""
+        """Check README.md"""
         repo_path = self.workspace_root / repo_name
         readme_path = repo_path / 'README.md'
         
@@ -244,20 +244,20 @@ class RepoHealthChecker:
         
         if not readme_path.exists():
             result['status'] = 'warn'
-            result['issues'].append('ไม่มี README.md')
-            self.recommendations.append(f"สร้าง README.md ใน {repo_name}")
+            result['issues'].append('Missing README.md')
+            self.recommendations.append(f"Create README.md in {repo_name}")
             return result
         
         with open(readme_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        # ตรวจสอบเนื้อหาพื้นฐาน
+        # Check basic content
         if len(content.strip()) < 100:
             result['status'] = 'warn'
-            result['issues'].append('README.md มีเนื้อหาน้อยเกินไป')
-            self.recommendations.append(f"เพิ่มเนื้อหาใน {repo_name}/README.md")
+            result['issues'].append('README.md has too little content')
+            self.recommendations.append(f"Add more content to {repo_name}/README.md")
         
-        # ตรวจสอบว่ามี sections สำคัญหรือไม่
+        # Check for important sections
         important_sections = ['installation', 'usage', 'development']
         missing_sections = []
         
@@ -267,12 +267,12 @@ class RepoHealthChecker:
         
         if missing_sections:
             result['status'] = 'info'
-            result['issues'].append(f'ควรเพิ่ม sections: {", ".join(missing_sections)}')
+            result['issues'].append(f'Should add sections: {", ".join(missing_sections)}')
         
         return result
 
     def run_all_checks(self):
-        """รันการตรวจสอบทั้งหมด"""
+        """Run all checks"""
         self.print_header()
         
         all_results = []
@@ -281,7 +281,7 @@ class RepoHealthChecker:
             repo_path = self.workspace_root / repo_name
             
             if not repo_path.exists():
-                print(f"{RED}⚠ ข้าม {repo_name}: ไม่พบ directory{RESET}")
+                print(f"{RED}⚠ Skipping {repo_name}: directory not found{RESET}")
                 continue
             
             print(f"\n{BOLD}{BLUE}Checking: {repo_name}{RESET}")
@@ -303,7 +303,7 @@ class RepoHealthChecker:
         return all_results
 
     def print_check_result(self, result: Dict):
-        """พิมพ์ผลการตรวจสอบ"""
+        """Print check result"""
         status = result['status']
         
         if status == 'pass':
@@ -329,20 +329,20 @@ class RepoHealthChecker:
                 print(f"     • {issue}")
 
     def print_summary(self):
-        """พิมพ์สรุป"""
+        """Print summary"""
         print(f"\n{BOLD}{'='*80}{RESET}")
-        print(f"{BOLD}📊 สรุปผลการตรวจสอบ{RESET}")
+        print(f"{BOLD}📊 Check Summary{RESET}")
         print(f"{BOLD}{'='*80}{RESET}")
         
         if not self.issues:
-            print(f"{GREEN}✅ ไม่พบปัญหาร้ายแรง!{RESET}")
+            print(f"{GREEN}✅ No serious problems found!{RESET}")
         else:
-            print(f"{RED}❌ พบปัญหา {len(self.issues)} จุด:{RESET}")
+            print(f"{RED}❌ Found {len(self.issues)} issues:{RESET}")
             for i, issue in enumerate(self.issues, 1):
                 print(f"  {i}. {issue}")
         
         if self.recommendations:
-            print(f"\n{BOLD}💡 คำแนะนำในการแก้ไข ({len(self.recommendations)} จุด):{RESET}")
+            print(f"\n{BOLD}💡 Fix Recommendations ({len(self.recommendations)} items):{RESET}")
             for i, rec in enumerate(self.recommendations, 1):
                 print(f"  {i}. {rec}")
         

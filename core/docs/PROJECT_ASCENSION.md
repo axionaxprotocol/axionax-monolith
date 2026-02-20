@@ -1,6 +1,6 @@
 # Project Monolith & Axionax Core Universe — Executive Summary
 
-**พิมพ์เขียว (Blueprint) สำหรับระบบปฏิบัติการของอารยธรรมยุคใหม่**
+**Blueprint for the Operating System of the Next Civilization**
 
 *The Operating System for the Next Civilization*
 
@@ -8,7 +8,7 @@
 
 ## Mission Statement
 
-> *"Project Monolith ไม่ได้ถูกสร้างมาเพื่อแข่งขันกับคอมพิวเตอร์เครื่องใดในโลก แต่ถูกสร้างมาเพื่อเป็น 'บ้านหลังใหม่' ของข้อมูล ปัญญา และสินทรัพย์ของมนุษยชาติ ในวันที่โลกจริงและโลกเสมือนหลอมรวมเป็นหนึ่งเดียว"*
+> *"Project Monolith was not built to compete with any computer on Earth — it was built to become the 'new home' for humanity's data, intelligence, and digital assets, on the day the physical and virtual worlds merge into one."*
 >
 > *"Project Monolith was not built to compete with any computer on Earth—it was built to become the new home for humanity's data, intelligence, and digital assets, on the day the physical and virtual worlds merge into one."*
 
@@ -18,60 +18,60 @@
 
 | Attribute | Description |
 |-----------|-------------|
-| **รูปลักษณ์** | วัตถุทรงลูกบาศก์สีดำทมิฬ (Obsidian Cube) ขนาด **15×15×15 ซม.** ไร้พัดลม ไร้ปุ่มกด ไร้เสียง — สงบนิ่งเหมือนวัตถุโบราณ |
-| **หัวใจ** | เปลี่ยนจากไฟฟ้าเป็น **"แสง" (Photonics)** — สถาปัตยกรรมชิปแบบ Taichi/ACCEL |
-| **ประสิทธิภาพ** | คำนวณได้เร็วกว่า GPU ปัจจุบัน **3,000 เท่า** โดยไม่เกิดความร้อน |
-| **สถานะ** | เป็น "สมอง" (The Brain) ของเครือข่าย — เก็บข้อมูลและประมวลผลระดับจักรวาล |
+| **Appearance** | An obsidian-black cube (Obsidian Cube) measuring **15×15×15 cm** — fanless, buttonless, silent — still and serene like an ancient artifact |
+| **Heart** | Transitions from electricity to **"light" (Photonics)** — Taichi/ACCEL chip architecture |
+| **Performance** | Computes **3,000x faster** than current GPUs without generating heat |
+| **Role** | Serves as "The Brain" of the network — stores data and processes at cosmic scale |
 
 ---
 
 ## 2. THE ECOSYSTEM: The 9 Pillars of Interaction
 
-เราไม่ได้สร้างแค่กล่อง — เราสร้าง "อวัยวะ" เพื่อเชื่อมต่อมนุษย์เข้ากับเครือข่ายอย่างสมบูรณ์:
+We didn't just build a box — we built "organs" to seamlessly connect humans to the network:
 
 | # | Pillar | Role |
 |---|--------|------|
-| 1 | **Monolith** | ศูนย์กลางการประมวลผล (The Brain) |
-| 2 | **Neural Link Watch** | ระบุตัวตนและสัญญาณชีพ |
-| 3 | **Omni-Vision Glasses** | การมองเห็นที่ซ้อนทับข้อมูลดิจิทัล |
-| 4 | **Gaia Hub** | ควบคุมสภาพแวดล้อมและเสียง |
-| 5 | **Aero-Sentinel** | โดรนผู้ช่วยส่วนตัวและระบบป้องกันภัย |
-| 6 | **Infinity Slate** | แผ่นควบคุมและแสดงผล 3 มิติ |
-| 7 | **Aether Pillar** | เสาส่งพลังงานไร้สายระยะไกล |
-| 8 | **Photon Key** | กุญแจแสงเก็บข้อมูลลับและสินทรัพย์ดิจิทัล |
-| 9 | **Haptic Veil** | ถุงมือสัมผัสโลกเสมือน |
+| 1 | **Monolith** | Central processing hub (The Brain) |
+| 2 | **Neural Link Watch** | Identity verification and vital signs |
+| 3 | **Omni-Vision Glasses** | Vision overlaid with digital data |
+| 4 | **Gaia Hub** | Environment and audio control |
+| 5 | **Aero-Sentinel** | Personal assistant drone and security system |
+| 6 | **Infinity Slate** | 3D control and display panel |
+| 7 | **Aether Pillar** | Long-range wireless power transmission tower |
+| 8 | **Photon Key** | Light key for storing secrets and digital assets |
+| 9 | **Haptic Veil** | Gloves for touching the virtual world |
 
 ---
 
 ## 3. THE SOUL: Axionax Core Universe
 
-- **วิวัฒนาการ:** จาก Blockchain ธรรมดา สู่ **"Trusted World Computer"** — ความเชื่อใจอยู่ที่คณิตศาสตร์ (Math-based Trust) มากกว่าตัวบุคคล  
-- **กลไก:** Reputation, AI Fraud Detection, **Proof-of-Light Consensus** — การันตีผลลัพธ์ที่ถูกต้อง 100%
+- **Evolution:** From an ordinary blockchain to a **"Trusted World Computer"** — trust resides in mathematics (Math-based Trust) rather than individuals  
+- **Mechanisms:** Reputation, AI Fraud Detection, **Proof-of-Light Consensus** — guaranteeing 100% correct results
 
 ### The 4 Engines
 
 | Engine | Mission |
 |--------|---------|
-| **Mirror World** | จำลองเมืองและแก้ปัญหาภัยพิบัติ |
-| **Bio-Foundry** | สังเคราะห์ยาและรักษาโรค |
-| **Kronos Finance** | ระบบการเงินความเร็วแสงที่ไร้ความเสี่ยง |
-| **Generative Reality** | สร้างโลกเสมือนจริงในพริบตา |
+| **Mirror World** | Simulate cities and solve disaster scenarios |
+| **Bio-Foundry** | Synthesize medicines and treat diseases |
+| **Kronos Finance** | Light-speed, risk-free financial system |
+| **Generative Reality** | Create virtual worlds in the blink of an eye |
 
 ---
 
 ## 4. THE STRATEGY: From 2026 to Infinity
 
-เราอยู่ใน **"รอยต่อแห่งยุคสมัย"** — แผนการเป็นสามระยะ:
+We are at the **"crossroads of eras"** — the plan unfolds in three phases:
 
 | Phase | Focus |
 |-------|--------|
-| **ปัจจุบัน (Silicon Phase)** | ปรับจูน Axionax v1.9 บนฮาร์ดแวร์ปัจจุบันให้เต็มประสิทธิภาพ (Max Config) — สร้างฐานผู้ใช้ (Network Effect) |
-| **เตรียมการ (Transition Phase)** | เขียน **Hardware Abstraction Layer (HAL)** รอไว้ — วันที่ชิปแสงมาถึง สลับ "สมอง" ได้ทันทีโดยระบบไม่ล่ม |
-| **อนาคต (Photonic Phase)** | เปิดตัว Monolith Mark-II และอุปกรณ์เสริม — เปลี่ยนโลกเข้าสู่ยุค Post-Silicon อย่างเต็มตัว |
+| **Present (Silicon Phase)** | Fine-tune Axionax v1.9 to full performance on current hardware (Max Config) — build user base (Network Effect) |
+| **Preparation (Transition Phase)** | Write the **Hardware Abstraction Layer (HAL)** in advance — when photonic chips arrive, swap the "brain" instantly with zero downtime |
+| **Future (Photonic Phase)** | Launch Monolith Mark-II and peripheral devices — fully transition the world into the Post-Silicon era |
 
 ---
 
-## 5. Implementation Map (ใน Repo ปัจจุบัน)
+## 5. Implementation Map (in the current repo)
 
 | Component | Location | Status |
 |-----------|----------|--------|
@@ -84,6 +84,6 @@
 
 ---
 
-*พิมพ์เขียวเสร็จสมบูรณ์ — พร้อมสำหรับการลงมือสร้างในโลกความจริง.*
+*Blueprint complete — ready for real-world implementation.*
 
 **Document version:** 2026-02 · Axionax Core Universe

@@ -51,7 +51,7 @@ python core\examples\test_cpu_worker.py
 
 ### 3. Worker Configuration
 
-สร้างไฟล์ `worker-config\worker.toml`:
+Create file `worker-config\worker.toml`:
 
 ```toml
 [worker]
@@ -279,15 +279,15 @@ pip install --force-reinstall torch
 
 **Your Windows machine is now an axionax Worker Node!**
 
-เครื่องนี้พร้อมสำหรับ:
+This machine is ready for:
 - ✅ Development & Testing
 - ✅ Small model training
 - ✅ Learning DeAI concepts
 - ✅ Testnet participation (when ready)
 
-**Total Cost: $0** (ใช้เครื่องที่มีอยู่) 💰
+**Total Cost: $0** (using existing hardware) 💰
 
-คุณสามารถเริ่มทดสอบได้เลย หรือยังจะถ้าไม่เร่ง ก็รอ cloud GPU ได้เมื่อจำเป็น!
+You can start testing right away, or wait for a cloud GPU when needed!
 
 ---
 

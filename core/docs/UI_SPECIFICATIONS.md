@@ -1,19 +1,19 @@
 # Staking & Governance UI Specifications
-# ข้อกำหนดสำหรับ UI ใน Web Universe
+# Specifications for Web Universe UI
 
-## 📋 Overview / ภาพรวม
+## Overview
 
-เอกสารนี้ระบุ UI components ที่ต้องสร้างใน `axionax-web-universe` สำหรับ Staking และ Governance
+This document specifies the UI components to build in `axionax-web-universe` for Staking and Governance
 
 ---
 
-## 💰 Staking UI
+## Staking UI
 
-### หน้าหลัก: `/staking`
+### Main Page: `/staking`
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  💰 Staking Dashboard                                        │
+│  Staking Dashboard                                           │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
@@ -44,7 +44,7 @@
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Components ที่ต้องสร้าง
+### Components to Build
 
 #### 1. `StakingStats.tsx`
 ```typescript
@@ -95,15 +95,15 @@ interface DelegateModalProps {
 }
 ```
 
-### RPC Calls ที่ใช้
+### RPC Calls Used
 ```typescript
-// ดึงข้อมูล
+// Fetch data
 await rpc.call('staking_getActiveValidators', []);
 await rpc.call('staking_getValidator', [address]);
 await rpc.call('staking_getStats', []);
 await rpc.call('staking_getTotalStaked', []);
 
-// ทำ action
+// Perform actions
 await rpc.call('staking_stake', [address, amountHex]);
 await rpc.call('staking_unstake', [address, amountHex]);
 await rpc.call('staking_delegate', [delegator, validator, amountHex]);
@@ -112,13 +112,13 @@ await rpc.call('staking_claimRewards', [address]);
 
 ---
 
-## 🏛️ Governance UI
+## Governance UI
 
-### หน้าหลัก: `/governance`
+### Main Page: `/governance`
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  🏛️ Governance                      [Create Proposal]       │
+│  Governance                              [Create Proposal]   │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
@@ -129,7 +129,7 @@ await rpc.call('staking_claimRewards', [address]);
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │ Active Proposals                                      │  │
 │  │ ┌─────────────────────────────────────────────────┐   │  │
-│  │ │ #1: เพิ่ม Base Fee                               │   │  │
+│  │ │ #1: Increase Base Fee                           │   │  │
 │  │ │ Type: Parameter Change                          │   │  │
 │  │ │ Status: Active • Ends in 3 days                 │   │  │
 │  │ │ ████████████░░░░░░░░ For: 65% Against: 20%      │   │  │
@@ -152,7 +152,7 @@ await rpc.call('staking_claimRewards', [address]);
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Components ที่ต้องสร้าง
+### Components to Build
 
 #### 1. `ProposalCard.tsx`
 ```typescript
@@ -223,15 +223,15 @@ interface VoteModalProps {
 }
 ```
 
-### RPC Calls ที่ใช้
+### RPC Calls Used
 ```typescript
-// ดึงข้อมูล
+// Fetch data
 await rpc.call('gov_getActiveProposals', []);
 await rpc.call('gov_getProposal', [proposalId]);
 await rpc.call('gov_getStats', []);
 await rpc.call('gov_getVote', [proposalId, voterAddress]);
 
-// ทำ action
+// Perform actions
 await rpc.call('gov_createProposal', [proposer, stakeHex, title, desc, type]);
 await rpc.call('gov_vote', [voter, proposalId, vote, weightHex]);
 await rpc.call('gov_executeProposal', [proposalId]);
@@ -239,9 +239,9 @@ await rpc.call('gov_executeProposal', [proposalId]);
 
 ---
 
-## 🔍 Block Explorer Enhancements
+## Block Explorer Enhancements
 
-### หน้า Validator: `/explorer/validator/[address]`
+### Validator Page: `/explorer/validator/[address]`
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -270,11 +270,11 @@ await rpc.call('gov_executeProposal', [proposalId]);
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### หน้า Proposal: `/explorer/proposal/[id]`
+### Proposal Page: `/explorer/proposal/[id]`
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Proposal #1: เพิ่ม Base Fee                                │
+│  Proposal #1: Increase Base Fee                              │
 ├─────────────────────────────────────────────────────────────┤
 │  Type: Parameter Change                                     │
 │  Proposer: 0xabc...123                                      │
@@ -303,35 +303,35 @@ await rpc.call('gov_executeProposal', [proposalId]);
 
 ---
 
-## 🎨 Design Guidelines
+## Design Guidelines
 
 ### Colors
 ```css
 /* Staking */
---staking-primary: #10B981;    /* เขียว Emerald */
+--staking-primary: #10B981;    /* Emerald Green */
 --staking-secondary: #059669;
 
 /* Governance */
---gov-primary: #8B5CF6;        /* ม่วง Violet */
---gov-for: #22C55E;            /* เขียว - เห็นด้วย */
---gov-against: #EF4444;        /* แดง - ไม่เห็นด้วย */
---gov-abstain: #9CA3AF;        /* เทา - งดออกเสียง */
+--gov-primary: #8B5CF6;        /* Violet */
+--gov-for: #22C55E;            /* Green - In Favor */
+--gov-against: #EF4444;        /* Red - Against */
+--gov-abstain: #9CA3AF;        /* Gray - Abstain */
 
 /* Status */
---status-active: #3B82F6;      /* น้ำเงิน */
---status-passed: #22C55E;      /* เขียว */
---status-failed: #EF4444;      /* แดง */
---status-executed: #8B5CF6;    /* ม่วง */
+--status-active: #3B82F6;      /* Blue */
+--status-passed: #22C55E;      /* Green */
+--status-failed: #EF4444;      /* Red */
+--status-executed: #8B5CF6;    /* Violet */
 ```
 
 ### Typography
-- หัวข้อใหญ่: `text-2xl font-bold`
-- หัวข้อย่อย: `text-lg font-semibold`
-- ตัวเลข: `font-mono` (สำหรับ AXX amounts)
+- Main heading: `text-2xl font-bold`
+- Subheading: `text-lg font-semibold`
+- Numbers: `font-mono` (for AXX amounts)
 
 ---
 
-## 📦 SDK Types (สำหรับ @axionax/sdk)
+## SDK Types (for @axionax/sdk)
 
 ```typescript
 // packages/sdk/src/types/staking.ts
@@ -387,7 +387,7 @@ export interface GovernanceStats {
 
 ---
 
-## ✅ Implementation Checklist
+## Implementation Checklist
 
 ### Staking UI
 - [ ] `StakingStats` component

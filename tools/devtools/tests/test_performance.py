@@ -230,8 +230,8 @@ if __name__ == "__main__":
     print()
     print("=" * 70)
     if success:
-        print("ทดสอบเรียบร้อย - All performance tests passed!")
+        print("Tests completed - All performance tests passed!")
         sys.exit(0)
     else:
-        print("พบข้อผิดพลาด - Some tests failed!")
+        print("Errors found - Some tests failed!")
         sys.exit(1)

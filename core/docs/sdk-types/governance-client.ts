@@ -2,7 +2,7 @@
  * Axionax SDK - Governance Client
  * 
  * Copy this file to: packages/sdk/src/clients/governance.ts
- * สำหรับใช้ใน @axionax/sdk
+ * For use in @axionax/sdk
  */
 
 import {
@@ -19,7 +19,7 @@ import {
 import { toHex } from '../types/staking';
 
 /**
- * Governance Client สำหรับเรียก RPC
+ * Governance Client for RPC calls
  */
 export class GovernanceClient {
     private rpcUrl: string;
@@ -29,7 +29,7 @@ export class GovernanceClient {
     }
 
     /**
-     * เรียก RPC method
+     * Call an RPC method
      */
     private async call<T>(method: string, params: unknown[] = []): Promise<T> {
         const response = await fetch(this.rpcUrl, {
@@ -51,13 +51,13 @@ export class GovernanceClient {
     }
 
     // ===========================================================================
-    // Query Methods / สำหรับดึงข้อมูล
+    // Query Methods / For fetching data
     // ===========================================================================
 
     /**
-     * ดึงข้อมูล proposal
-     * @param proposalId ID ของ proposal
-     * @returns proposal หรือ null ถ้าไม่พบ
+     * Get proposal information
+     * @param proposalId Proposal ID
+     * @returns Proposal or null if not found
      */
     async getProposal(proposalId: number): Promise<Proposal | null> {
         const result = await this.call<ProposalResponse | null>(
@@ -68,8 +68,8 @@ export class GovernanceClient {
     }
 
     /**
-     * ดึงรายการ proposals ที่กำลังเปิด vote
-     * @returns รายการ proposals
+     * Get list of proposals currently open for voting
+     * @returns List of proposals
      */
     async getActiveProposals(): Promise<Proposal[]> {
         const result = await this.call<ProposalResponse[]>(
@@ -80,8 +80,8 @@ export class GovernanceClient {
     }
 
     /**
-     * ดึงสถิติและ config ของระบบ governance
-     * @returns สถิติ
+     * Get governance system statistics and config
+     * @returns Statistics
      */
     async getStats(): Promise<GovernanceStats> {
         const result = await this.call<GovernanceStatsResponse>('gov_getStats', []);
@@ -89,10 +89,10 @@ export class GovernanceClient {
     }
 
     /**
-     * ตรวจสอบว่าผู้ใช้ vote แล้วหรือยัง
-     * @param proposalId ID ของ proposal
-     * @param voter ที่อยู่ผู้ vote
-     * @returns VoteOption หรือ null ถ้ายังไม่ได้ vote
+     * Check whether a user has already voted
+     * @param proposalId Proposal ID
+     * @param voter Voter address
+     * @returns VoteOption or null if not yet voted
      */
     async getVote(proposalId: number, voter: string): Promise<VoteOption | null> {
         const result = await this.call<string | null>('gov_getVote', [
@@ -103,15 +103,15 @@ export class GovernanceClient {
     }
 
     // ===========================================================================
-    // Action Methods / สำหรับทำ action
+    // Action Methods / For performing actions
     // ===========================================================================
 
     /**
-     * สร้าง proposal ใหม่
-     * @param proposer ที่อยู่ผู้เสนอ
-     * @param proposerStake stake ของผู้เสนอ
-     * @param proposal ข้อมูล proposal
-     * @returns ID ของ proposal ที่สร้าง
+     * Create a new proposal
+     * @param proposer Proposer address
+     * @param proposerStake Proposer's stake
+     * @param proposal Proposal data
+     * @returns ID of the created proposal
      */
     async createProposal(
         proposer: string,
@@ -130,11 +130,11 @@ export class GovernanceClient {
     }
 
     /**
-     * ลงคะแนนเสียง
-     * @param voter ที่อยู่ผู้ vote
-     * @param proposalId ID ของ proposal
-     * @param vote ตัวเลือก (for/against/abstain)
-     * @param voteWeight น้ำหนักเสียง (= stake)
+     * Cast a vote
+     * @param voter Voter address
+     * @param proposalId Proposal ID
+     * @param vote Vote option (for/against/abstain)
+     * @param voteWeight Vote weight (= stake)
      */
     async vote(
         voter: string,
@@ -151,10 +151,10 @@ export class GovernanceClient {
     }
 
     /**
-     * สรุปผล proposal หลังหมดเวลา vote
-     * @param proposalId ID ของ proposal
-     * @param totalStaked จำนวน stake ทั้งหมดในระบบ
-     * @returns สถานะ ('passed' หรือ 'failed')
+     * Finalize proposal after voting period ends
+     * @param proposalId Proposal ID
+     * @param totalStaked Total staked amount in the system
+     * @returns Status ('passed' or 'failed')
      */
     async finalizeProposal(
         proposalId: number,
@@ -167,9 +167,9 @@ export class GovernanceClient {
     }
 
     /**
-     * Execute proposal ที่ผ่านแล้ว
-     * @param proposalId ID ของ proposal
-     * @returns execution data (hex)
+     * Execute a passed proposal
+     * @param proposalId Proposal ID
+     * @returns Execution data (hex)
      */
     async executeProposal(proposalId: number): Promise<string> {
         return await this.call<string>('gov_executeProposal', [proposalId]);
@@ -177,11 +177,11 @@ export class GovernanceClient {
 }
 
 // =============================================================================
-// React Hooks (ถ้าใช้ React)
+// React Hooks (if using React)
 // =============================================================================
 
 /**
- * ตัวอย่าง hook สำหรับ React
+ * Example hook for React
  *
  * import { useGovernance } from '@axionax/sdk';
  *

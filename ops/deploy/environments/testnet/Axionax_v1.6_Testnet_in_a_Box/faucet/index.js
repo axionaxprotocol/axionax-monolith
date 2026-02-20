@@ -35,7 +35,7 @@ const erc20 = ERC20_TOKEN_ADDRESS
   ? new ethers.Contract(ERC20_TOKEN_ADDRESS, erc20Abi, wallet ?? provider)
   : null;
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }); // 10 ครั้ง/15 นาที
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10 }); // 10 requests per 15 minutes
 app.use(['/request','/request-erc20'], limiter);
 
 const needAuth = process.env.BASIC_AUTH || '';
@@ -63,7 +63,7 @@ app.get("/health", async (_req, res) => {
   }
 });
 
-// ขอ native (ETH/AXX) จาก faucet
+// Request native (ETH/AXX) from faucet
 app.get("/request", async (req, res) => {
   try {
     if (!wallet) throw new Error("Faucet wallet not configured");
@@ -78,7 +78,7 @@ app.get("/request", async (req, res) => {
   }
 });
 
-// ขอ ERC-20 AXX
+// Request ERC-20 AXX
 app.get("/request-erc20", async (req, res) => {
   try {
     if (!erc20 || !wallet) throw new Error("ERC20 faucet not configured");

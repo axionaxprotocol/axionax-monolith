@@ -1,28 +1,28 @@
 # 🚀 GCP Worker Node Setup Guide
 
-**สำหรับ**: axionax DeAI Worker Node  
-**เครดิต**: $300 GCP Free Credit  
-**วัตถุประสงค์**: ทดสอบ DeAI Training Workloads
+**For**: axionax DeAI Worker Node  
+**Credit**: $300 GCP Free Credit  
+**Objective**: Test DeAI Training Workloads
 
 ---
 
-## 📋 ขั้นตอนที่ 1: สร้าง GCP Compute Instance
+## 📋 Step 1: Create a GCP Compute Instance
 
-### 1.1 เข้า GCP Console
+### 1.1 Open GCP Console
 
 ```bash
-# เปิด browser ไปที่
+# Open your browser and go to
 https://console.cloud.google.com/compute/instances
 ```
 
-### 1.2 สร้าง Instance ด้วย GPU
+### 1.2 Create an Instance with GPU
 
-**คลิก "CREATE INSTANCE"** แล้วตั้งค่าดังนี้:
+**Click "CREATE INSTANCE"** and configure as follows:
 
 #### Basic Configuration
 - **Name**: `axionax-worker-1`
-- **Region**: `us-central1` (ราคาถูกสุด)
-- **Zone**: `us-central1-a` (มี GPU T4)
+- **Region**: `us-central1` (cheapest)
+- **Zone**: `us-central1-a` (has T4 GPUs)
 
 #### Machine Configuration
 - **Series**: N1
@@ -31,7 +31,7 @@ https://console.cloud.google.com/compute/instances
   - 15 GB memory
 
 #### GPU Configuration
-**คลิก "ADD GPU"**
+**Click "ADD GPU"**
 - **GPU type**: NVIDIA Tesla T4
 - **Number of GPUs**: 1
 - **GPU memory**: 16GB
@@ -46,28 +46,28 @@ https://console.cloud.google.com/compute/instances
 - ✅ Allow HTTP traffic
 - ✅ Allow HTTPS traffic
 
-**คลิก "CREATE"**
+**Click "CREATE"**
 
 ---
 
-## 📋 ขั้นตอนที่ 2: ติดตั้ง Dependencies
+## 📋 Step 2: Install Dependencies
 
-### 2.1 SSH เข้า Instance
+### 2.1 SSH into the Instance
 
 ```bash
-# จาก local machine
+# From your local machine
 gcloud compute ssh axionax-worker-1 --zone=us-central1-a
 
-# หรือคลิก "SSH" ใน GCP Console
+# Or click "SSH" in the GCP Console
 ```
 
-### 2.2 ติดตั้ง NVIDIA Drivers และ CUDA
+### 2.2 Install NVIDIA Drivers and CUDA
 
 ```bash
 # Update system
 sudo apt-get update && sudo apt-get upgrade -y
 
-# ติดตั้ง dependencies
+# Install dependencies
 sudo apt-get install -y \
     build-essential \
     pkg-config \
@@ -76,10 +76,10 @@ sudo apt-get install -y \
     curl \
     wget
 
-# ติดตั้ง NVIDIA Driver
+# Install NVIDIA Driver
 sudo apt-get install -y nvidia-driver-535
 
-# ติดตั้ง CUDA Toolkit
+# Install CUDA Toolkit
 wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb
 sudo dpkg -i cuda-keyring_1.0-1_all.deb
 sudo apt-get update
@@ -89,16 +89,16 @@ sudo apt-get install -y cuda-toolkit-12-2
 sudo reboot
 ```
 
-### 2.3 ตรวจสอบ GPU
+### 2.3 Verify GPU
 
 ```bash
-# SSH กลับเข้าไปอีกครั้งหลัง reboot
+# SSH back in after reboot
 gcloud compute ssh axionax-worker-1 --zone=us-central1-a
 
-# ตรวจสอบ GPU
+# Verify GPU
 nvidia-smi
 
-# ควรเห็น output:
+# Expected output:
 # +-----------------------------------------------------------------------------+
 # | NVIDIA-SMI 535.x.x    Driver Version: 535.x.x    CUDA Version: 12.2       |
 # |-------------------------------+----------------------+----------------------+
@@ -112,41 +112,41 @@ nvidia-smi
 
 ---
 
-## 📋 ขั้นตอนที่ 3: ติดตั้ง axionax Worker Software
+## 📋 Step 3: Install axionax Worker Software
 
-### 3.1 ติดตั้ง Rust
+### 3.1 Install Rust
 
 ```bash
-# ติดตั้ง Rust
+# Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source $HOME/.cargo/env
 
-# ตรวจสอบ
+# Verify
 rustc --version
 cargo --version
 ```
 
-### 3.2 ติดตั้ง Python และ Dependencies
+### 3.2 Install Python and Dependencies
 
 ```bash
-# ติดตั้ง Python 3.10+
+# Install Python 3.10+
 sudo apt-get install -y \
     python3 \
     python3-pip \
     python3-venv \
     python3-dev
 
-# สร้าง virtual environment
+# Create virtual environment
 python3 -m venv ~/axionax-env
 source ~/axionax-env/bin/activate
 
-# ติดตั้ง PyTorch with CUDA support
+# Install PyTorch with CUDA support
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 
-# ติดตั้ง ML libraries
+# Install ML libraries
 pip install numpy pandas scikit-learn scipy transformers datasets
 
-# ตรวจสอบ PyTorch + CUDA
+# Verify PyTorch + CUDA
 python3 -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}')"
 ```
 
@@ -162,29 +162,29 @@ cd axionax-core-universe
 cd core
 cargo build --release
 
-# ติดตั้ง DeAI dependencies
+# Install DeAI dependencies
 cd deai
 pip install -r requirements.txt
 ```
 
 ---
 
-## 📋 ขั้นตอนที่ 4: ตั้งค่า Worker Node
+## 📋 Step 4: Configure Worker Node
 
-### 4.1 สร้าง Worker Configuration
+### 4.1 Create Worker Configuration
 
 ```bash
-# สร้างไฟล์ config
+# Create config file
 mkdir -p ~/axionax-worker/config
 nano ~/axionax-worker/config/worker.toml
 ```
 
-**เนื้อหาไฟล์ `worker.toml`:**
+**Content of `worker.toml`:**
 
 ```toml
 [worker]
 # Worker identity
-address = "0xYOUR_WALLET_ADDRESS"  # แก้เป็น wallet address ของคุณ
+address = "0xYOUR_WALLET_ADDRESS"  # Change to your wallet address
 region = "us-central1"
 name = "gcp-worker-1"
 
@@ -196,7 +196,7 @@ cpu_cores = 4
 ram = 15  # GB
 
 [network]
-# RPC endpoint (เชื่อมต่อกับ testnet)
+# RPC endpoint (connect to testnet)
 rpc_url = "http://217.216.109.5:8545"
 ws_url = "ws://217.216.109.5:8546"
 
@@ -213,7 +213,7 @@ models_dir = "/home/axionax/models"
 logs_dir = "/home/axionax/logs"
 ```
 
-### 4.2 สร้าง Directories
+### 4.2 Create Directories
 
 ```bash
 mkdir -p ~/worker-data ~/models ~/logs
@@ -221,16 +221,16 @@ mkdir -p ~/worker-data ~/models ~/logs
 
 ---
 
-## 📋 ขั้นตอนที่ 5: ทดสอบการทำงาน
+## 📋 Step 5: Test Functionality
 
-### 5.1 ทดสอบ GPU Training
+### 5.1 Test GPU Training
 
 ```bash
-# สร้างไฟล์ test
+# Create test file
 nano ~/test_gpu.py
 ```
 
-**เนื้อหา `test_gpu.py`:**
+**Content of `test_gpu.py`:**
 
 ```python
 import torch
@@ -277,7 +277,7 @@ print(f"⚡ GPU Utilization: {torch.cuda.utilization()}%")
 print(f"💾 GPU Memory Used: {torch.cuda.memory_allocated() / 1e9:.2f} GB")
 ```
 
-**รันทดสอบ:**
+**Run the test:**
 
 ```bash
 source ~/axionax-env/bin/activate
@@ -286,65 +286,65 @@ python3 ~/test_gpu.py
 
 ---
 
-## 📋 ขั้นตอนที่ 6: เชื่อมต่อกับ axionax Network
+## 📋 Step 6: Connect to axionax Network
 
 ### 6.1 Generate Worker Wallet
 
 ```bash
-# สร้าง wallet สำหรับ worker
+# Create a wallet for the worker
 cd ~/axionax-core-universe/tools
 cargo run --bin keygen -- --output ~/axionax-worker/keys/worker-key.json
 
-# Backup key (สำคัญมาก!)
+# Backup key (very important!)
 cat ~/axionax-worker/keys/worker-key.json
-# Copy และเก็บไว้ในที่ปลอดภัย
+# Copy and store in a safe place
 ```
 
-### 6.2 Register Worker (บน Testnet)
+### 6.2 Register Worker (on Testnet)
 
 ```bash
 # Connect to testnet RPC
 export AXIONAX_RPC="http://217.216.109.5:8545"
 
-# Register worker (ต้องมี AXX tokens สำหรับ gas)
-# ในอนาคตจะมี script auto register
+# Register worker (requires AXX tokens for gas)
+# An auto-register script will be available in the future
 ```
 
 ---
 
-## 💰 การประมาณการใช้เครดิต
+## 💰 Estimated Credit Usage
 
 ### Instance Type: n1-standard-4 + T4
 
-| ระยะเวลา | ชั่วโมง | ค่าใช้จ่าย | เครดิตคงเหลือ |
-|----------|---------|-----------|---------------|
-| 1 วัน | 24h | $12 | $288 |
-| 1 สัปดาห์ | 168h | $84 | $216 |
-| 2 สัปดาห์ | 336h | $168 | $132 |
-| 3 สัปดาห์ | 504h | $252 | $48 |
-| 25 วัน | 600h | $300 | $0 |
+| Duration | Hours | Cost | Remaining Credit |
+|----------|-------|------|-----------------|
+| 1 day | 24h | $12 | $288 |
+| 1 week | 168h | $84 | $216 |
+| 2 weeks | 336h | $168 | $132 |
+| 3 weeks | 504h | $252 | $48 |
+| 25 days | 600h | $300 | $0 |
 
-**💡 เคล็ดลับประหยัดเครดิต:**
-- ใช้งานเฉพาะช่วงทดสอบ (ไม่ต้อง 24/7)
-- Stop instance เมื่อไม่ใช้งาน (ยังคงเสีย storage ~$10/เดือน)
-- ใช้ Preemptible VM (ถูกกว่า 60-91% แต่อาจถูก interrupt)
+**💡 Tips to Save Credit:**
+- Use only during testing (not 24/7)
+- Stop instance when not in use (still costs ~$10/month for storage)
+- Use Preemptible VM (60-91% cheaper but may be interrupted)
 
 ---
 
-## 🎮 แนะนำการใช้งาน
+## 🎮 Usage Recommendations
 
-### แบบทดสอบ (8 ชม./วัน)
-- **ค่าใช้จ่าย**: ~$120/เดือน
-- **ใช้เครดิตได้**: 2.5 เดือน
-- เปิดเฉพาะช่วงทำงาน/ทดสอบ
+### Testing Mode (8 hrs/day)
+- **Cost**: ~$120/month
+- **Credit lasts**: 2.5 months
+- Turn on only during work/testing hours
 
-### แบบ Development (12 ชม./วัน)
-- **ค่าใช้จ่าย**: ~$180/เดือน
-- **ใช้เครดิตได้**: 1.7 เดือน
+### Development Mode (12 hrs/day)
+- **Cost**: ~$180/month
+- **Credit lasts**: 1.7 months
 
-### แบบ Full-time (24 ชม./วัน)
-- **ค่าใช้จ่าย**: ~$360/เดือน
-- **ใช้เครดิตได้**: 25 วัน
+### Full-time Mode (24 hrs/day)
+- **Cost**: ~$360/month
+- **Credit lasts**: 25 days
 
 ---
 
@@ -354,7 +354,7 @@ export AXIONAX_RPC="http://217.216.109.5:8545"
 # Start instance
 gcloud compute instances start axionax-worker-1 --zone=us-central1-a
 
-# Stop instance (ประหยัดเครดิต)
+# Stop instance (save credit)
 gcloud compute instances stop axionax-worker-1 --zone=us-central1-a
 
 # SSH
@@ -364,7 +364,7 @@ gcloud compute ssh axionax-worker-1 --zone=us-central1-a
 gcloud billing accounts list
 gcloud billing projects describe PROJECT_ID
 
-# Delete instance (เมื่อเสร็จสิ้นการทดสอบ)
+# Delete instance (when testing is complete)
 gcloud compute instances delete axionax-worker-1 --zone=us-central1-a
 ```
 
@@ -373,7 +373,7 @@ gcloud compute instances delete axionax-worker-1 --zone=us-central1-a
 ## 📊 Monitoring
 
 ```bash
-# GPU monitoring (ใน SSH session)
+# GPU monitoring (in SSH session)
 watch -n 1 nvidia-smi
 
 # System resources
@@ -387,16 +387,16 @@ df -h
 
 ## ✅ Checklist
 
-- [ ] สร้าง GCP instance ด้วย T4 GPU
-- [ ] ติดตั้ง NVIDIA drivers และ CUDA
-- [ ] ติดตั้ง Rust และ Python
-- [ ] ทดสอบ GPU ด้วย PyTorch
+- [ ] Create GCP instance with T4 GPU
+- [ ] Install NVIDIA drivers and CUDA
+- [ ] Install Rust and Python
+- [ ] Test GPU with PyTorch
 - [ ] Clone axionax repository
-- [ ] สร้าง worker configuration
-- [ ] ทดสอบ training script
+- [ ] Create worker configuration
+- [ ] Test training script
 - [ ] Generate worker wallet
-- [ ] Register กับ testnet
-- [ ] ส่ง training job แรก
+- [ ] Register with testnet
+- [ ] Submit first training job
 
 ---
 

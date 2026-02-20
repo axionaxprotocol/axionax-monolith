@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-สร้างชุด "Node Package" สำหรับให้คนดาวน์โหลดแล้วรันได้ทันที
-รวมเฉพาะไฟล์ที่จำเป็นสำหรับการรัน Worker / Scout / HYDRA และสคริปต์ตรวจความเหมาะสม
+Build a "Node Package" for download-and-run distribution.
+Includes only the files needed to run Worker / Scout / HYDRA and suitability-check scripts.
 
 Usage: python scripts/make-node-package.py [--output axionax-node-package.zip]
 """
@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# โฟลเดอร์/ไฟล์ที่จะรวมใน package (relative to ROOT)
+# Folders/files to include in the package (relative to ROOT)
 INCLUDE = [
     "core/deai/*.py",
     "core/deai/requirements.txt",

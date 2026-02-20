@@ -1,36 +1,36 @@
 # axionax V1.6 Testnet in a Box
 
-## คำอธิบาย
-ระบบนี้ช่วยให้คุณสามารถรัน Testnet ของ axionax V1.6 ได้ครบทุกส่วนในเครื่องเดียว โดยใช้ Docker Compose
+## Description
+This system allows you to run the complete axionax V1.6 Testnet on a single machine using Docker Compose
 
-## โครงสร้าง
-- `Dockerfile` สร้าง node จาก Rust
-- `docker-compose.yml` รันทุกบริการ (node, deployer, faucet, UI, blockscout, postgres)
-- `deployer/` สคริปต์สำหรับ deploy contract และตรวจสอบ RPC
-- `faucet/` API แจกเหรียญ native/erc20
-- `ui/` เว็บ UI และ nginx config
+## Structure
+- `Dockerfile` builds the node from Rust
+- `docker-compose.yml` runs all services (node, deployer, faucet, UI, blockscout, postgres)
+- `deployer/` scripts for deploying contracts and verifying RPC
+- `faucet/` API for distributing native/erc20 tokens
+- `ui/` web UI and nginx config
 
-## วิธีใช้งาน
-1. สร้างไฟล์ `.env` โดยดูตัวอย่างจาก `.env.example`
-2. สั่ง build และรัน
+## Usage
+1. Create a `.env` file using `.env.example` as a reference
+2. Build and run
    ```bash
    docker-compose build
    docker-compose up -d
    ```
-3. ตรวจสอบสถานะ
+3. Check status
    ```bash
    docker-compose ps
    ```
-4. ทดสอบ faucet
+4. Test faucet
    ```bash
    curl 'http://127.0.0.1:8081/request?address=YOUR_ADDRESS'
    curl 'http://127.0.0.1:8081/request-erc20?address=YOUR_ADDRESS'
    ```
-5. เข้าหน้าเว็บ UI ที่ http://127.0.0.1:8080
+5. Access the web UI at http://127.0.0.1:8080
 
-## หมายเหตุ
-- หากต้องการ deploy contract ใหม่ ให้ใช้ `deployer/deploy_token.js`
-- สามารถปรับแต่ง config ได้ตามต้องการ
+## Notes
+- To redeploy the contract, use `deployer/deploy_token.js`
+- Configuration can be customized as needed
 
-## ติดต่อ/แจ้งปัญหา
-โปรดแจ้งปัญหาผ่าน GitHub repository
+## Contact / Report Issues
+Please report issues via the GitHub repository

@@ -7,39 +7,39 @@
 
 ---
 
-## 📋 ทำไมถึงใช้ RunPod A40?
+## 📋 Why Use RunPod A40?
 
 ✅ **High-Performance GPU**
 - NVIDIA A40 Professional GPU
-- 48GB VRAM (3x มากกว่า T4)
+- 48GB VRAM (3x more than T4)
 - 14.75 TFLOPS (FP32)
-- Perfect สำหรับ large model training
+- Perfect for large model training
 
 ✅ **Cost Effective**
-- Pay-as-you-go ไม่มี commitment
-- ~$0.60-0.80/hour (ถูกกว่า GCP/AWS)
-- Auto-pause เมื่อไม่ใช้งาน
-- สามารถ bid spot instances
+- Pay-as-you-go with no commitment
+- ~$0.60-0.80/hour (cheaper than GCP/AWS)
+- Auto-pause when not in use
+- Can bid on spot instances
 
 ✅ **Quick Setup**
 - Pre-installed CUDA & drivers
-- SSH และ Jupyter access
-- Template สำเร็จรูป (PyTorch, TensorFlow)
-- Deploy ใน 2-3 นาที
+- SSH and Jupyter access
+- Ready-made templates (PyTorch, TensorFlow)
+- Deploy in 2-3 minutes
 
 ---
 
-## 🎯 Part 1: สร้าง RunPod A40 Instance (5 นาที)
+## 🎯 Part 1: Create RunPod A40 Instance (5 minutes)
 
-### Step 1: สร้าง RunPod Account
+### Step 1: Create RunPod Account
 
-1. ไปที่ https://www.runpod.io/
-2. Sign up (รองรับ Google/GitHub login)
-3. เติมเงิน (minimum $10-20 แนะนำ)
+1. Go to https://www.runpod.io/
+2. Sign up (supports Google/GitHub login)
+3. Add funds (minimum $10-20 recommended)
 
 ### Step 2: Deploy New Pod
 
-**คลิก "Deploy" → "GPU Instance"**
+**Click "Deploy" → "GPU Instance"**
 
 #### 📝 GPU Configuration
 
@@ -51,12 +51,12 @@ Number of GPUs: 1
 ```
 
 **Instance Type:**
-- **On-Demand** (แนะนำสำหรับ production)
+- **On-Demand** (recommended for production)
   - Always available
   - ~$0.79/hour
-- **Spot** (ถูกกว่า แต่อาจถูก terminate)
+- **Spot** (cheaper but may be terminated)
   - ~$0.44/hour
-  - ประหยัด ~40%
+  - ~40% savings
 
 **Template Selection:**
 ```
@@ -69,71 +69,71 @@ Template: RunPod PyTorch 2.1
 **Container Configuration:**
 ```
 Container Disk: 50GB (minimum)
-Volume: 100GB (persistent storage - แนะนำ)
+Volume: 100GB (persistent storage - recommended)
 ```
 
 **Network:**
 ```
 ✅ Enable SSH (Port 22)
 ✅ Enable Jupyter (Port 8888)  
-✅ Enable HTTP/HTTPS (ถ้าต้องการ)
+✅ Enable HTTP/HTTPS (if needed)
 ```
 
-**คลิก "Deploy On-Demand"** หรือ **"Deploy Spot"**
+**Click "Deploy On-Demand"** or **"Deploy Spot"**
 
-⏱️ **รอ 1-2 นาที** ให้ instance เริ่มทำงาน
+⏱️ **Wait 1-2 minutes** for the instance to start
 
 ---
 
-## 🔐 Part 2: เชื่อมต่อกับ RunPod Instance
+## 🔐 Part 2: Connect to RunPod Instance
 
 ### Step 3: SSH Access
 
-เมื่อ pod พร้อมแล้ว (สถานะ **RUNNING**):
+When the pod is ready (status **RUNNING**):
 
-#### วิธีที่ 1: Web Terminal (ง่ายสุด)
-1. จาก RunPod Console
-2. คลิก pod ที่สร้าง
-3. คลิก **"Connect"** → **"Start Web Terminal"**
-4. Terminal จะเปิดในเบราว์เซอร์
+#### Method 1: Web Terminal (easiest)
+1. From RunPod Console
+2. Click the pod you created
+3. Click **"Connect"** → **"Start Web Terminal"**
+4. Terminal will open in the browser
 
-#### วิธีที่ 2: SSH Client (แนะนำ)
+#### Method 2: SSH Client (recommended)
 
-**ดู SSH Command:**
+**Get SSH Command:**
 ```
-คลิก pod → "Connect" → คัดลอก SSH command
+Click pod → "Connect" → copy SSH command
 ```
 
-**จาก Windows PowerShell:**
+**From Windows PowerShell:**
 ```powershell
-# รูปแบบ SSH command จะเป็น:
+# SSH command format:
 ssh root@<POD_ID>.<DATACENTER>.pods.runpod.io -p <PORT> -i ~/.ssh/id_ed25519_runpod
 
-# ตัวอย่าง:
+# Example:
 ssh root@abc123xyz.runpod-west-1.pods.runpod.io -p 22456 -i ~/.ssh/id_ed25519_runpod
 ```
 
-**ถ้ายังไม่มี SSH Key:**
+**If you don't have an SSH key yet:**
 ```powershell
-# สร้าง SSH key
+# Generate SSH key
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_runpod
 
 # Copy public key
 cat ~/.ssh/id_ed25519_runpod.pub
-# นำ public key ไปเพิ่มใน RunPod Account Settings → SSH Keys
+# Add the public key in RunPod Account Settings → SSH Keys
 ```
 
 ---
 
-## ✅ Part 3: Verify GPU และ Environment
+## ✅ Part 3: Verify GPU and Environment
 
-### Step 4: ตรวจสอบ GPU
+### Step 4: Verify GPU
 
 ```bash
 # Check GPU
 nvidia-smi
 
-# ควรเห็น:
+# Expected output:
 # +-----------------------------------------------------------------------------+
 # | NVIDIA-SMI 535.xx    Driver Version: 535.xx    CUDA Version: 12.1         |
 # |-------------------------------+----------------------+----------------------+
@@ -142,7 +142,7 @@ nvidia-smi
 # +-----------------------------------------------------------------------------+
 ```
 
-### Step 5: ตรวจสอบ PyTorch CUDA
+### Step 5: Verify PyTorch CUDA
 
 ```bash
 # Test PyTorch
@@ -156,7 +156,7 @@ if torch.cuda.is_available():
     print(f"GPU Memory: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.2f} GB")
 EOF
 
-# Output ที่คาดหวัง:
+# Expected output:
 # PyTorch version: 2.1.x
 # CUDA available: True
 # CUDA version: 12.1
@@ -164,13 +164,13 @@ EOF
 # GPU Memory: 48.00 GB
 ```
 
-✅ **พร้อมใช้งานแล้ว! PyTorch + CUDA ทำงานได้**
+✅ **Ready to use! PyTorch + CUDA is working**
 
 ---
 
-## 📦 Part 4: ติดตั้ง axionax Worker (10-15 นาที)
+## 📦 Part 4: Install axionax Worker (10-15 minutes)
 
-### วิธีที่ 1: ใช้ Setup Script (แนะนำ)
+### Method 1: Use Setup Script (recommended)
 
 ```bash
 # Download setup script
@@ -184,18 +184,18 @@ chmod +x setup-runpod-worker.sh
 ./setup-runpod-worker.sh
 ```
 
-**Script จะติดตั้ง:**
+**Script will install:**
 - ✅ Rust toolchain
 - ✅ axionax core repository
 - ✅ DeAI dependencies
 - ✅ Worker directories
 - ✅ Configuration files
 
-⏱️ **ใช้เวลา 10-15 นาที**
+⏱️ **Takes 10-15 minutes**
 
-### วิธีที่ 2: Manual Setup (Step-by-Step)
+### Method 2: Manual Setup (Step-by-Step)
 
-#### Step 6: ติดตั้ง Rust
+#### Step 6: Install Rust
 
 ```bash
 # Install Rust
@@ -219,12 +219,12 @@ cd axionax-core-universe
 #### Step 8: Build axionax Core
 
 ```bash
-# Build core (ใช้เวลา 5-10 นาที)
+# Build core (takes 5-10 minutes)
 cd ~/axionax-core-universe/core
 cargo build --release
 ```
 
-#### Step 9: ติดตั้ง DeAI Dependencies
+#### Step 9: Install DeAI Dependencies
 
 ```bash
 # Install Python packages
@@ -240,9 +240,9 @@ pip install transformers datasets accelerate
 
 ---
 
-## 🧪 Part 5: ทดสอบ Training (5 นาที)
+## 🧪 Part 5: Test Training (5 minutes)
 
-### Step 10: รัน GPU Training Test
+### Step 10: Run GPU Training Test
 
 ```bash
 # Run simple training example
@@ -250,7 +250,7 @@ cd ~/axionax-core-universe/core/examples
 python deai_simple_training.py
 ```
 
-**ผลลัพธ์ที่คาดหวัง:**
+**Expected output:**
 
 ```
 🚀 axionax DeAI - Simple Training Example
@@ -285,7 +285,7 @@ python deai_simple_training.py
   📊 Epoch 1 Summary:
     Train Loss: 0.2845, Train Acc: 91.23%
     Test Loss:  0.1234, Test Acc:  96.12%
-    Time: 8.23s  # ⚡ เร็วกว่า T4 มาก!
+    Time: 8.23s  # ⚡ Much faster than T4!
     GPU Memory: 1.2 GB / 48 GB
 
 ...
@@ -303,13 +303,13 @@ python deai_simple_training.py
 | T4 | 16GB | ~92s | 0.46x |
 | RX 560 | 4GB | ~280s | 0.15x |
 
-✅ **A40 เร็วกว่า T4 ประมาณ 2x!**
+✅ **A40 is approximately 2x faster than T4!**
 
 ---
 
 ## 🔧 Part 6: Configure Worker for Testnet
 
-### Step 11: สร้าง Worker Configuration
+### Step 11: Create Worker Configuration
 
 ```bash
 # Create worker config directory
@@ -319,11 +319,11 @@ mkdir -p ~/axionax-worker/config
 nano ~/axionax-worker/config/worker.toml
 ```
 
-**เนื้อหา `worker.toml`:**
+**Content of `worker.toml`:**
 
 ```toml
 [worker]
-# ใส่ wallet address ของคุณ
+# Enter your wallet address
 address = "0xYOUR_WALLET_ADDRESS_HERE"
 region = "runpod-us-west"
 name = "runpod-a40-worker-1"
@@ -343,7 +343,7 @@ rpc_url = "http://217.216.109.5:8545"
 ws_url = "ws://217.216.109.5:8546"
 
 [performance]
-# A40 มี performance สูง
+# A40 has high performance
 popc_pass_rate = 0.98
 da_reliability = 0.99
 target_uptime = 0.99
@@ -358,11 +358,11 @@ cache_dir = "/workspace/cache"
 [optimization]
 # A40-specific optimizations
 mixed_precision = true  # Use FP16 for faster training
-gradient_checkpointing = false  # A40 มี VRAM เยอะ ไม่ต้อง checkpoint
+gradient_checkpointing = false  # A40 has plenty of VRAM, no need for checkpointing
 dataloader_workers = 8
 ```
 
-### Step 12: สร้าง Worker Directories
+### Step 12: Create Worker Directories
 
 ```bash
 # Create directories
@@ -373,15 +373,15 @@ mkdir -p /workspace/cache
 ls -la /workspace/axionax-worker/
 ```
 
-### Step 13: สร้าง Worker Wallet (ถ้ายังไม่มี)
+### Step 13: Create Worker Wallet (if you don't have one)
 
 ```bash
-# Generate wallet (ใช้ tools จาก axionax)
+# Generate wallet (using axionax tools)
 cd ~/axionax-core-universe/tools
 python generate_worker_wallet.py
 
-# หรือใช้ existing wallet
-# แก้ไข worker.toml และใส่ address ของคุณ
+# Or use an existing wallet
+# Edit worker.toml and enter your address
 ```
 
 ---
@@ -401,15 +401,15 @@ cargo run --release --bin axionax-worker -- \
   --config ~/axionax-worker/config/worker.toml \
   --log-level info
 
-# หรือ run ใน background ด้วย tmux
+# Or run in background with tmux
 tmux new -s axionax-worker
 cargo run --release --bin axionax-worker -- \
   --config ~/axionax-worker/config/worker.toml \
   --log-level info
-# กด Ctrl+B แล้ว D เพื่อ detach
+# Press Ctrl+B then D to detach
 ```
 
-**ผลลัพธ์ที่คาดหวัง:**
+**Expected output:**
 
 ```
 🚀 axionax Worker Node v0.1.0
@@ -433,7 +433,7 @@ cargo run --release --bin axionax-worker -- \
 [INFO] GPU utilization: 0%
 ```
 
-### Tmux Commands (สำหรับ background worker)
+### Tmux Commands (for background worker)
 
 ```bash
 # List sessions
@@ -443,7 +443,7 @@ tmux ls
 tmux attach -t axionax-worker
 
 # Detach from session
-# กด Ctrl+B แล้ว D
+# Press Ctrl+B then D
 
 # Kill session
 tmux kill-session -t axionax-worker
@@ -467,26 +467,26 @@ A40 (48GB): ~$0.79/hour
 A40 (48GB): ~$0.44/hour
 - 24 hours = ~$10.56/day
 - 1 month = ~$317
-- ประหยัดกว่า ~40%
-- ⚠️ อาจถูก terminate ได้
+- ~40% savings
+- ⚠️ May be terminated
 ```
 
-### Tips ประหยัดเงิน
+### Tips to Save Money
 
-1. **ใช้ Spot Instance สำหรับ development**
-   - ถูกกว่า On-Demand 40%
-   - เหมาะสำหรับ testing
+1. **Use Spot Instance for development**
+   - 40% cheaper than On-Demand
+   - Suitable for testing
 
-2. **Auto-Pause เมื่อไม่ใช้งาน**
-   - Stop pod เมื่อไม่ train
-   - Storage ยังคงอยู่ (persistent volume)
+2. **Auto-Pause when not in use**
+   - Stop pod when not training
+   - Storage is preserved (persistent volume)
 
 3. **Use Persistent Volume**
-   - เก็บ data และ models
-   - ไม่ต้อง download ใหม่ทุกครั้ง
+   - Store data and models
+   - No need to re-download each time
 
 4. **Monitor Usage**
-   - ตรวจสอบ billing ใน RunPod dashboard
+   - Check billing in RunPod dashboard
    - Set budget alerts
 
 ---
@@ -534,35 +534,35 @@ chmod +x ~/monitor-worker.sh
 
 ## 💾 Persistent Storage
 
-### Using RunPod Volume (แนะนำ)
+### Using RunPod Volume (recommended)
 
-RunPod มี persistent volume ที่ไม่หายเมื่อ restart pod:
+RunPod has persistent volumes that are preserved across pod restarts:
 
 ```bash
-# Volume จะ mount ที่ /workspace (default)
+# Volume is mounted at /workspace (default)
 cd /workspace
 
-# เก็บข้อมูลสำคัญที่นี่:
+# Store important data here:
 /workspace/
 ├── axionax-worker/        # Worker data
 ├── models/                # Trained models
 ├── datasets/              # Training datasets
 └── cache/                 # Cache files
 
-# ⚠️ อย่าเก็บข้อมูลสำคัญใน ~/root เพราะจะหายเมื่อ pod terminate!
+# ⚠️ Do not store important data in ~/root as it will be lost when the pod terminates!
 ```
 
 ### Backup Important Data
 
 ```bash
-# Sync ไป local machine
+# Sync to local machine
 rsync -avz root@pod-address:/workspace/models/ ./local-models/
 
-# หรือ upload to cloud storage
+# Or upload to cloud storage
 # Install rclone
 curl https://rclone.org/install.sh | bash
 
-# Configure rclone สำหรับ Google Drive / S3 / etc
+# Configure rclone for Google Drive / S3 / etc
 rclone config
 ```
 
@@ -570,7 +570,7 @@ rclone config
 
 ## 🆘 Troubleshooting
 
-### GPU ไม่ทำงาน
+### GPU Not Working
 
 ```bash
 # Restart NVIDIA services
@@ -580,37 +580,37 @@ sudo systemctl restart nvidia-persistenced
 sudo nvidia-smi -pm 1
 ```
 
-### Out of Memory (แม้ A40 มี 48GB)
+### Out of Memory (even with A40's 48GB)
 
 ```bash
-# ลด batch size ใน config
+# Reduce batch size in config
 # Edit worker.toml:
-max_batch_size = 256  # ลดจาก 512
+max_batch_size = 256  # reduced from 512
 
-# หรือเปิด gradient checkpointing
+# Or enable gradient checkpointing
 gradient_checkpointing = true
 ```
 
-### Connection ขาด
+### Connection Lost
 
 ```bash
-# Check นconnection
+# Check connection
 curl http://217.216.109.5:8545
 
-# Check logging
+# Check logs
 tail -f ~/axionax-worker/logs/worker.log
 
 # Restart worker
 tmux kill-session -t axionax-worker
-# แล้ว start ใหม่
+# Then start again
 ```
 
 ### Pod Terminated (Spot Instance)
 
 ```bash
-# Spot instance อาจถูก terminate
-# ถ้า using persistent volume, data ยังอยู่
-# Deploy pod ใหม่และ mount volume เดิม
+# Spot instances may be terminated
+# If using persistent volume, data is preserved
+# Deploy a new pod and mount the same volume
 ```
 
 ---
@@ -618,34 +618,34 @@ tmux kill-session -t axionax-worker
 ## ✅ Checklist
 
 ### Setup Complete:
-- [ ] สร้าง RunPod account
-- [ ] Deploy A40 pod (On-Demand หรือ Spot)
-- [ ] SSH เข้า pod ได้
+- [ ] Create RunPod account
+- [ ] Deploy A40 pod (On-Demand or Spot)
+- [ ] SSH into pod successfully
 - [ ] Verify GPU (nvidia-smi)
 - [ ] Verify PyTorch CUDA
-- [ ] ติดตั้ง Rust
+- [ ] Install Rust
 - [ ] Clone axionax repo
-- [ ] Build core สำเร็จ
-- [ ] รัน training example สำเร็จ
+- [ ] Build core successfully
+- [ ] Run training example successfully
 
 ### Worker Configuration:
-- [ ] สร้าง worker.toml
-- [ ] สร้าง worker directories
+- [ ] Create worker.toml
+- [ ] Create worker directories
 - [ ] Generate worker wallet
 - [ ] Configure RPC connection
 - [ ] Start worker node
 
 ### Testnet Integration:
-- [ ] เชื่อมต่อกับ testnet RPC สำเร็จ
+- [ ] Connect to testnet RPC successfully
 - [ ] Worker registered
-- [ ] พร้อมรับ training jobs
+- [ ] Ready to receive training jobs
 
 ---
 
 ## 🎯 Next Steps
 
-1. **Test รับ Training Job**
-   - รอ job จาก testnet
+1. **Test Receiving Training Jobs**
+   - Wait for jobs from testnet
    - Monitor worker logs
    - Submit training results
 

@@ -62,7 +62,7 @@ def monitor_output(process: subprocess.Popen, role: str) -> None:
 def hardware_control_loop() -> None:
     """Simulate LED/OLED control based on status (TODO: real hardware)."""
     while True:
-        # TODO: อ่าน CPU Load หรือ Hailo Temp แล้วปรับไฟ LED
+        # TODO: Read CPU load or Hailo temp and adjust LED
         time.sleep(5)
 
 

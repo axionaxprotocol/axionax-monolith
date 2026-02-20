@@ -2,89 +2,89 @@
  * Axionax SDK - Staking Types
  * 
  * Copy this file to: packages/sdk/src/types/staking.ts
- * สำหรับใช้ใน @axionax/sdk
+ * For use in @axionax/sdk
  */
 
 // =============================================================================
-// Types / ประเภทข้อมูล
+// Types / Data Types
 // =============================================================================
 
 /**
- * ข้อมูล Validator
+ * Validator Information
  */
 export interface ValidatorInfo {
-  /** ที่อยู่ validator */
+  /** Validator address */
   address: string;
-  /** จำนวนที่ stake เอง */
+  /** Self-staked amount */
   stake: bigint;
-  /** จำนวนที่ได้รับ delegate */
+  /** Amount received from delegation */
   delegated: bigint;
-  /** พลังเสียงรวม (stake + delegated) */
+  /** Total voting power (stake + delegated) */
   votingPower: bigint;
-  /** สถานะ active */
+  /** Active status */
   isActive: boolean;
-  /** ค่าคอมมิชชั่น (basis points, 500 = 5%) */
+  /** Commission rate (basis points, 500 = 5%) */
   commissionBps: number;
-  /** rewards ทั้งหมดที่เคยได้ */
+  /** Total rewards ever earned */
   totalRewards: bigint;
-  /** rewards ที่ยังไม่ได้รับ */
+  /** Unclaimed rewards */
   unclaimedRewards: bigint;
-  /** จำนวน blocks ที่ผลิต */
+  /** Number of blocks produced */
   blocksProduced: number;
-  /** จำนวนที่โดน slash */
+  /** Total amount slashed */
   totalSlashed: bigint;
 }
 
 /**
- * สถิติระบบ Staking
+ * Staking System Statistics
  */
 export interface StakingStats {
-  /** จำนวน token ที่ stake ทั้งหมด */
+  /** Total tokens staked */
   totalStaked: bigint;
-  /** จำนวน validators ทั้งหมด */
+  /** Total number of validators */
   totalValidators: number;
-  /** จำนวน validators ที่ active */
+  /** Number of active validators */
   activeValidators: number;
-  /** stake ขั้นต่ำเพื่อเป็น validator */
+  /** Minimum stake to become a validator */
   minStake: bigint;
 }
 
 /**
- * ข้อมูล Delegation
+ * Delegation Information
  */
 export interface Delegation {
-  /** ผู้ delegate */
+  /** Delegator */
   delegator: string;
-  /** validator ที่ได้รับ */
+  /** Receiving validator */
   validator: string;
-  /** จำนวน */
+  /** Amount */
   amount: bigint;
-  /** rewards ที่สะสม */
+  /** Accumulated rewards */
   rewards: bigint;
-  /** block ที่ปลดล็อก (0 = ไม่ได้ unstaking) */
+  /** Unlock block (0 = not unstaking) */
   unlockBlock: number;
 }
 
 /**
- * Config ของระบบ Staking
+ * Staking System Configuration
  */
 export interface StakingConfig {
-  /** stake ขั้นต่ำเพื่อเป็น validator */
+  /** Minimum stake to become a validator */
   minValidatorStake: bigint;
-  /** จำนวนขั้นต่ำที่ delegate ได้ */
+  /** Minimum delegation amount */
   minDelegation: bigint;
-  /** จำนวน blocks ที่ต้องรอหลัง unstake */
+  /** Number of blocks to wait after unstaking */
   unstakingLockBlocks: number;
-  /** อัตรา reward ต่อ epoch (basis points) */
+  /** Reward rate per epoch (basis points) */
   epochRewardRateBps: number;
-  /** จำนวน blocks ต่อ epoch */
+  /** Number of blocks per epoch */
   blocksPerEpoch: number;
-  /** อัตรา slash สูงสุด (basis points) */
+  /** Maximum slash rate (basis points) */
   maxSlashRateBps: number;
 }
 
 // =============================================================================
-// RPC Response Types / ประเภทการตอบกลับจาก RPC
+// RPC Response Types
 // =============================================================================
 
 export interface ValidatorResponse {
@@ -106,11 +106,11 @@ export interface StakingStatsResponse {
 }
 
 // =============================================================================
-// Helper Functions / ฟังก์ชันช่วย
+// Helper Functions
 // =============================================================================
 
 /**
- * แปลง ValidatorResponse จาก RPC เป็น ValidatorInfo
+ * Convert ValidatorResponse from RPC to ValidatorInfo
  */
 export function parseValidatorInfo(response: ValidatorResponse): ValidatorInfo {
   return {
@@ -128,7 +128,7 @@ export function parseValidatorInfo(response: ValidatorResponse): ValidatorInfo {
 }
 
 /**
- * แปลง StakingStatsResponse จาก RPC เป็น StakingStats
+ * Convert StakingStatsResponse from RPC to StakingStats
  */
 export function parseStakingStats(response: StakingStatsResponse): StakingStats {
   return {
@@ -140,14 +140,14 @@ export function parseStakingStats(response: StakingStatsResponse): StakingStats 
 }
 
 /**
- * แปลง bigint เป็น hex string สำหรับส่ง RPC
+ * Convert bigint to hex string for RPC calls
  */
 export function toHex(value: bigint): string {
   return `0x${value.toString(16)}`;
 }
 
 /**
- * Format จำนวน AXX ให้อ่านง่าย
+ * Format AXX amount for readability
  */
 export function formatAXX(value: bigint, decimals = 18): string {
   const divisor = 10n ** BigInt(decimals);
@@ -163,7 +163,7 @@ export function formatAXX(value: bigint, decimals = 18): string {
 }
 
 /**
- * คำนวณ APY จาก epoch reward rate
+ * Calculate APY from epoch reward rate
  */
 export function calculateAPY(epochRewardRateBps: number, epochsPerYear: number): number {
   const epochRate = epochRewardRateBps / 10000;

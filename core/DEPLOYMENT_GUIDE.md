@@ -510,7 +510,7 @@ sudo sysctl -p
 ## 🎯 Production Checklist
 
 - [ ] Binary compiled with `--release` flag
-- [ ] Configuration reviewed และ secured
+- [ ] Configuration reviewed and secured
 - [ ] Firewall rules configured
 - [ ] TLS/SSL certificates installed
 - [ ] Monitoring system setup

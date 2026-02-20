@@ -22,14 +22,14 @@ This directory documents the **Optical Logic Simulation** for Axionax Monolith M
 
 ## Continuous Evolution (HAL + Node Identity)
 
-- **HAL (ComputeBackend):** `../deai/compute_backend.py` — worker ใช้ `ComputeBackend` แทนการผูกตรงกับ `torch.device("cuda")`; รองรับ `SILICON` / `PHOTONIC` (optical bridge = simulation เมื่อไม่มีชิป)
-- **Config:** `../deai/worker_config.toml` → `[experimental]` มี `enable_optical_bridge`, `hardware_tier`, `compute_type`
-- **NodeCapabilities (Rust):** `../core/network/src/protocol.rs` — `NodeCapabilities` (compute_power, compute_type, memory_type, is_monolith) และ `PeerInfo.capabilities` สำหรับ ASR / Fast Lane
+- **HAL (ComputeBackend):** `../deai/compute_backend.py` — worker uses `ComputeBackend` instead of binding directly to `torch.device("cuda")`; supports `SILICON` / `PHOTONIC` (optical bridge = simulation when no chip is present)
+- **Config:** `../deai/worker_config.toml` → `[experimental]` includes `enable_optical_bridge`, `hardware_tier`, `compute_type`
+- **NodeCapabilities (Rust):** `../core/network/src/protocol.rs` — `NodeCapabilities` (compute_power, compute_type, memory_type, is_monolith) and `PeerInfo.capabilities` for ASR / Fast Lane
 
 ## Next Directives
 
-1. **พันธมิตร (Partners):** ติดต่อแล็บ Taichi / Turing Quantum สำหรับ prototype testing บนชิปตัวอย่าง
-2. **Refactor:** โครงสร้าง `core/photonic/` นี้พร้อม; logic จำลองอยู่ใน `deai/optical/` และ `core/consensus/proof_of_light.rs`; HAL ใน `deai/compute_backend.py`
+1. **Partners:** Contact Taichi / Turing Quantum labs for prototype testing on sample chips
+2. **Refactor:** The `core/photonic/` structure is ready; simulation logic lives in `deai/optical/` and `core/consensus/proof_of_light.rs`; HAL in `deai/compute_backend.py`
 
 ## Quick Run
 

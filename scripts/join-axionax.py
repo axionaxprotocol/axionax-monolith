@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Axionax Node — ตรวจสอบความเหมาะสม และเลือกประเภทโหนด แล้วรันได้ทันที
+Axionax Node — Check suitability, select node type, and run immediately
 
-ไม่ว่าใครก็ตามที่ต้องการเข้าร่วมเป็นโหนด: ดาวน์โหลด packaging ของโปรเจค แล้วรันสคริปต์นี้
-เพื่อตรวจสอบความเหมาะสมของเครื่อง และเลือกประเภทโหนด (Worker PC, Scout, HYDRA) ได้โดยง่าย
+Anyone who wants to join as a node: download the project package and run this script
+to check machine suitability and easily select a node type (Worker PC, Scout, HYDRA)
 
 Usage:
-  python scripts/join-axionax.py              # โหมด interactive
-  python scripts/join-axionax.py --check-only # ตรวจความเหมาะสมอย่างเดียว
-  python scripts/join-axionax.py --type worker  # เลือกประเภทแล้วรัน (worker | scout | hydra)
+  python scripts/join-axionax.py              # interactive mode
+  python scripts/join-axionax.py --check-only # suitability check only
+  python scripts/join-axionax.py --type worker  # select type and run (worker | scout | hydra)
 """
 
 import os
@@ -16,50 +16,50 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Windows: พยายามใช้ UTF-8 สำหรับข้อความภาษาไทย
+# Windows: try to use UTF-8 for non-ASCII text
 if sys.platform == "win32":
     try:
         sys.stdout.reconfigure(encoding="utf-8")
     except Exception:
         pass
 
-# Root = โฟลเดอร์ที่มี core/, configs/, scripts/
+# Root = directory containing core/, configs/, scripts/
 ROOT = Path(__file__).resolve().parent.parent
 
 NODE_TYPES = {
     "1": ("Worker (PC/Server)", "core/deai/worker_config.toml", "python core/deai/worker_node.py"),
-    "2": ("Worker Monolith Scout (Hailo ตัวเดียว)", "configs/monolith_scout_single.toml", "python core/deai/worker_node.py --config configs/monolith_scout_single.toml"),
+    "2": ("Worker Monolith Scout (single Hailo)", "configs/monolith_scout_single.toml", "python core/deai/worker_node.py --config configs/monolith_scout_single.toml"),
     "3": ("HYDRA (Sentinel + Worker)", "configs/monolith_worker.toml", "python hydra_manager.py"),
 }
 
 
 def check_python():
-    """ต้อง Python 3.10+"""
+    """Requires Python 3.10+"""
     v = sys.version_info
     if v.major < 3 or (v.major == 3 and v.minor < 10):
-        print(f"  ❌ Python 3.10+ ต้องการ — ตอนนี้: {v.major}.{v.minor}")
+        print(f"  \u274c Python 3.10+ required \u2014 current: {v.major}.{v.minor}")
         return False
-    print(f"  ✅ Python {v.major}.{v.minor}.{v.micro}")
+    print(f"  \u2705 Python {v.major}.{v.minor}.{v.micro}")
     return True
 
 
 def check_deps():
-    """ตรวจว่าใช้ requests, toml ได้ (จาก core/deai/requirements.txt)"""
+    """Check that requests, toml are available (from core/deai/requirements.txt)"""
     try:
         import requests  # noqa: F401
         import toml  # noqa: F401
-        print("  ✅ Dependencies (requests, toml) พร้อม")
+        print("  \u2705 Dependencies (requests, toml) ready")
         return True
     except ImportError as e:
-        print(f"  ⚠️ ขาด: {e}")
+        print(f"  \u26a0\ufe0f Missing: {e}")
         req = ROOT / "core" / "deai" / "requirements.txt"
         if req.exists():
-            print(f"  รัน: pip install -r {req}")
+            print(f"  Run: pip install -r {req}")
         return False
 
 
 def check_network():
-    """ตรวจ RPC จาก config หลักหรือ env"""
+    """Check RPC from main config or env"""
     os.chdir(ROOT)
     rpc_url = os.environ.get("AXIONAX_RPC_URL", "").strip()
     if not rpc_url:
@@ -74,7 +74,7 @@ def check_network():
         except Exception:
             pass
     if not rpc_url:
-        print("  ⚠️ ไม่พบ RPC URL (ตั้ง AXIONAX_RPC_URL หรือ [network] bootnodes ใน config)")
+        print("  \u26a0\ufe0f RPC URL not found (set AXIONAX_RPC_URL or [network] bootnodes in config)")
         return False
     try:
         import requests
@@ -86,25 +86,25 @@ def check_network():
         )
         if r.status_code == 200 and "result" in r.json():
             block = int(r.json()["result"], 16)
-            print(f"  ✅ เครือข่ายเชื่อมได้ — RPC: block {block}")
+            print(f"  \u2705 Network connected \u2014 RPC: block {block}")
             return True
     except Exception as e:
-        print(f"  ❌ เครือข่าย: {e}")
+        print(f"  \u274c Network: {e}")
     return False
 
 
 def check_config(config_path: str) -> bool:
-    """ตรวจว่า config มีอยู่"""
+    """Check that config exists"""
     p = ROOT / config_path
     if p.exists():
-        print(f"  ✅ Config: {config_path}")
+        print(f"  \u2705 Config: {config_path}")
         return True
-    print(f"  ❌ Config ไม่พบ: {config_path}")
+    print(f"  \u274c Config not found: {config_path}")
     return False
 
 
 def run_health_check(config_path: str, skip_wallet: bool = True) -> bool:
-    """รัน health-check.py"""
+    """Run health-check.py"""
     cmd = [sys.executable, "scripts/health-check.py", "--config", config_path]
     if skip_wallet:
         cmd.append("--skip-wallet")
@@ -113,7 +113,7 @@ def run_health_check(config_path: str, skip_wallet: bool = True) -> bool:
 
 
 def run_node(command: str) -> None:
-    """รันคำสั่ง start node (แบ่งเป็น executable + args)"""
+    """Run start-node command (split into executable + args)"""
     parts = command.strip().split()
     if not parts:
         return
@@ -126,20 +126,20 @@ def run_node(command: str) -> None:
 
 def main():
     import argparse
-    ap = argparse.ArgumentParser(description="Axionax Node — ตรวจความเหมาะสม และเลือกประเภทโหนด")
-    ap.add_argument("--check-only", action="store_true", help="ตรวจความเหมาะสมอย่างเดียว ไม่เลือกประเภท")
-    ap.add_argument("--type", choices=["worker", "scout", "hydra"], help="เลือกประเภทโหนดเลย (ไม่ถาม)")
-    ap.add_argument("--no-start", action="store_true", help="ไม่รันโหนดหลัง verify — แค่แสดงคำสั่ง")
+    ap = argparse.ArgumentParser(description="Axionax Node \u2014 Check suitability and select node type")
+    ap.add_argument("--check-only", action="store_true", help="Suitability check only, no type selection")
+    ap.add_argument("--type", choices=["worker", "scout", "hydra"], help="Select node type directly (no prompt)")
+    ap.add_argument("--no-start", action="store_true", help="Don't start node after verify \u2014 just show the command")
     args = ap.parse_args()
 
     os.chdir(ROOT)
 
     print("=" * 60)
-    print("  Axionax Node — ตรวจสอบความเหมาะสม และเลือกประเภทโหนด")
+    print("  Axionax Node \u2014 Check suitability and select node type")
     print("=" * 60)
 
-    # 1) ตรวจความเหมาะสม
-    print("\n[1] ตรวจความเหมาะสมของระบบ")
+    # 1) Check suitability
+    print("\n[1] System suitability check")
     ok = True
     if not check_python():
         ok = False
@@ -149,60 +149,60 @@ def main():
         ok = False
 
     if not ok:
-        print("\nแก้ไขด้านบนแล้วรันสคริปต์นี้อีกครั้ง")
+        print("\nFix the issues above, then run this script again")
         return 1
 
     if args.check_only:
-        print("\n✅ ระบบเหมาะสมสำหรับการรันโหนด (--check-only)")
+        print("\n\u2705 System is suitable for running a node (--check-only)")
         return 0
 
-    # 2) เลือกประเภทโหนด
+    # 2) Select node type
     if args.type:
         type_map = {"worker": "1", "scout": "2", "hydra": "3"}
         choice = type_map.get(args.type, "1")
     else:
-        print("\n[2] เลือกประเภทโหนดที่ต้องการรัน")
+        print("\n[2] Select the node type to run")
         for k, (label, _, _) in NODE_TYPES.items():
             print(f"   {k}. {label}")
-        print("   q. ออก (ไม่รัน)")
-        choice = input("\nเลือก (1/2/3/q): ").strip().lower()
+        print("   q. Quit (don't run)")
+        choice = input("\nChoose (1/2/3/q): ").strip().lower()
         if choice == "q":
-            print("ออก")
+            print("Exiting")
             return 0
         if choice not in NODE_TYPES:
             choice = "1"
 
     name, config_path, run_cmd = NODE_TYPES[choice]
-    print(f"\nเลือก: {name}")
+    print(f"\nSelected: {name}")
 
     if not check_config(config_path):
         return 1
 
     # 3) Verify (health-check)
-    print("\n[3] ตรวจสอบ config และเครือข่าย")
+    print("\n[3] Verifying config and network")
     if not run_health_check(config_path):
-        print("\nแก้ไขตามที่แสดงด้านบน แล้วรันสคริปต์นี้อีกครั้ง")
+        print("\nFix the issues shown above, then run this script again")
         return 1
 
-    # 4) แสดงคำสั่งและถามว่าจะรันเลยหรือไม่
+    # 4) Show command and ask whether to run
     print("\n" + "=" * 60)
-    print("คำสั่งรันโหนด:")
+    print("Node run command:")
     print(f"  {run_cmd}")
     print("=" * 60)
-    print("\nความปลอดภัย: อย่า commit .env หรือ worker_key.json — backup wallet หลังรันครั้งแรก")
-    print("  ดูเพิ่ม: JOIN.md, PRODUCTION_READINESS.md")
+    print("\nSecurity: Do not commit .env or worker_key.json \u2014 backup wallet after first run")
+    print("  See also: JOIN.md, PRODUCTION_READINESS.md")
 
     if args.no_start:
-        print("\n(ไม่รันโหนด — ใช้ --no-start)")
+        print("\n(Not starting node \u2014 --no-start flag used)")
         return 0
 
     if not args.type:
-        start = input("\nรันโหนดตอนนี้เลยหรือไม่? (y/n): ").strip().lower()
+        start = input("\nStart node now? (y/n): ").strip().lower()
         if start != "y":
-            print("ออก — รันด้วยคำสั่งด้านบนเมื่อพร้อม")
+            print("Exiting \u2014 run with the command above when ready")
             return 0
 
-    print("\nกำลังเริ่มโหนด... (หยุดด้วย Ctrl+C)\n")
+    print("\nStarting node... (stop with Ctrl+C)\n")
     run_node(run_cmd)
     return 0
 

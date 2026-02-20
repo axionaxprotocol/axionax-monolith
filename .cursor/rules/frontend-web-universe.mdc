@@ -1,27 +1,27 @@
 ---
-description: กฎการพัฒนา Frontend (Web Universe) — Next.js, React, SDK ใน submodule web-universe
+description: Frontend development rules (Web Universe) — Next.js, React, SDK in web-universe submodule
 globs: web-universe/**/*
 alwaysApply: false
 ---
 
 # Frontend — Web Universe
 
-โปรเจค frontend อยู่ที่ **web-universe/** (Git submodule): Next.js, Marketplace, TypeScript SDK
+The frontend project lives at **web-universe/** (Git submodule): Next.js, Marketplace, TypeScript SDK
 
-## โครงสร้าง (ใน web-universe/)
+## Structure (inside web-universe/)
 
-- **apps/web/** — Next.js 14, App Router (เว็บหลัก)
+- **apps/web/** — Next.js 14, App Router (main website)
 - **apps/marketplace/** — Vite + React (marketplace)
-- **packages/sdk/** — TypeScript SDK (@axionax/sdk) — ใส่ business logic ที่นี่ ไม่ใช่ใน app
+- **packages/sdk/** — TypeScript SDK (@axionax/sdk) — put business logic here, not in apps
 
-## สิ่งที่ต้องทำ
+## Do
 
-- ใช้ **pnpm** (workspaces); ไม่ใช้ npm/yarn ที่ root ของ web-universe
-- **Import:** ใช้ workspace alias เช่น `import { ... } from "@axionax/sdk"` — อย่าใช้ relative path ข้าม package (เช่น ../../packages/sdk)
-- **Next.js:** ใช้ Server Components เป็นค่าเริ่มต้น; ใส่ `"use client"` เฉพาะเมื่อใช้ hooks (useState, useEffect)
-- **สไตล์:** Tailwind CSS; โทน Cyberpunk/Futuristic, dark mode เป็นค่าเริ่มต้น
+- Use **pnpm** (workspaces); do not use npm/yarn at the web-universe root
+- **Imports:** use workspace aliases e.g. `import { ... } from "@axionax/sdk"` — never use relative paths across packages (e.g. ../../packages/sdk)
+- **Next.js:** use Server Components by default; add `"use client"` only when using hooks (useState, useEffect)
+- **Styling:** Tailwind CSS; Cyberpunk/Futuristic theme, dark mode by default
 
-## สิ่งที่ไม่ควรทำ
+## Don't
 
-- อย่าใส่ logic ที่ใช้ร่วมได้ใน apps/web หรือ apps/marketplace — ย้ายไป **packages/sdk**
-- อย่า hardcode API key หรือ secret ใน frontend; ใช้ env (NEXT_PUBLIC_* สำหรับ client)
+- Don't put reusable logic in apps/web or apps/marketplace — move it to **packages/sdk**
+- Don't hardcode API keys or secrets in frontend; use env (NEXT_PUBLIC_* for client)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Quick Fix Script
-แก้ไขปัญหาที่พบบ่อยอัตโนมัติ
+Automatically fix commonly found issues
 """
 
 import os
@@ -16,7 +16,7 @@ RED = '\033[91m'
 RESET = '\033[0m'
 
 def fix_all_gitignore():
-    """แก้ไข .gitignore ทั้งหมด"""
+    """Fix all .gitignore files"""
     print(f"\n{BOLD}{BLUE}🔧 Fixing .gitignore files...{RESET}")
     
     result = subprocess.run(['python', 'refactor_and_clean.py', '--skip-formatting', '--skip-linting'], 
@@ -28,7 +28,7 @@ def fix_all_gitignore():
         print(f"{YELLOW}⚠ Some issues encountered{RESET}")
 
 def commit_package_locks():
-    """Commit package-lock.json ที่ยังไม่ได้ commit"""
+    """Commit uncommitted package-lock.json files"""
     print(f"\n{BOLD}{BLUE}📦 Committing package-lock.json files...{RESET}")
     
     repos = ['axionax-marketplace', 'axionax-deploy']
@@ -46,7 +46,7 @@ def commit_package_locks():
                 print(f"{YELLOW}⚠ No changes or already committed in {repo}{RESET}")
 
 def clean_git_artifacts():
-    """ทำความสะอาด git artifacts"""
+    """Clean git artifacts"""
     print(f"\n{BOLD}{BLUE}🧹 Cleaning git artifacts...{RESET}")
     
     repos = ['axionax-core', 'axionax-sdk-ts', 'axionax-web', 
@@ -68,7 +68,7 @@ def clean_git_artifacts():
                 print(f"{YELLOW}⚠ Error cleaning {repo}: {str(e)}{RESET}")
 
 def install_all_dependencies():
-    """Install dependencies ในทุก repo"""
+    """Install dependencies in all repos"""
     print(f"\n{BOLD}{BLUE}📥 Installing dependencies...{RESET}")
     
     # TypeScript repos
@@ -87,7 +87,7 @@ def install_all_dependencies():
                 print(f"{RED}  ✗ Error installing {repo} dependencies{RESET}")
 
 def fix_line_endings():
-    """แก้ไข line endings เป็น LF"""
+    """Fix line endings to LF"""
     print(f"\n{BOLD}{BLUE}📝 Fixing line endings...{RESET}")
     
     repos = ['axionax-core', 'axionax-sdk-ts', 'axionax-web', 

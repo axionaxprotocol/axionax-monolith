@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>axionax Connect Portal</title>
@@ -101,10 +101,10 @@
           <button class="secondary" id="btnOpenMyAddress">Open My Address</button>
           <button class="secondary" id="btnCopyMyAddress">Copy Link</button>
           <label style="display:flex;align-items:center;gap:6px;color:#9fb3d9;font-size:13px">
-            <input type="checkbox" id="openSameTab" /> เปิดในแท็บเดียว (หลีกเลี่ยง popup)
+            <input type="checkbox" id="openSameTab" /> Open in same tab (avoid popup)
           </label>
         </div>
-        <div class="sub">ใช้ API v2 ของ Blockscout เพื่อตรวจสอบบล็อกล่าสุด หากโดน CORS ให้ใช้ปุ่ม Open Explorer หรือ Copy Link</div>
+        <div class="sub">Uses Blockscout API v2 to check the latest block. If blocked by CORS, use the Open Explorer or Copy Link buttons</div>
       </div>
       <div class="card">
         <h3>Protocol RPC (Mock)</h3>
@@ -114,7 +114,7 @@
           <button class="secondary" id="btnASRAssign">asr_getAssignment</button>
           <button class="secondary" id="btnPrice">price_getCurrent</button>
         </div>
-        <div class="sub">เส้นทาง /proto-rpc จะถูก proxy ผ่าน edge และเปิด CORS สำหรับโดเมนที่อนุญาต</div>
+        <div class="sub">The /proto-rpc path is proxied through edge with CORS enabled for allowed domains</div>
       </div>
     </div>
 
@@ -127,11 +127,11 @@ function log(msg){ logEl.textContent += msg + "\n"; logEl.scrollTop = logEl.scro
 
 let CFG = null;
 async function loadConfig(){
-  const url = `./config.json?ts=${Date.now()}`; // กัน cache
+  const url = `./config.json?ts=${Date.now()}`; // prevent caching
   const res = await fetch(url, {cache:'no-store'});
   if(!res.ok){ throw new Error(`fetch ${url} -> ${res.status}`); }
   const cfg = await res.json();
-  // ปรับ chainId ให้พร้อมทั้งเลขและ hex
+  // normalize chainId to both numeric and hex
   const chainIdNum = Number(cfg.chainId ?? 0);
   const chainIdHex = (cfg.chainIdHex || ( '0x' + chainIdNum.toString(16))).toLowerCase();
 
@@ -153,13 +153,13 @@ async function loadConfig(){
   document.getElementById('erc20Badge').textContent = CFG.erc20 || '-';
   document.getElementById('explorerBadge').textContent = CFG.explorer || '-';
 
-  // เติมค่าจาก localStorage ให้ช่อง auth
+  // populate auth fields from localStorage
   document.getElementById('authUser').value = localStorage.getItem('faucetAuthUser') || '';
   document.getElementById('authPass').value = localStorage.getItem('faucetAuthPass') || '';
 }
 
 async function connectWallet(){
-  if(!window.ethereum){ log('❌ ไม่มี MetaMask'); return; }
+  if(!window.ethereum){ log('❌ MetaMask not found'); return; }
   const accs = await ethereum.request({ method:'eth_requestAccounts' });
   return accs[0];
 }
@@ -191,21 +191,21 @@ async function getAccount(){
 async function addOrSwitch(){
   try{
     if(!CFG) throw new Error('config not loaded');
-    // ลองสลับไป chain ก่อน ถ้ายังไม่มีค่อยเพิ่ม
+    // try switching to the chain first; if not found, add it
     try{
       await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CFG.chainIdHex }] });
-      log('[ok] สลับเครือข่ายสำเร็จ ✅');
+      log('[ok] Network switched successfully ✅');
       await refreshSession();
       return;
     }catch(swErr){
-      // 4902: chain ยังไม่ถูกเพิ่ม
+      // 4902: chain has not been added yet
       if(swErr?.code !== 4902){
-        // ถ้าเป็น error อื่น อาจจะเกี่ยวกับการตั้งค่าเดิม ให้ลองขั้นตอน add
-        // ไม่ log ที่นี่ จะไปลอง add ต่อ
+        // if other error, may be related to existing config; try add step
+        // don't log here, will try add next
       }
     }
 
-    // เพิ่มเครือข่าย (กรณีไม่มี)
+    // add network (if not present)
     try{
       await ethereum.request({
         method: 'wallet_addEthereumChain',
@@ -216,20 +216,20 @@ async function addOrSwitch(){
           rpcUrls: [CFG.rpc],
         }]
       });
-      log('[ok] เพิ่มเครือข่ายสำเร็จ ✅');
+      log('[ok] Network added successfully ✅');
     }catch(addErr){
       const msg = String(addErr?.message || addErr);
       if(/same RPC endpoint/i.test(msg) || /existing network/i.test(msg)){
-        log('[warn] MetaMask มีเครือข่ายอื่นที่ใช้ RPC เดียวกันอยู่ (อาจเป็น chain เก่า 8615). ลองลบเครือข่ายเก่าใน MetaMask Settings > Networks หรือเปลี่ยน RPC ใน config.json เป็น http://localhost:8545 แล้วลองใหม่');
+        log('[warn] MetaMask has another network using the same RPC (possibly old chain 8615). Try removing the old network in MetaMask Settings > Networks or change the RPC in config.json to http://localhost:8545 and try again');
       }else{
         log(`[err] Add chain failed: ${msg}`);
       }
     }
 
-    // หลังเพิ่มแล้วพยายามสลับอีกครั้ง
+    // after adding, try switching again
     try{
       await ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: CFG.chainIdHex }] });
-      log('[ok] สลับเครือข่ายสำเร็จ ✅');
+      log('[ok] Network switched successfully ✅');
     }catch(e){ 
       log(`[err] Switch failed: ${e.message}`); 
     }
@@ -239,9 +239,9 @@ async function addOrSwitch(){
 
 async function faucetNative(){
   try{
-    if(!CFG?.faucet) throw new Error('faucet URL undefined (ตรวจ config.json)');
+    if(!CFG?.faucet) throw new Error('faucet URL undefined (check config.json)');
     const acc = await getAccount();
-    if(!acc) throw new Error('wallet ยังไม่เชื่อม');
+    if(!acc) throw new Error('wallet not connected');
     log('Requesting 1 AXX (native) ...');
     const headers = buildFaucetAuthHeaders();
     const r = await fetch(`${CFG.faucet}/request?address=${acc}`, { headers });
@@ -254,10 +254,10 @@ async function faucetNative(){
 
 async function faucetERC20(){
   try{
-    if(!CFG?.faucet) throw new Error('faucet URL undefined (ตรวจ config.json)');
-    if(!CFG?.erc20) throw new Error('ERC20 ยังไม่ได้กำหนดใน config.json');
+    if(!CFG?.faucet) throw new Error('faucet URL undefined (check config.json)');
+    if(!CFG?.erc20) throw new Error('ERC20 not configured in config.json');
     const acc = await getAccount();
-    if(!acc) throw new Error('wallet ยังไม่เชื่อม');
+    if(!acc) throw new Error('wallet not connected');
     log('Requesting 1000 AXX (ERC-20) ...');
     const headers = buildFaucetAuthHeaders();
     const r = await fetch(`${CFG.faucet}/request-erc20?address=${acc}&amount=1000`, { headers });
@@ -269,7 +269,7 @@ async function faucetERC20(){
 
 async function addToken(){
   try{
-    if(!CFG?.erc20) throw new Error('ERC20 ยังไม่ได้กำหนดใน config.json');
+    if(!CFG?.erc20) throw new Error('ERC20 not configured in config.json');
     await ethereum.request({
       method: 'wallet_watchAsset',
       params: {
@@ -277,7 +277,7 @@ async function addToken(){
         options: { address: CFG.erc20, symbol: 'AXX', decimals: 18 }
       }
     });
-    log('[ok] เพิ่มโทเค็น AXX (ERC-20) ใน MetaMask แล้ว ✅');
+    log('[ok] AXX token (ERC-20) added to MetaMask ✅');
   }catch(e){ log(`[err] Add token failed: ${e.message}`); }
 }
 
@@ -295,7 +295,7 @@ document.getElementById('btnSaveAuth').onclick = () => {
   const p = document.getElementById('authPass').value;
   localStorage.setItem('faucetAuthUser', u);
   localStorage.setItem('faucetAuthPass', p);
-  log('[ok] บันทึก Faucet Basic Auth แล้ว ✅');
+  log('[ok] Faucet Basic Auth saved ✅');
 };
 
 // Explorer actions
@@ -308,19 +308,19 @@ document.getElementById('btnOpenExplorer').onclick = () => {
 document.getElementById('btnOpenMyAddress').onclick = async () => {
   try{
     if(!CFG?.explorer) throw new Error('explorer URL undefined');
-    // เปิดหน้าต่างทันที (synchronous) ลดโอกาสถูกบล็อก แล้วค่อยอัปเดต URL เมื่อพร้อม
+    // open window immediately (synchronous) to reduce popup blocking, then update URL when ready
     const popup = window.open('about:blank', '_blank', 'noopener');
     if(!popup || popup.closed || typeof popup.closed === 'undefined'){
-      // ถูกบล็อก popup
+      // popup was blocked
       const acc = await getAccount();
-      if(!acc) throw new Error('wallet ยังไม่เชื่อม');
+      if(!acc) throw new Error('wallet not connected');
       const url = `${CFG.explorer}/address/${acc}`;
-      log('[warn] เบราว์เซอร์บล็อกป๊อปอัพ โปรดอนุญาต pop-ups สำหรับหน้านี้');
-      log(`เปิดลิงก์ด้วยตนเอง: ${url}`);
+      log('[warn] Browser blocked popup. Please allow pop-ups for this page');
+      log(`Open the link manually: ${url}`);
       return;
     }
     const acc = await getAccount();
-    if(!acc) throw new Error('wallet ยังไม่เชื่อม');
+    if(!acc) throw new Error('wallet not connected');
     const url = `${CFG.explorer}/address/${acc}`;
     const same = document.getElementById('openSameTab')?.checked;
     if(same){ window.location.href = url; return; }
@@ -335,10 +335,10 @@ document.getElementById('btnCheckLatest').onclick = async () => {
     if (!res.ok) throw new Error(`${res.status}`);
     const json = await res.json();
     const latest = json.items?.[0];
-    if(!latest){ log('[warn] ไม่พบรายการบล็อก'); return; }
+    if(!latest){ log('[warn] No block records found'); return; }
     log(`[ok] Latest block: #${latest.height} txs=${latest.transactions_count} hash=${latest.hash}`);
   }catch(e){
-    log(`[err] Explorer check failed: ${e.message}. ใช้ปุ่ม Open Explorer แทน`);
+    log(`[err] Explorer check failed: ${e.message}. Use the Open Explorer button instead`);
   }
 };
 
@@ -353,8 +353,8 @@ function buildFaucetAuthHeaders(){
 function openTab(url){
   const popup = window.open(url, '_blank', 'noopener');
   if(!popup || popup.closed || typeof popup.closed === 'undefined'){
-    log('[warn] เบราว์เซอร์บล็อกป๊อปอัพ โปรดอนุญาต pop-ups สำหรับหน้านี้');
-    log(`เปิดลิงก์ด้วยตนเอง: ${url}`);
+    log('[warn] Browser blocked popup. Please allow pop-ups for this page');
+    log(`Open the link manually: ${url}`);
   }
 }
 
@@ -363,31 +363,31 @@ document.getElementById('btnCopyExplorer').onclick = async () => {
   try{
     if(!CFG?.explorer) throw new Error('explorer URL undefined');
     await navigator.clipboard.writeText(CFG.explorer);
-    log('[ok] คัดลอกลิงก์ Explorer แล้ว ✅');
+    log('[ok] Explorer link copied ✅');
   }catch(e){ log(`[err] Copy failed: ${e.message}`); }
 };
 document.getElementById('btnCopyMyAddress').onclick = async () => {
   try{
     if(!CFG?.explorer) throw new Error('explorer URL undefined');
     const acc = await getAccount();
-    if(!acc) throw new Error('wallet ยังไม่เชื่อม');
+    if(!acc) throw new Error('wallet not connected');
     const url = `${CFG.explorer}/address/${acc}`;
     await navigator.clipboard.writeText(url);
-    log('[ok] คัดลอกลิงก์ Address แล้ว ✅');
+    log('[ok] Address link copied ✅');
   }catch(e){ log(`[err] Copy failed: ${e.message}`); }
 };
 
 (async () => {
   try{
     await loadConfig();
-    log('[ok] โหลด config.json สำเร็จ ✅');
+    log('[ok] config.json loaded successfully ✅');
     if(window.ethereum){
       ethereum.on?.('chainChanged', ()=>{ cachedAcc=null; refreshSession(); });
       ethereum.on?.('accountsChanged', ()=>{ cachedAcc=null; refreshSession(); });
     }
     await refreshSession();
   }catch(e){
-    log(`[err] โหลด config ล้มเหลว: ${e.message}`);
+    log(`[err] Failed to load config: ${e.message}`);
     document.getElementById('rpcDisp').textContent = '-';
     document.getElementById('chainDisp').textContent = '-';
   }

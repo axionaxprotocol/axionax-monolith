@@ -24,7 +24,7 @@ Software:
   ✅ Git (available)
 ```
 
-**Conclusion**: ✅ **เครื่องนี้พร้อมใช้งานเป็น Worker Node!**
+**Conclusion**: ✅ **This machine is ready to be used as a Worker Node!**
 
 ---
 
@@ -32,20 +32,20 @@ Software:
 
 ### AMD GPU Support Options:
 
-#### Option 1: PyTorch with DirectML ⭐ **แนะนำสำหรับ Windows**
-- ใช้ DirectML (Microsoft)
-- รองรับ AMD GPU บน Windows
-- ติดตั้งง่าย
-- Performance ดีพอสำหรับ testing
+#### Option 1: PyTorch with DirectML ⭐ **Recommended for Windows**
+- Uses DirectML (Microsoft)
+- Supports AMD GPU on Windows
+- Easy to install
+- Performance is sufficient for testing
 
 #### Option 2: PyTorch CPU-only
-- ใช้ CPU อย่างเดียว
-- ช้ากว่า GPU แต่ยังใช้งานได้
+- Uses CPU only
+- Slower than GPU but still functional
 - Stable
 
 #### Option 3: ROCm (Linux only)
 - Best performance for AMD
-- แต่ต้องใช้ Linux/WSL2
+- Requires Linux/WSL2
 
 ---
 
@@ -54,7 +54,7 @@ Software:
 ### Step 1: Virtual Environment
 
 ```powershell
-# สร้าง virtual environment
+# Create virtual environment
 cd d:\axionax-core-universe
 python -m venv worker-env
 
@@ -98,7 +98,7 @@ python -c "import torch_directml; print(f'DirectML available: {torch_directml.is
 
 ### Quick Test Script
 
-สร้างไฟล์ `test_amd_gpu.py`:
+Create file `test_amd_gpu.py`:
 
 ```python
 import torch_directml
@@ -147,7 +147,7 @@ print(f"\n✅ Training completed in {elapsed:.2f} seconds")
 print(f"⚡ Using AMD GPU with DirectML")
 ```
 
-รันทดสอบ:
+Run the test:
 ```powershell
 python test_amd_gpu.py
 ```
@@ -158,7 +158,7 @@ python test_amd_gpu.py
 
 ### Modified for DirectML
 
-สร้างไฟล์ `deai_training_amd.py`:
+Create file `deai_training_amd.py`:
 
 ```python
 """
@@ -254,7 +254,7 @@ for epoch in range(epochs):
 print("✅ Training complete!")
 ```
 
-รัน:
+Run:
 ```powershell
 python deai_training_amd.py
 ```
@@ -263,14 +263,14 @@ python deai_training_amd.py
 
 ## 🔧 Configure Worker Node
 
-### สร้าง Worker Config
+### Create Worker Config
 
 ```powershell
 mkdir worker-config
 notepad worker-config\worker.toml
 ```
 
-เนื้อหา `worker.toml`:
+Content of `worker.toml`:
 
 ```toml
 [worker]
@@ -314,17 +314,17 @@ logs_dir = "D:\\axionax-worker\\logs"
 | **Speed** | ~30% of T4 | Baseline |
 | **Support** | DirectML | CUDA (native) |
 
-**สรุป**:
-- ✅ ใช้งานได้ สำหรับ testing
-- ⚠️ ช้ากว่า NVIDIA ~3x
-- ⚠️ VRAM น้อยกว่า (4GB vs 16GB)
-- ✅ ไม่เสียค่าใช้จ่าย!
+**Summary**:
+- ✅ Usable for testing
+- ⚠️ ~3x slower than NVIDIA
+- ⚠️ Less VRAM (4GB vs 16GB)
+- ✅ No cost!
 
 ### Recommendations:
-1. **Batch size**: ใช้ 32-64 (แทน 128)
-2. **Model size**: เริ่มจาก small models
-3. **Epochs**: ทดสอบด้วย 3-5 epochs ก่อน
-4. **Purpose**: ใช้สำหรับ development/testing
+1. **Batch size**: Use 32-64 (instead of 128)
+2. **Model size**: Start with small models
+3. **Epochs**: Test with 3-5 epochs first
+4. **Purpose**: Use for development/testing
 
 ---
 
@@ -355,14 +355,14 @@ Get-Process python | Format-Table Name, CPU, WorkingSet -AutoSize
 ## 💡 Tips
 
 ### Optimize Performance:
-- ปิดโปรแกรมอื่นๆ ขณะ training
-- ใช้ batch size เล็ก (32-64)
+- Close other applications during training
+- Use small batch sizes (32-64)
 - Monitor temperature
 
 ### When to Upgrade:
-- ถ้าต้องการ production: พิจารณา NVIDIA GPU
-- ถ้าต้องการ scale: ใช้ cloud (GCP/AWS)
-- Local = perfect สำหรับ development!
+- For production: consider an NVIDIA GPU
+- For scaling: use cloud (GCP/AWS)
+- Local = perfect for development!
 
 ---
 

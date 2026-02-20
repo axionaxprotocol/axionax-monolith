@@ -28,7 +28,7 @@ class OpticalTensor:
 
     def encode_to_light(self, data: np.ndarray) -> np.ndarray:
         """
-        แปลงข้อมูลดิจิทัลเป็น 'ความเข้มแสง' (Light Intensity) และ 'เฟส' (Phase).
+        Convert digital data to 'Light Intensity' and 'Phase'.
         0 = No Light, 1 = Full Intensity.
         In real hardware: E/O modulator drives waveguide.
         """
@@ -45,8 +45,8 @@ class OpticalTensor:
         self, input_beam: np.ndarray, weight_matrix: np.ndarray
     ) -> np.ndarray:
         """
-        Diffraction-based computing: แสงวิ่งผ่านชิป ACCEL.
-        ผลลัพธ์เกิดจากการแทรกสอด (Interference) ที่ปลายทางทันที.
+        Diffraction-based computing: light passes through the ACCEL chip.
+        The result is produced by interference at the destination instantly.
         Simulation: numpy matmul emulates the linear algebra
         the optical system would perform instantaneously.
         """
@@ -61,15 +61,15 @@ class OpticalTensor:
 
     def read_photons(self, output_beam: np.ndarray) -> np.ndarray:
         """
-        แปลงแสงกลับเป็น Digital (Photodetector).
+        Convert light back to digital (Photodetector).
         In real hardware: photodiode + ADC.
         """
         return np.asarray(output_beam, dtype=np.float64)
 
     def matmul_speed_of_light(self, other: OpticalTensor) -> OpticalTensor:
         """
-        การคูณเมทริกซ์ด้วยความเร็วแสง (Zero Latency).
-        ไม่ต้องรอ Clock Cycle แสงวิ่งผ่านเลนส์ปุ๊บ ได้คำตอบปั๊บ.
+        Matrix multiplication at the speed of light (Zero Latency).
+        No need to wait for clock cycles — light passes through the lens and the answer appears instantly.
         """
         input_beam = self.waveguide_matrix
         weight_matrix = other.waveguide_matrix
@@ -79,8 +79,8 @@ class OpticalTensor:
 
     def train_step(self) -> None:
         """
-        ในชิป Taichi การเทรนทำได้โดยปรับ "ค่าดัชนีหักเห" (Refractive Index) ของวัสดุ.
-        ไม่มีการเขียนข้อมูลทับ แต่เป็นการเปลี่ยนคุณสมบัติทางฟิสิกส์ของชิป.
+        In the Taichi chip, training is done by adjusting the "Refractive Index" of the material.
+        No data is overwritten — instead, the physical properties of the chip are changed.
         (Simulation: no-op; real hardware would tune MZI phases.)
         """
         pass

@@ -2,43 +2,43 @@
  * Axionax SDK - Governance Types
  * 
  * Copy this file to: packages/sdk/src/types/governance.ts
- * สำหรับใช้ใน @axionax/sdk
+ * For use in @axionax/sdk
  */
 
 // =============================================================================
-// Types / ประเภทข้อมูล
+// Types / Data Types
 // =============================================================================
 
 /**
- * ประเภทของ Proposal
+ * Proposal Type
  */
 export type ProposalType = 'text' | 'parameter' | 'treasury' | 'upgrade';
 
 /**
- * สถานะของ Proposal
+ * Proposal Status
  */
 export type ProposalStatus = 'active' | 'passed' | 'failed' | 'executed' | 'cancelled';
 
 /**
- * ตัวเลือกการ Vote
+ * Vote Option
  */
 export type VoteOption = 'for' | 'against' | 'abstain';
 
 /**
- * ข้อมูล Proposal
+ * Proposal Information
  */
 export interface Proposal {
-    /** ID ของ proposal */
+    /** Proposal ID */
     id: number;
-    /** ผู้เสนอ */
+    /** Proposer */
     proposer: string;
-    /** หัวข้อ */
+    /** Title */
     title: string;
-    /** รายละเอียด */
+    /** Description */
     description: string;
-    /** ประเภท */
+    /** Type */
     proposalType: ProposalType;
-    /** ข้อมูลเพิ่มเติมตามประเภท */
+    /** Additional data by type */
     typeData?: {
         // For parameter change
         paramKey?: string;
@@ -49,98 +49,98 @@ export interface Proposal {
         // For upgrade
         version?: string;
     };
-    /** block ที่เริ่ม vote */
+    /** Block when voting starts */
     startBlock: number;
-    /** block ที่หมดเวลา vote */
+    /** Block when voting ends */
     endBlock: number;
-    /** สถานะปัจจุบัน */
+    /** Current status */
     status: ProposalStatus;
-    /** คะแนน เห็นด้วย */
+    /** Votes in favor */
     votesFor: bigint;
-    /** คะแนน ไม่เห็นด้วย */
+    /** Votes against */
     votesAgainst: bigint;
-    /** คะแนน งดออกเสียง */
+    /** Abstain votes */
     votesAbstain: bigint;
-    /** คะแนนทั้งหมด */
+    /** Total votes */
     totalVotes: bigint;
-    /** stake ของผู้เสนอ ณ เวลาที่สร้าง */
+    /** Proposer's stake at creation time */
     proposerStake: bigint;
 }
 
 /**
- * ข้อมูลการ Vote
+ * Vote Record
  */
 export interface VoteRecord {
-    /** ผู้ vote */
+    /** Voter */
     voter: string;
-    /** proposal ID */
+    /** Proposal ID */
     proposalId: number;
-    /** ตัวเลือก */
+    /** Vote option */
     vote: VoteOption;
-    /** น้ำหนักเสียง (= stake) */
+    /** Vote weight (= stake) */
     weight: bigint;
-    /** block ที่ vote */
+    /** Block when voted */
     block: number;
 }
 
 /**
- * สถิติระบบ Governance
+ * Governance System Statistics
  */
 export interface GovernanceStats {
-    /** จำนวน proposals ที่กำลังเปิด vote */
+    /** Number of proposals currently open for voting */
     activeProposals: number;
-    /** จำนวน proposals ทั้งหมด */
+    /** Total number of proposals */
     totalProposals: number;
-    /** ระยะเวลา vote (blocks) */
+    /** Voting period duration (blocks) */
     votingPeriodBlocks: number;
-    /** ระยะเวลารอหลัง vote ผ่าน (blocks) */
+    /** Waiting period after vote passes (blocks) */
     executionDelayBlocks: number;
-    /** quorum ที่ต้องการ (basis points) */
+    /** Required quorum (basis points) */
     quorumBps: number;
-    /** threshold ที่ต้องผ่าน (basis points) */
+    /** Pass threshold (basis points) */
     passThresholdBps: number;
-    /** stake ขั้นต่ำเพื่อสร้าง proposal */
+    /** Minimum stake to create a proposal */
     minProposalStake: bigint;
 }
 
 /**
- * Config ของระบบ Governance
+ * Governance System Configuration
  */
 export interface GovernanceConfig {
-    /** stake ขั้นต่ำเพื่อสร้าง proposal */
+    /** Minimum stake to create a proposal */
     minProposalStake: bigint;
-    /** ระยะเวลา vote (blocks) */
+    /** Voting period duration (blocks) */
     votingPeriodBlocks: number;
-    /** ระยะเวลารอหลัง vote ผ่าน (blocks) */
+    /** Waiting period after vote passes (blocks) */
     executionDelayBlocks: number;
-    /** quorum ที่ต้องการ (basis points, 3000 = 30%) */
+    /** Required quorum (basis points, 3000 = 30%) */
     quorumBps: number;
-    /** threshold ที่ต้องผ่าน (basis points, 5000 = 50%) */
+    /** Pass threshold (basis points, 5000 = 50%) */
     passThresholdBps: number;
 }
 
 /**
- * ข้อมูลสำหรับสร้าง Proposal ใหม่
+ * Data for creating a new Proposal
  */
 export interface NewProposal {
-    /** หัวข้อ */
+    /** Title */
     title: string;
-    /** รายละเอียด */
+    /** Description */
     description: string;
-    /** ประเภท */
+    /** Type */
     type: ProposalType;
-    /** สำหรับ parameter change */
+    /** For parameter change */
     paramKey?: string;
     paramValue?: string;
-    /** สำหรับ treasury spend */
+    /** For treasury spend */
     recipient?: string;
     amount?: bigint;
-    /** สำหรับ upgrade */
+    /** For upgrade */
     version?: string;
 }
 
 // =============================================================================
-// RPC Response Types / ประเภทการตอบกลับจาก RPC
+// RPC Response Types
 // =============================================================================
 
 export interface ProposalResponse {
@@ -169,11 +169,11 @@ export interface GovernanceStatsResponse {
 }
 
 // =============================================================================
-// Helper Functions / ฟังก์ชันช่วย
+// Helper Functions
 // =============================================================================
 
 /**
- * แปลง ProposalResponse จาก RPC เป็น Proposal
+ * Convert ProposalResponse from RPC to Proposal
  */
 export function parseProposal(response: ProposalResponse): Proposal {
     const [proposalType, typeData] = parseProposalType(response.proposal_type);
@@ -197,7 +197,7 @@ export function parseProposal(response: ProposalResponse): Proposal {
 }
 
 /**
- * แปลง proposal_type string เป็น ProposalType และ typeData
+ * Convert proposal_type string to ProposalType and typeData
  */
 function parseProposalType(typeStr: string): [ProposalType, Proposal['typeData']] {
     if (typeStr === 'text' || !typeStr) {
@@ -222,7 +222,7 @@ function parseProposalType(typeStr: string): [ProposalType, Proposal['typeData']
 }
 
 /**
- * แปลง GovernanceStatsResponse จาก RPC เป็น GovernanceStats
+ * Convert GovernanceStatsResponse from RPC to GovernanceStats
  */
 export function parseGovernanceStats(response: GovernanceStatsResponse): GovernanceStats {
     return {
@@ -237,7 +237,7 @@ export function parseGovernanceStats(response: GovernanceStatsResponse): Governa
 }
 
 /**
- * สร้าง proposal type string สำหรับส่ง RPC
+ * Build proposal type string for RPC calls
  */
 export function buildProposalTypeString(proposal: NewProposal): string {
     switch (proposal.type) {
@@ -255,7 +255,7 @@ export function buildProposalTypeString(proposal: NewProposal): string {
 }
 
 /**
- * คำนวณเปอร์เซ็นต์ vote
+ * Calculate vote percentage
  */
 export function calculateVotePercentage(
     votesFor: bigint,
@@ -276,7 +276,7 @@ export function calculateVotePercentage(
 }
 
 /**
- * ตรวจสอบว่า proposal ผ่าน quorum หรือไม่
+ * Check whether the proposal has reached quorum
  */
 export function hasReachedQuorum(
     totalVotes: bigint,
@@ -288,7 +288,7 @@ export function hasReachedQuorum(
 }
 
 /**
- * ตรวจสอบว่า proposal ผ่าน threshold หรือไม่
+ * Check whether the proposal has passed the threshold
  */
 export function hasPassed(
     votesFor: bigint,
@@ -303,46 +303,46 @@ export function hasPassed(
 }
 
 /**
- * คำนวณเวลาที่เหลือจาก blocks
+ * Calculate remaining time from blocks
  */
 export function blocksToTime(blocks: number, blockTimeSeconds = 2.5): string {
     const totalSeconds = blocks * blockTimeSeconds;
 
     if (totalSeconds < 60) {
-        return `${Math.round(totalSeconds)} วินาที`;
+        return `${Math.round(totalSeconds)} seconds`;
     }
     if (totalSeconds < 3600) {
-        return `${Math.round(totalSeconds / 60)} นาที`;
+        return `${Math.round(totalSeconds / 60)} minutes`;
     }
     if (totalSeconds < 86400) {
-        return `${Math.round(totalSeconds / 3600)} ชั่วโมง`;
+        return `${Math.round(totalSeconds / 3600)} hours`;
     }
-    return `${Math.round(totalSeconds / 86400)} วัน`;
+    return `${Math.round(totalSeconds / 86400)} days`;
 }
 
 /**
- * แปลง ProposalStatus เป็นภาษาไทย
+ * Convert ProposalStatus to a human-readable label
  */
 export function getStatusLabel(status: ProposalStatus): string {
     const labels: Record<ProposalStatus, string> = {
-        active: 'กำลังเปิด Vote',
-        passed: 'ผ่าน',
-        failed: 'ไม่ผ่าน',
-        executed: 'ดำเนินการแล้ว',
-        cancelled: 'ยกเลิก',
+        active: 'Voting Open',
+        passed: 'Passed',
+        failed: 'Failed',
+        executed: 'Executed',
+        cancelled: 'Cancelled',
     };
     return labels[status];
 }
 
 /**
- * แปลง ProposalType เป็นภาษาไทย
+ * Convert ProposalType to a human-readable label
  */
 export function getTypeLabel(type: ProposalType): string {
     const labels: Record<ProposalType, string> = {
-        text: 'ข้อเสนอทั่วไป',
-        parameter: 'เปลี่ยน Parameter',
-        treasury: 'เบิก Treasury',
-        upgrade: 'อัพเกรด Protocol',
+        text: 'General Proposal',
+        parameter: 'Parameter Change',
+        treasury: 'Treasury Spend',
+        upgrade: 'Protocol Upgrade',
     };
     return labels[type];
 }

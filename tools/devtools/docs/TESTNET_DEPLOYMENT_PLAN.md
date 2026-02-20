@@ -49,13 +49,13 @@ Current infrastructure is 78% deployed (7/9 services operational) with MetaMask 
   - Verify database connectivity
   - Review container logs: `docker logs axionax-explorer-backend` (or `axionax-explorer-api` in dev)
   - Test: `curl -s http://localhost:3001/api/health`
-  - **ถ้า image ไม่มีหรือไม่ขึ้น:** ใช้ stub จาก repo — `docker compose -f docker-compose.dev.yml up -d explorer-api` (build จาก `tools/devtools/Dockerfile.explorer`)
+  - **If the image is missing or not starting:** use the stub from the repo — `docker compose -f docker-compose.dev.yml up -d explorer-api` (build from `tools/devtools/Dockerfile.explorer`)
 
 - [ ] Debug and fix Faucet API (Port 3002)
-  - Verify wallet/key: ต้องตั้ง `FAUCET_PRIVATE_KEY` (hex 32 bytes)
-  - Check RPC integration และ env `RPC_URL`, `PORT=3002`
+  - Verify wallet/key: must set `FAUCET_PRIVATE_KEY` (hex 32 bytes)
+  - Check RPC integration and env `RPC_URL`, `PORT=3002`
   - Test: `curl -s http://localhost:3002/health`
-  - **Build จาก source:** ใช้ `ops/deploy/Dockerfile.faucet` โดย build context = `core/` (ดู [TESTNET_READINESS.md](../../../TESTNET_READINESS.md))
+  - **Build from source:** use `ops/deploy/Dockerfile.faucet` with build context = `core/` (see [TESTNET_READINESS.md](../../../TESTNET_READINESS.md))
 
 **Priority 2: End-to-End Testing**
 - [ ] MetaMask wallet connection flow
@@ -74,7 +74,7 @@ Current infrastructure is 78% deployed (7/9 services operational) with MetaMask 
 
 **Target**: 100% infrastructure operational (9/9 services)
 
-**ความพร้อมรวม (Checklist + Verify):** ดู [TESTNET_READINESS.md](../../../TESTNET_READINESS.md) ที่ root repo
+**Overall Readiness (Checklist + Verify):** see [TESTNET_READINESS.md](../../../TESTNET_READINESS.md) at the root repo
 
 ---
 

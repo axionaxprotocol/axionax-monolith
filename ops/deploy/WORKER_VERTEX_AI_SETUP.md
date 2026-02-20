@@ -2,12 +2,12 @@
 
 **Platform**: Google Cloud Vertex AI Workbench  
 **Credit**: $300 GCP Free Credit  
-**Time**: 15-20 นาที  
+**Time**: 15-20 minutes  
 **Date**: 2025-11-25
 
 ---
 
-## 📋 ทำไมถึงใช้ Vertex AI Workbench?
+## 📋 Why Use Vertex AI Workbench?
 
 ✅ **Pre-installed ML Stack**
 - PyTorch, TensorFlow, Keras
@@ -28,21 +28,21 @@
 
 ---
 
-## 🎯 Part 1: สร้าง Workbench Instance (5 นาที)
+## 🎯 Part 1: Create Workbench Instance (5 minutes)
 
-### Step 1: เปิด Vertex AI Workbench
+### Step 1: Open Vertex AI Workbench
 
 ```
 https://console.cloud.google.com/vertex-ai/workbench/instances
 ```
 
-หรือจาก GCP Console:
+Or from the GCP Console:
 1. Navigation Menu (☰)
 2. **Vertex AI** → **Workbench**
 
 ### Step 2: Create New Instance
 
-**คลิก "NEW NOTEBOOK"** หรือ **"CREATE NEW"**
+**Click "NEW NOTEBOOK"** or **"CREATE NEW"**
 
 #### 📝 Configuration
 
@@ -79,39 +79,39 @@ Boot disk size: 100 GB
 Boot disk type: Balanced persistent disk
 ```
 
-**คลิก "CREATE"**
+**Click "CREATE"**
 
-⏱️ **รอ 3-5 นาที** ให้ instance สร้างและเริ่มทำงาน
+⏱️ **Wait 3-5 minutes** for the instance to be created and start running
 
 ---
 
-## 🔧 Part 2: เริ่มใช้งาน Workbench (2-3 นาที)
+## 🔧 Part 2: Getting Started with Workbench (2-3 minutes)
 
-### Step 3: เปิด JupyterLab
+### Step 3: Open JupyterLab
 
-เมื่อ instance พร้อมแล้ว (สถานะ **RUNNING**):
+When the instance is ready (status **RUNNING**):
 
-1. หา instance ชื่อ `axionax-worker-1`
-2. คลิก **"OPEN JUPYTERLAB"**
-3. JupyterLab จะเปิดใน tab ใหม่
+1. Find the instance named `axionax-worker-1`
+2. Click **"OPEN JUPYTERLAB"**
+3. JupyterLab will open in a new tab
 
-### Step 4: เปิด Terminal
+### Step 4: Open Terminal
 
-ใน JupyterLab:
+In JupyterLab:
 1. File → New → **Terminal**
-2. Terminal window จะเปิดขึ้นมา
+2. A terminal window will open
 
 ---
 
-## 📦 Part 3: Setup axionax Worker (5-10 นาที)
+## 📦 Part 3: Setup axionax Worker (5-10 minutes)
 
 ### Step 5: Verify GPU
 
 ```bash
-# ตรวจสอบ GPU
+# Verify GPU
 nvidia-smi
 
-# ควรเห็น:
+# Expected output:
 # +-----------------------------------------------------------------------------+
 # | NVIDIA-SMI 525.xx    Driver Version: 525.xx    CUDA Version: 12.0         |
 # | GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
@@ -122,23 +122,23 @@ nvidia-smi
 ### Step 6: Verify PyTorch CUDA
 
 ```bash
-# ทดสอบ PyTorch
+# Test PyTorch
 python3 -c "import torch; print(f'PyTorch version: {torch.__version__}'); print(f'CUDA available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}')"
 
-# ควรเห็น:
+# Expected output:
 # PyTorch version: 2.x.x
 # CUDA available: True
 # GPU: Tesla T4
 ```
 
-### Step 7: Install Rust (สำหรับ axionax core)
+### Step 7: Install Rust (for axionax core)
 
 ```bash
-# ติดตั้ง Rust
+# Install Rust
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 source $HOME/.cargo/env
 
-# ตรวจสอบ
+# Verify
 rustc --version
 cargo --version
 ```
@@ -155,7 +155,7 @@ cd axionax-core-universe
 ### Step 9: Build axionax Core
 
 ```bash
-# Build core (ใช้เวลา 5-10 นาที)
+# Build core (takes 5-10 minutes)
 cd ~/axionax-core-universe/core
 cargo build --release
 ```
@@ -167,22 +167,22 @@ cargo build --release
 cd ~/axionax-core-universe/core/deai
 pip install -r requirements.txt
 
-# Additional ML libraries (ถ้ายังไม่มี)
+# Additional ML libraries (if not already installed)
 pip install transformers datasets scikit-learn scipy
 ```
 
 ---
 
-## 🧪 Part 4: ทดสอบ Training (5 นาที)
+## 🧪 Part 4: Test Training (5 minutes)
 
-### Step 11: รัน Training Example
+### Step 11: Run Training Example
 
 ```bash
 cd ~/axionax-core-universe/core/examples
 python deai_simple_training.py
 ```
 
-**ผลลัพธ์ที่คาดหวัง:**
+**Expected output:**
 
 ```
 🚀 axionax DeAI - Simple Training Example
@@ -247,18 +247,18 @@ Downloading...
 
 ---
 
-## 📓 Part 5: ใช้งาน Jupyter Notebook (Advanced)
+## 📓 Part 5: Using Jupyter Notebook (Advanced)
 
-### วิธีสร้าง Notebook สำหรับ Training
+### How to Create a Notebook for Training
 
-1. ใน JupyterLab: **File → New → Notebook**
-2. เลือก **Python 3** kernel
-3. สร้าง notebook ใหม่
+1. In JupyterLab: **File → New → Notebook**
+2. Select **Python 3** kernel
+3. Create a new notebook
 
-**ตัวอย่าง Notebook:**
+**Example Notebook:**
 
 ```python
-# Cell 1: Import และ Setup
+# Cell 1: Import and Setup
 import torch
 import sys
 sys.path.append('/home/jupyter/axionax-core-universe/core/examples')
@@ -312,7 +312,7 @@ for epoch in range(5):
 
 ## 💰 Cost Management
 
-### ค่าใช้จ่าย Vertex AI Workbench
+### Vertex AI Workbench Costs
 
 **n1-standard-4 + T4 GPU:**
 - **Running**: ~$0.50/hour
@@ -320,12 +320,12 @@ for epoch in range(5):
 
 ### Start/Stop Instance
 
-**จาก Console:**
-1. ไปที่ Vertex AI → Workbench
-2. เลือก instance
-3. คลิก **STOP** หรือ **START**
+**From Console:**
+1. Go to Vertex AI → Workbench
+2. Select the instance
+3. Click **STOP** or **START**
 
-**จาก CLI:**
+**From CLI:**
 ```bash
 # Stop
 gcloud notebooks instances stop axionax-worker-1 \
@@ -336,62 +336,62 @@ gcloud notebooks instances start axionax-worker-1 \
   --location=us-central1-a
 ```
 
-### Auto-Shutdown (ประหยัดเครดิต!)
+### Auto-Shutdown (save credit!)
 
-**ตั้งค่า Auto-shutdown:**
-1. เลือก instance
-2. คลิก **EDIT**
-3. เปิด **Idle shutdown**
-4. ตั้งเวลา: **60 minutes** (ถ้าไม่ใช้งาน 1 ชม. = auto stop)
+**Configure Auto-shutdown:**
+1. Select the instance
+2. Click **EDIT**
+3. Enable **Idle shutdown**
+4. Set time: **60 minutes** (auto stop after 1 hour of inactivity)
 5. **SAVE**
 
-💡 **แนะนำ**: ตั้ง idle shutdown เพื่อไม่ให้เสียเครดิตโดยเปล่าประโยชน์
+💡 **Recommended**: Enable idle shutdown to avoid wasting credit
 
 ---
 
-## 📊 การใช้เครดิต $300
+## 📊 Using $300 Credit
 
-### Scenario 1: ใช้งาน 8 ชม./วัน (แนะนำ)
+### Scenario 1: 8 hrs/day usage (recommended)
 ```
 Running: 8 hours/day × $0.50 = $4/day
 Stopped: 16 hours/day × $0.10 = $1.60/day
 Total: $5.60/day = $168/month
 
-เครดิตใช้ได้: 53 วัน (1.8 เดือน)
+Credit lasts: 53 days (1.8 months)
 ```
 
-### Scenario 2: ใช้งาน 24/7 พร้อม Auto-shutdown
+### Scenario 2: 24/7 with Auto-shutdown
 ```
 Active: 12 hours/day × $0.50 = $6/day
 Idle (auto-stop): 12 hours/day × $0.10 = $1.20/day
 Total: $7.20/day = $216/month
 
-เครดิตใช้ได้: 41 วัน (1.4 เดือน)
+Credit lasts: 41 days (1.4 months)
 ```
 
-### Scenario 3: ใช้งานตามต้องการ (Manual)
+### Scenario 3: On-demand usage (Manual)
 ```
-Start เมื่อต้องใช้
-Stop เมื่อเสร็จ
+Start when needed
+Stop when done
 Average: 4 hours/day
 
 Cost: 4 × $0.50 + 20 × $0.10 = $4/day = $120/month
 
-เครดิตใช้ได้: 75 วัน (2.5 เดือน)
+Credit lasts: 75 days (2.5 months)
 ```
 
 ---
 
 ## 🛠️ Configuration Worker
 
-### สร้าง Worker Config
+### Create Worker Config
 
 ```bash
 mkdir -p ~/axionax-worker/config
 nano ~/axionax-worker/config/worker.toml
 ```
 
-**เนื้อหา:**
+**Content:**
 
 ```toml
 [worker]
@@ -421,7 +421,7 @@ models_dir = "/home/jupyter/models"
 logs_dir = "/home/jupyter/logs"
 ```
 
-### สร้าง Directories
+### Create Directories
 
 ```bash
 mkdir -p ~/worker-data ~/models ~/logs
@@ -431,9 +431,9 @@ mkdir -p ~/worker-data ~/models ~/logs
 
 ## 🎓 Advanced: Custom Training Jobs
 
-### ตัวอย่าง: Training LLM (Small Model)
+### Example: Training LLM (Small Model)
 
-สร้าง notebook ใหม่:
+Create a new notebook:
 
 ```python
 # Install transformers
@@ -476,50 +476,50 @@ trainer.train()
 ## ✅ Checklist
 
 **Setup:**
-- [ ] สร้าง Vertex AI Workbench instance
-- [ ] เปิด JupyterLab ได้
+- [ ] Create Vertex AI Workbench instance
+- [ ] Open JupyterLab successfully
 - [ ] Verify GPU (nvidia-smi)
 - [ ] Verify PyTorch CUDA
-- [ ] ติดตั้ง Rust
+- [ ] Install Rust
 - [ ] Clone axionax repo
-- [ ] Build core สำเร็จ
-- [ ] รัน training example สำเร็จ
+- [ ] Build core successfully
+- [ ] Run training example successfully
 
 **Configuration:**
-- [ ] ตั้งค่า Auto-shutdown
-- [ ] สร้าง worker.toml
-- [ ] สร้าง worker directories
+- [ ] Configure Auto-shutdown
+- [ ] Create worker.toml
+- [ ] Create worker directories
 
 **Integration:**
-- [ ] เชื่อมต่อกับ RPC node (217.216.109.5)
-- [ ] สร้าง worker wallet
-- [ ] พร้อมรับ DeAI jobs
+- [ ] Connect to RPC node (217.216.109.5)
+- [ ] Create worker wallet
+- [ ] Ready to receive DeAI jobs
 
 ---
 
 ## 🆘 Troubleshooting
 
-### GPU ไม่ทำงาน
+### GPU Not Working
 ```bash
 # Restart kernel
 # Kernel → Restart Kernel
 
-# หรือ restart instance
+# Or restart instance
 gcloud notebooks instances stop axionax-worker-1 --location=us-central1-a
 gcloud notebooks instances start axionax-worker-1 --location=us-central1-a
 ```
 
 ### Out of Memory
 ```bash
-# ลด batch size
-# เช้น: batch_size=64 แทน 128
+# Reduce batch size
+# e.g.: batch_size=64 instead of 128
 
-# หรือใช้ gradient accumulation
+# Or use gradient accumulation
 ```
 
-### Package ไม่พบ
+### Package Not Found
 ```bash
-# Reinstall ใน terminal
+# Reinstall in terminal
 pip install --upgrade torch torchvision torchaudio
 ```
 
@@ -540,18 +540,18 @@ pip install --upgrade torch torchvision torchaudio
 
 ## 🎯 Next Steps
 
-1. **รัน Training ทดสอบ**
+1. **Run Test Training**
    - MNIST classification ✅
    - Custom models
    - Distributed training
 
 2. **Connect to axionax Network**
    - Register worker
-   - รับ jobs จาก network
+   - Receive jobs from network
    - Submit results
 
 3. **Scale Up**
-   - เพิ่ม GPU (A100)
+   - Upgrade GPU (A100)
    - Multi-GPU training
    - Distributed workers
 

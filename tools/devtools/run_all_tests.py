@@ -55,7 +55,7 @@ def main():
     
     # Summary
     print("\n" + "=" * 80)
-    print("สรุปผลการทดสอบ (TEST SUMMARY)")
+    print("TEST SUMMARY")
     print("=" * 80)
     print(f"Basic Tests:       {'✅ PASSED' if basic_success else '❌ FAILED'}")
     print(f"Integration Tests: {'✅ PASSED' if integration_success else '❌ FAILED'}")
@@ -67,15 +67,15 @@ def main():
     total_tests = 4
     passed_tests = sum([basic_success, integration_success, security_success, performance_success])
     
-    print(f"\nผลรวม: {passed_tests}/{total_tests} test suites passed")
-    print(f"อัตราความสำเร็จ: {(passed_tests/total_tests)*100:.1f}%")
+    print(f"\nTotal: {passed_tests}/{total_tests} test suites passed")
+    print(f"Success rate: {(passed_tests/total_tests)*100:.1f}%")
     
     # Exit with appropriate code
     if passed_tests == total_tests:
-        print("\n🎉 ทดสอบผ่านทั้งหมด! All tests PASSED!")
+        print("\n🎉 All tests PASSED!")
         return 0
     else:
-        print(f"\n⚠️  พบข้อผิดพลาด {total_tests - passed_tests} suites!")
+        print(f"\n⚠️  Found errors in {total_tests - passed_tests} suites!")
         return 1
 
 

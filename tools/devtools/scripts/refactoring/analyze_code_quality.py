@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Advanced Code Quality Analyzer
-วิเคราะห์คุณภาพของ code และแนะนำการ refactor
+Analyze code quality and recommend refactoring
 """
 
 import os
@@ -27,7 +27,7 @@ class CodeQualityAnalyzer:
         self.stats = defaultdict(dict)
 
     def analyze_typescript_file(self, file_path: Path) -> Dict:
-        """วิเคราะห์ไฟล์ TypeScript"""
+        """Analyze TypeScript file"""
         issues = []
         
         try:
@@ -35,12 +35,12 @@ class CodeQualityAnalyzer:
                 content = f.read()
                 lines = content.split('\n')
             
-            # 1. ตรวจสอบความยาวของฟังก์ชัน
+            # 1. Check function length
             function_pattern = r'(async\s+)?function\s+\w+|const\s+\w+\s*=\s*(async\s+)?\([^)]*\)\s*=>'
             functions = list(re.finditer(function_pattern, content))
             
             for match in functions:
-                # นับจำนวนบรรทัดของฟังก์ชัน (estimation)
+                # Count function lines (estimation)
                 start_pos = match.start()
                 brace_count = 0
                 func_lines = 0
@@ -55,14 +55,14 @@ class CodeQualityAnalyzer:
                             break
                 
                 if func_lines > 50:
-                    issues.append(f"ฟังก์ชันยาวเกินไป ({func_lines} บรรทัด) - ควรแยกเป็นฟังก์ชันย่อย")
+                    issues.append(f"Function too long ({func_lines} lines) - should be split into smaller functions")
             
-            # 2. ตรวจสอบ magic numbers
+            # 2. Check for magic numbers
             magic_numbers = re.findall(r'\b\d{2,}\b', content)
             if len(magic_numbers) > 5:
-                issues.append(f"มี magic numbers จำนวนมาก ({len(magic_numbers)}) - ควรสร้าง constants")
+                issues.append(f"Too many magic numbers ({len(magic_numbers)}) - should create constants")
             
-            # 3. ตรวจสอบ nested if statements
+            # 3. Check for nested if statements
             max_nesting = 0
             current_nesting = 0
             for line in lines:
@@ -73,27 +73,27 @@ class CodeQualityAnalyzer:
                     current_nesting = max(0, current_nesting - 1)
             
             if max_nesting > 3:
-                issues.append(f"มี nested if ลึกเกินไป (level {max_nesting}) - ควร early return หรือ refactor")
+                issues.append(f"Nested if too deep (level {max_nesting}) - should use early return or refactor")
             
-            # 4. ตรวจสอบ TODO/FIXME comments
+            # 4. Check for TODO/FIXME comments
             todos = len(re.findall(r'//\s*TODO|//\s*FIXME|//\s*XXX', content, re.IGNORECASE))
             if todos > 0:
-                issues.append(f"มี TODO/FIXME comments {todos} จุด - ควรแก้ไขหรือสร้าง issues")
+                issues.append(f"Has TODO/FIXME comments {todos} occurrences - should fix or create issues")
             
-            # 5. ตรวจสอบ commented code
+            # 5. Check for commented code
             commented_lines = [l for l in lines if re.match(r'^\s*//', l) and len(l.strip()) > 10]
             if len(commented_lines) > 10:
-                issues.append(f"มี commented code มาก ({len(commented_lines)} บรรทัด) - ควรลบออก")
+                issues.append(f"Too much commented code ({len(commented_lines)} lines) - should be removed")
             
-            # 6. ตรวจสอบ any types
+            # 6. Check for any types
             any_count = len(re.findall(r':\s*any\b', content))
             if any_count > 0:
-                issues.append(f"ใช้ 'any' type {any_count} จุด - ควรระบุ type ที่ชัดเจน")
+                issues.append(f"Using 'any' type {any_count} occurrences - should specify explicit types")
             
-            # 7. ตรวจสอบ try-catch ที่ว่างเปล่า
+            # 7. Check for empty try-catch blocks
             empty_catch = len(re.findall(r'catch\s*\([^)]*\)\s*\{\s*\}', content))
             if empty_catch > 0:
-                issues.append(f"มี empty catch blocks {empty_catch} จุด - ควร handle errors")
+                issues.append(f"Has empty catch blocks {empty_catch} occurrences - should handle errors")
             
             return {
                 'lines': len(lines),
@@ -107,7 +107,7 @@ class CodeQualityAnalyzer:
             return {'error': str(e)}
 
     def analyze_rust_file(self, file_path: Path) -> Dict:
-        """วิเคราะห์ไฟล์ Rust"""
+        """Analyze Rust file"""
         issues = []
         
         try:
@@ -115,37 +115,37 @@ class CodeQualityAnalyzer:
                 content = f.read()
                 lines = content.split('\n')
             
-            # 1. ตรวจสอบ unwrap() และ expect()
+            # 1. Check for unwrap() and expect()
             unwraps = len(re.findall(r'\.unwrap\(\)', content))
             expects = len(re.findall(r'\.expect\(', content))
             
             if unwraps > 5:
-                issues.append(f"ใช้ .unwrap() มาก ({unwraps} จุด) - ควรใช้ ? operator หรือ proper error handling")
+                issues.append(f"Excessive .unwrap() usage ({unwraps} occurrences) - should use ? operator or proper error handling")
             
             if expects > 5:
-                issues.append(f"ใช้ .expect() มาก ({expects} จุด) - พิจารณา error handling ที่ดีกว่า")
+                issues.append(f"Excessive .expect() usage ({expects} occurrences) - consider better error handling")
             
-            # 2. ตรวจสอบ clone() ที่มากเกินไป
+            # 2. Check for excessive clone()
             clones = len(re.findall(r'\.clone\(\)', content))
             if clones > 10:
-                issues.append(f"ใช้ .clone() มาก ({clones} จุด) - ควรพิจารณา borrowing และ lifetimes")
+                issues.append(f"Excessive .clone() usage ({clones} occurrences) - consider using borrowing and lifetimes")
             
-            # 3. ตรวจสอบ TODO comments
+            # 3. Check for TODO comments
             todos = len(re.findall(r'//\s*TODO|//\s*FIXME', content, re.IGNORECASE))
             if todos > 0:
-                issues.append(f"มี TODO/FIXME comments {todos} จุด")
+                issues.append(f"Has TODO/FIXME comments {todos} occurrences")
             
-            # 4. ตรวจสอบ unsafe blocks
+            # 4. Check for unsafe blocks
             unsafe_blocks = len(re.findall(r'\bunsafe\s*\{', content))
             if unsafe_blocks > 0:
-                issues.append(f"มี unsafe blocks {unsafe_blocks} จุด - ตรวจสอบความจำเป็น")
+                issues.append(f"Has unsafe blocks {unsafe_blocks} occurrences - verify necessity")
             
-            # 5. ตรวจสอบ pub without documentation
+            # 5. Check for pub without documentation
             pub_items = re.findall(r'^pub\s+(fn|struct|enum|trait|mod)\s+\w+', content, re.MULTILINE)
             documented = len(re.findall(r'///[^\n]*\n\s*pub', content))
             
             if len(pub_items) > documented + 2:
-                issues.append(f"มี public items ที่ไม่มี documentation: {len(pub_items) - documented} รายการ")
+                issues.append(f"Public items without documentation: {len(pub_items) - documented} items")
             
             return {
                 'lines': len(lines),
@@ -161,7 +161,7 @@ class CodeQualityAnalyzer:
             return {'error': str(e)}
 
     def analyze_repository(self, repo_name: str, repo_path: Path, repo_type: str):
-        """วิเคราะห์ repository ทั้งหมด"""
+        """Analyze entire repository"""
         print(f"\n{BOLD}{BLUE}Analyzing {repo_name}...{RESET}")
         
         total_files = 0
@@ -223,16 +223,16 @@ class CodeQualityAnalyzer:
         
         if all_issues:
             print(f"\n  {YELLOW}Issues found:{RESET}")
-            for i, issue in enumerate(all_issues[:10], 1):  # แสดงแค่ 10 รายการแรก
+            for i, issue in enumerate(all_issues[:10], 1):  # show first 10 items only
                 print(f"    {i}. {issue}")
             
             if len(all_issues) > 10:
-                print(f"    ... และอีก {len(all_issues) - 10} รายการ")
+                print(f"    ... and {len(all_issues) - 10} items")
             
             self.issues[repo_name] = all_issues
 
     def print_summary(self):
-        """พิมพ์สรุปผล"""
+        """Print summary"""
         print(f"\n{BOLD}{'='*80}{RESET}")
         print(f"{BOLD}📊 Code Quality Summary{RESET}")
         print(f"{BOLD}{'='*80}{RESET}")

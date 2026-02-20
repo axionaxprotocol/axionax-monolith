@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
 Repository Quality Analyzer
-ตรวจสอบและให้คะแนนคุณภาพของ repository ตาม 4 เกณฑ์:
-1. ความยาก-ง่าย (Ease of Use)
-2. ประสิทธิภาพ (Performance)
-3. ระเบียบ (Organization)
-4. ความเข้ากันได้ (Compatibility)
+Check and score repository quality based on 4 criteria:
+1. Ease of Use
+2. Performance
+3. Organization
+4. Compatibility
 """
 
 import os
@@ -29,7 +29,7 @@ RESET = '\033[0m'
 
 @dataclass
 class QualityScore:
-    """คะแนนคุณภาพของแต่ละด้าน"""
+    """Quality score for each dimension"""
     ease_of_use: float = 0.0
     performance: float = 0.0
     organization: float = 0.0
@@ -38,7 +38,7 @@ class QualityScore:
     grade: str = "F"
     
     def calculate_total(self):
-        """คำนวณคะแนนรวม (ถ่วงน้ำหนักเท่ากัน)"""
+        """Calculate total score (equally weighted)"""
         self.total = (
             self.ease_of_use * 0.25 +
             self.performance * 0.25 +
@@ -48,7 +48,7 @@ class QualityScore:
         self.grade = self._calculate_grade()
     
     def _calculate_grade(self) -> str:
-        """คำนวณเกรด"""
+        """Calculate grade"""
         if self.total >= 90:
             return "A+"
         elif self.total >= 85:
@@ -68,7 +68,7 @@ class QualityScore:
 
 
 class RepositoryQualityAnalyzer:
-    """วิเคราะห์คุณภาพของ repository"""
+    """Analyze repository quality"""
     
     def __init__(self, repo_path: Path):
         self.repo_path = repo_path
@@ -78,11 +78,11 @@ class RepositoryQualityAnalyzer:
         self.recommendations = []
     
     # ============================================
-    # 1. ความยาก-ง่าย (Ease of Use)
+    # 1. Ease of Use
     # ============================================
     
     def analyze_ease_of_use(self) -> float:
-        """วิเคราะห์ความยาก-ง่ายในการใช้งาน (100 คะแนน)"""
+        """Analyze ease of use (100 points)"""
         score = 0.0
         max_score = 100.0
         
@@ -121,7 +121,7 @@ class RepositoryQualityAnalyzer:
         return score
     
     def _check_readme_quality(self) -> float:
-        """ตรวจสอบคุณภาพ README (25 คะแนน)"""
+        """Check README quality (25 points)"""
         readme = self.repo_path / "README.md"
         if not readme.exists():
             self.issues.append("Missing README.md")
@@ -162,7 +162,7 @@ class RepositoryQualityAnalyzer:
             return 0.0
     
     def _check_documentation_coverage(self) -> float:
-        """ตรวจสอบความครอบคลุมของเอกสาร (25 คะแนน)"""
+        """Check documentation coverage (25 points)"""
         score = 0.0
         
         # Check for docs directory (10 points)
@@ -198,7 +198,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 25.0)
     
     def _check_quickstart_guide(self) -> float:
-        """ตรวจสอบ Quick Start Guide (15 คะแนน)"""
+        """Check Quick Start Guide (15 points)"""
         quickstart_files = [
             self.repo_path / "QUICKSTART.md",
             self.repo_path / "QUICK_START.md",
@@ -227,7 +227,7 @@ class RepositoryQualityAnalyzer:
         return 0.0
     
     def _check_examples(self) -> float:
-        """ตรวจสอบ Examples และ Tutorials (15 คะแนน)"""
+        """Check Examples and Tutorials (15 points)"""
         score = 0.0
         
         # Check for examples directory (8 points)
@@ -258,7 +258,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 15.0)
     
     def _check_installation_scripts(self) -> float:
-        """ตรวจสอบ Installation Scripts (10 คะแนน)"""
+        """Check Installation Scripts (10 points)"""
         score = 0.0
         
         install_files = [
@@ -283,7 +283,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 10.0)
     
     def _check_config_templates(self) -> float:
-        """ตรวจสอบ Configuration Templates (10 คะแนน)"""
+        """Check Configuration Templates (10 points)"""
         score = 0.0
         
         config_files = [
@@ -302,11 +302,11 @@ class RepositoryQualityAnalyzer:
         return min(score, 10.0)
     
     # ============================================
-    # 2. ประสิทธิภาพ (Performance)
+    # 2. Performance
     # ============================================
     
     def analyze_performance(self) -> float:
-        """วิเคราะห์ประสิทธิภาพ (100 คะแนน)"""
+        """Analyze performance (100 points)"""
         score = 0.0
         
         print(f"  {MAGENTA}⚡ Analyzing Performance...{RESET}")
@@ -344,7 +344,7 @@ class RepositoryQualityAnalyzer:
         return score
     
     def _check_optimization_indicators(self) -> float:
-        """ตรวจสอบ indicators ของการ optimize code (25 คะแนน)"""
+        """Check code optimization indicators (25 points)"""
         score = 0.0
         
         # Rust: Release profile optimization (10 points)
@@ -399,7 +399,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 25.0)
     
     def _check_dependency_efficiency(self) -> float:
-        """ตรวจสอบประสิทธิภาพของ dependencies (20 คะแนน)"""
+        """Check dependency efficiency (20 points)"""
         score = 0.0
         
         # Check package.json (10 points)
@@ -447,7 +447,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 20.0)
     
     def _check_build_config(self) -> float:
-        """ตรวจสอบ Build Configuration (20 คะแนน)"""
+        """Check Build Configuration (20 points)"""
         score = 0.0
         
         # Makefile (8 points)
@@ -480,7 +480,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 20.0)
     
     def _check_performance_tests(self) -> float:
-        """ตรวจสอบ Performance Tests (15 คะแนน)"""
+        """Check Performance Tests (15 points)"""
         score = 0.0
         
         # Check for benchmark files
@@ -498,7 +498,7 @@ class RepositoryQualityAnalyzer:
         return score
     
     def _check_benchmarks(self) -> float:
-        """ตรวจสอบ Benchmarking Tools (10 คะแนน)"""
+        """Check Benchmarking Tools (10 points)"""
         score = 0.0
         
         # Rust: Criterion (5 points)
@@ -527,7 +527,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 10.0)
     
     def _check_caching(self) -> float:
-        """ตรวจสอบ Caching Strategies (10 คะแนน)"""
+        """Check Caching Strategies (10 points)"""
         score = 0.0
         
         # Check for cache-related files
@@ -560,11 +560,11 @@ class RepositoryQualityAnalyzer:
         return min(score, 10.0)
     
     # ============================================
-    # 3. ระเบียบ (Organization)
+    # 3. Organization
     # ============================================
     
     def analyze_organization(self) -> float:
-        """วิเคราะห์ความเป็นระเบียบ (100 คะแนน)"""
+        """Analyze organization (100 points)"""
         score = 0.0
         
         print(f"  {YELLOW}📁 Analyzing Organization...{RESET}")
@@ -602,7 +602,7 @@ class RepositoryQualityAnalyzer:
         return score
     
     def _check_directory_structure(self) -> float:
-        """ตรวจสอบโครงสร้างไดเรกทอรี (25 คะแนน)"""
+        """Check directory structure (25 points)"""
         score = 0.0
         
         expected_dirs = {
@@ -621,7 +621,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 25.0)
     
     def _check_naming_conventions(self) -> float:
-        """ตรวจสอบ Naming Conventions (20 คะแนน)"""
+        """Check Naming Conventions (20 points)"""
         score = 20.0  # Start with full score, deduct for issues
         
         # Check for inconsistent naming
@@ -642,7 +642,7 @@ class RepositoryQualityAnalyzer:
         return max(score, 0.0)
     
     def _check_code_organization(self) -> float:
-        """ตรวจสอบการจัดระเบียบโค้ด (20 คะแนน)"""
+        """Check code organization (20 points)"""
         score = 0.0
         
         # Modular structure (10 points)
@@ -670,7 +670,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 20.0)
     
     def _check_version_control(self) -> float:
-        """ตรวจสอบ Version Control (15 คะแนน)"""
+        """Check Version Control (15 points)"""
         score = 0.0
         
         # .gitignore (5 points)
@@ -693,7 +693,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 15.0)
     
     def _check_licensing(self) -> float:
-        """ตรวจสอบ Licensing (10 คะแนน)"""
+        """Check Licensing (10 points)"""
         score = 0.0
         
         # LICENSE file (7 points)
@@ -707,7 +707,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 10.0)
     
     def _check_project_metadata(self) -> float:
-        """ตรวจสอบ Project Metadata (10 คะแนน)"""
+        """Check Project Metadata (10 points)"""
         score = 0.0
         
         # Package metadata
@@ -734,11 +734,11 @@ class RepositoryQualityAnalyzer:
         return min(score, 10.0)
     
     # ============================================
-    # 4. ความเข้ากันได้ (Compatibility)
+    # 4. Compatibility
     # ============================================
     
     def analyze_compatibility(self) -> float:
-        """วิเคราะห์ความเข้ากันได้ (100 คะแนน)"""
+        """Analyze compatibility (100 points)"""
         score = 0.0
         
         print(f"  {BLUE}🔗 Analyzing Compatibility...{RESET}")
@@ -776,7 +776,7 @@ class RepositoryQualityAnalyzer:
         return score
     
     def _check_platform_support(self) -> float:
-        """ตรวจสอบการรองรับหลาย platform (25 คะแนน)"""
+        """Check multi-platform support (25 points)"""
         score = 0.0
         
         # Installation scripts for multiple platforms (15 points)
@@ -812,7 +812,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 25.0)
     
     def _check_api_compatibility(self) -> float:
-        """ตรวจสอบ API Compatibility (20 คะแนน)"""
+        """Check API Compatibility (20 points)"""
         score = 0.0
         
         # OpenAPI/Swagger spec (8 points)
@@ -844,7 +844,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 20.0)
     
     def _check_version_compatibility(self) -> float:
-        """ตรวจสอบ Version Compatibility (20 คะแนน)"""
+        """Check Version Compatibility (20 points)"""
         score = 0.0
         
         # Semantic versioning (8 points)
@@ -891,7 +891,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 20.0)
     
     def _check_standards_compliance(self) -> float:
-        """ตรวจสอบการปฏิบัติตามมาตรฐาน (15 คะแนน)"""
+        """Check standards compliance (15 points)"""
         score = 0.0
         
         # ESLint/Prettier for TS (5 points)
@@ -909,7 +909,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 15.0)
     
     def _check_interoperability(self) -> float:
-        """ตรวจสอบ Interoperability (10 คะแนน)"""
+        """Check Interoperability (10 points)"""
         score = 0.0
         
         # FFI/Bindings (5 points)
@@ -928,7 +928,7 @@ class RepositoryQualityAnalyzer:
         return min(score, 10.0)
     
     def _check_backwards_compatibility(self) -> float:
-        """ตรวจสอบ Backwards Compatibility (10 คะแนน)"""
+        """Check Backwards Compatibility (10 points)"""
         score = 0.0
         
         # Migration guides (5 points)
@@ -954,7 +954,7 @@ class RepositoryQualityAnalyzer:
     # ============================================
     
     def analyze(self) -> QualityScore:
-        """วิเคราะห์คุณภาพทั้งหมด"""
+        """Analyze overall quality"""
         print(f"\n{BOLD}{GREEN}{'='*70}{RESET}")
         print(f"{BOLD}{GREEN}📊 Analyzing: {self.repo_name}{RESET}")
         print(f"{BOLD}{GREEN}{'='*70}{RESET}\n")
@@ -973,7 +973,7 @@ class RepositoryQualityAnalyzer:
         return score
     
     def generate_recommendations(self, score: QualityScore):
-        """สร้างคำแนะนำสำหรับการปรับปรุง"""
+        """Generate improvement recommendations"""
         recommendations = []
         
         if score.ease_of_use < 70:
@@ -996,7 +996,7 @@ class RepositoryQualityAnalyzer:
 
 
 def analyze_all_repositories(base_path: Path) -> Dict[str, QualityScore]:
-    """วิเคราะห์ทุก repository"""
+    """Analyze all repositories"""
     repos = [
         'axionax-core',
         'axionax-sdk-ts',
@@ -1029,7 +1029,7 @@ def analyze_all_repositories(base_path: Path) -> Dict[str, QualityScore]:
 
 
 def print_summary_report(results: Dict[str, QualityScore]):
-    """พิมพ์รายงานสรุป"""
+    """Print summary report"""
     print(f"\n{BOLD}{BLUE}{'='*70}{RESET}")
     print(f"{BOLD}{BLUE}📊 QUALITY ANALYSIS SUMMARY{RESET}")
     print(f"{BOLD}{BLUE}{'='*70}{RESET}\n")
@@ -1064,7 +1064,7 @@ def print_summary_report(results: Dict[str, QualityScore]):
 
 
 def save_json_report(results: Dict[str, QualityScore], output_path: Path):
-    """บันทึกรายงานเป็น JSON"""
+    """Save report as JSON"""
     json_data = {
         repo_name: asdict(score)
         for repo_name, score in results.items()

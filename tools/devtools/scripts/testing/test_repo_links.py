@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Test Repository Direct Links
-ทดสอบการลิงค์โดยตรงระหว่าง repositories
-ไม่ใช้ workspace หรือ contributors
+Tests direct linking between repositories
+without using workspace or contributors
 """
 
 import os
@@ -70,16 +70,16 @@ class RepoLinkTester:
         }
 
     def print_header(self):
-        """พิมพ์หัวข้อรายงาน"""
+        """Print report header"""
         print(f"\n{BOLD}{'='*80}{RESET}")
         print(f"{BOLD}{BLUE}AXIONAX REPOSITORY DIRECT LINK TEST{RESET}")
         print(f"{BOLD}{'='*80}{RESET}")
-        print(f"เวลาทดสอบ: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Test time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Workspace: {self.workspace_root}")
         print(f"{BOLD}{'='*80}{RESET}\n")
 
     def test_package_json_links(self, repo_name: str, repo_info: dict) -> dict:
-        """ทดสอบการลิงค์ใน package.json"""
+        """Test links in package.json"""
         test_name = f"{repo_name}: Package.json Dependencies"
         package_json_path = repo_info['path'] / 'package.json'
         
@@ -87,7 +87,7 @@ class RepoLinkTester:
             return {
                 'test': test_name,
                 'status': 'skip',
-                'message': 'ไม่มี package.json',
+                'message': 'No package.json',
                 'details': {}
             }
         
@@ -99,14 +99,14 @@ class RepoLinkTester:
             dev_dependencies = package_data.get('devDependencies', {})
             all_deps = {**dependencies, **dev_dependencies}
             
-            # ตรวจสอบ @axionax/sdk dependencies
+            # Check @axionax/sdk dependencies
             axionax_deps = {k: v for k, v in all_deps.items() if '@axionax' in k}
             
             if not axionax_deps:
                 return {
                     'test': test_name,
                     'status': 'skip',
-                    'message': 'ไม่มี @axionax dependencies',
+                    'message': 'No @axionax dependencies',
                     'details': {}
                 }
             
@@ -123,20 +123,20 @@ class RepoLinkTester:
                 if dep_version.startswith('workspace:'):
                     link_type = 'workspace'
                     has_workspace_link = True
-                    is_valid = False  # ไม่ต้องการ workspace link
+                    is_valid = False  # workspace link not desired
                     
                 elif dep_version.startswith('file:'):
                     link_type = 'file'
                     has_file_link = True
-                    # ตรวจสอบว่า path ชี้ไปที่ repo จริงหรือไม่
+                    # Check if the path points to an actual repo
                     target_path = dep_version.replace('file:', '')
                     full_path = (repo_info['path'] / target_path).resolve()
                     
-                    # หา repo ที่ถูกอ้างอิง
+                    # Find the referenced repo
                     for rname, rinfo in self.repos.items():
                         if rinfo['path'].resolve() == full_path:
                             target_repo = rname
-                            # ตรวจสอบว่า repo นั้นมี package.json หรือไม่
+                            # Check if that repo has package.json
                             target_pkg = rinfo['path'] / 'package.json'
                             if target_pkg.exists():
                                 is_valid = True
@@ -145,7 +145,7 @@ class RepoLinkTester:
                 elif dep_version.startswith('http://') or dep_version.startswith('https://'):
                     link_type = 'github'
                     has_npm_link = True
-                    is_valid = True  # GitHub link ถือว่า valid
+                    is_valid = True  # GitHub link considered valid
                     
                 elif dep_version.startswith('git+'):
                     link_type = 'git'
@@ -156,7 +156,7 @@ class RepoLinkTester:
                     # Version number (from npm registry)
                     link_type = 'npm'
                     has_npm_link = True
-                    is_valid = False  # @axionax/sdk ยังไม่ได้ publish บน npm
+                    is_valid = False  # @axionax/sdk not yet published on npm
                 
                 link_results.append({
                     'dependency': dep_name,
@@ -166,24 +166,24 @@ class RepoLinkTester:
                     'target_repo': target_repo
                 })
             
-            # ประเมินผล
+            # Evaluate results
             all_valid = all(lr['is_valid'] for lr in link_results)
             
             if all_valid and has_file_link and not has_workspace_link:
                 status = 'pass'
-                message = f'✓ ใช้ file: link ไปยัง repo โดยตรง ({len(link_results)} dependencies)'
+                message = f'✓ Using file: link to repo directly ({len(link_results)} dependencies)'
             elif has_workspace_link:
                 status = 'fail'
-                message = '✗ ใช้ workspace: link (ไม่ควรใช้)'
+                message = '✗ Using workspace: link (should not be used)'
             elif has_npm_link and not has_file_link:
                 status = 'warn'
-                message = '⚠ ใช้ npm/github link แทน file: link'
+                message = '⚠ Using npm/github link instead of file: link'
             elif not all_valid:
                 status = 'fail'
-                message = '✗ มี dependencies ที่ลิงค์ไม่ถูกต้อง'
+                message = '✗ Has dependencies with incorrect links'
             else:
                 status = 'warn'
-                message = '⚠ ไม่มี dependencies ที่ชัดเจน'
+                message = '⚠ No clear dependencies'
             
             return {
                 'test': test_name,
@@ -203,12 +203,12 @@ class RepoLinkTester:
             return {
                 'test': test_name,
                 'status': 'fail',
-                'message': f'✗ เกิดข้อผิดพลาด: {str(e)}',
+                'message': f'✗ Error occurred: {str(e)}',
                 'details': {}
             }
 
     def test_cargo_toml_links(self, repo_name: str, repo_info: dict) -> dict:
-        """ทดสอบการลิงค์ใน Cargo.toml"""
+        """Test links in Cargo.toml"""
         test_name = f"{repo_name}: Cargo.toml Dependencies"
         cargo_toml_path = repo_info['path'] / 'Cargo.toml'
         
@@ -216,7 +216,7 @@ class RepoLinkTester:
             return {
                 'test': test_name,
                 'status': 'skip',
-                'message': 'ไม่มี Cargo.toml',
+                'message': 'No Cargo.toml',
                 'details': {}
             }
         
@@ -224,11 +224,11 @@ class RepoLinkTester:
             with open(cargo_toml_path, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # ตรวจสอบว่าเป็น workspace หรือไม่
+            # Check if it's a workspace
             is_workspace = '[workspace]' in content
             
             if is_workspace:
-                # ตรวจสอบ workspace members
+                # Check workspace members
                 import re
                 members_match = re.search(r'\[workspace\]\s*members\s*=\s*\[(.*?)\]', content, re.DOTALL)
                 
@@ -236,7 +236,7 @@ class RepoLinkTester:
                     members_str = members_match.group(1)
                     members = [m.strip().strip('"\'') for m in members_str.split(',') if m.strip()]
                     
-                    # ตรวจสอบว่า members ทั้งหมดมีอยู่จริง
+                    # Check if all members actually exist
                     valid_members = []
                     invalid_members = []
                     
@@ -249,10 +249,10 @@ class RepoLinkTester:
                     
                     if invalid_members:
                         status = 'fail'
-                        message = f'✗ มี workspace members ที่ไม่มีอยู่: {invalid_members}'
+                        message = f'✗ Has workspace members that do not exist: {invalid_members}'
                     else:
                         status = 'pass'
-                        message = f'✓ Workspace members ทั้งหมดถูกต้อง ({len(valid_members)} members)'
+                        message = f'✓ All workspace members are valid ({len(valid_members)} members)'
                     
                     return {
                         'test': test_name,
@@ -266,7 +266,7 @@ class RepoLinkTester:
                         }
                     }
             
-            # ตรวจสอบ dependencies ที่ใช้ path
+            # Check dependencies that use path
             import re
             path_deps = re.findall(r'(\w+)\s*=\s*\{[^}]*path\s*=\s*["\']([^"\']+)["\']', content)
             
@@ -274,7 +274,7 @@ class RepoLinkTester:
                 return {
                     'test': test_name,
                     'status': 'skip',
-                    'message': 'ไม่มี path dependencies',
+                    'message': 'No path dependencies',
                     'details': {'is_workspace': is_workspace}
                 }
             
@@ -286,7 +286,7 @@ class RepoLinkTester:
                 is_valid = target_cargo.exists()
                 target_repo = None
                 
-                # หา repo ที่ถูกอ้างอิง
+                # Find the referenced repo
                 for rname, rinfo in self.repos.items():
                     if str(full_path).startswith(str(rinfo['path'])):
                         target_repo = rname
@@ -303,11 +303,11 @@ class RepoLinkTester:
             
             if all_valid:
                 status = 'pass'
-                message = f'✓ Path dependencies ทั้งหมดถูกต้อง ({len(link_results)} deps)'
+                message = f'✓ All path dependencies are valid ({len(link_results)} deps)'
             else:
                 status = 'fail'
                 invalid_deps = [lr['dependency'] for lr in link_results if not lr['is_valid']]
-                message = f'✗ มี dependencies ที่ลิงค์ไม่ถูกต้อง: {invalid_deps}'
+                message = f'✗ Has dependencies with incorrect links: {invalid_deps}'
             
             return {
                 'test': test_name,
@@ -325,31 +325,31 @@ class RepoLinkTester:
             return {
                 'test': test_name,
                 'status': 'fail',
-                'message': f'✗ เกิดข้อผิดพลาด: {str(e)}',
+                'message': f'✗ Error occurred: {str(e)}',
                 'details': {}
             }
 
     def test_import_resolution(self, repo_name: str, repo_info: dict) -> dict:
-        """ทดสอบว่า imports สามารถ resolve ได้จริงโดยไม่ผ่าน workspace"""
+        """Test that imports can be resolved directly without going through workspace"""
         test_name = f"{repo_name}: Import Resolution (Direct)"
         
         if repo_info['type'] not in ['typescript', 'rust']:
             return {
                 'test': test_name,
                 'status': 'skip',
-                'message': 'ไม่ใช่ TypeScript/Rust repo',
+                'message': 'Not a TypeScript/Rust repo',
                 'details': {}
             }
         
-        # สำหรับ TypeScript repos
+        # For TypeScript repos
         if repo_info['type'] == 'typescript':
-            # ตรวจสอบว่ามี node_modules ของตัวเองหรือไม่
+            # Check if it has its own node_modules
             node_modules = repo_info['path'] / 'node_modules'
             root_node_modules = self.workspace_root / 'node_modules'
             
-            # อนุญาตให้ใช้ node_modules จาก workspace root (สำหรับ monorepo)
+            # Allow using node_modules from workspace root (for monorepo)
             if not node_modules.exists() and not root_node_modules.exists():
-                # ตรวจสอบว่ามี dependencies หรือไม่
+                # Check if it has dependencies
                 package_json = repo_info['path'] / 'package.json'
                 if package_json.exists():
                     with open(package_json, 'r', encoding='utf-8') as f:
@@ -359,38 +359,38 @@ class RepoLinkTester:
                         return {
                             'test': test_name,
                             'status': 'fail',
-                            'message': '✗ มี dependencies แต่ไม่มี node_modules (ต้อง npm install)',
+                            'message': '✗ Has dependencies but no node_modules (need npm install)',
                             'details': {'dependencies': list(deps.keys())}
                         }
             
-            # ถ้ามี node_modules ที่ root (workspace mode)
+            # If there's node_modules at root (workspace mode)
             if not node_modules.exists() and root_node_modules.exists():
                 return {
                     'test': test_name,
                     'status': 'pass',
-                    'message': '✓ ใช้ node_modules จาก workspace root (monorepo pattern)',
+                    'message': '✓ Using node_modules from workspace root (monorepo pattern)',
                     'details': {
                         'uses_workspace_node_modules': True,
                         'workspace_node_modules': str(root_node_modules)
                     }
                 }
             
-            # ตรวจสอบว่า @axionax/sdk อยู่ใน node_modules หรือไม่
+            # Check if @axionax/sdk is in node_modules
             axionax_sdk = node_modules / '@axionax' / 'sdk'
             
             if axionax_sdk.exists():
-                # ตรวจสอบว่าเป็น symlink หรือ actual directory
+                # Check if it's a symlink or actual directory
                 is_symlink = axionax_sdk.is_symlink()
                 
                 if is_symlink:
                     real_path = axionax_sdk.resolve()
-                    # ตรวจสอบว่า symlink ไปที่ repo จริงหรือไม่
+                    # Check if symlink points to the actual repo
                     is_valid = (real_path.parent.parent == self.workspace_root / 'axionax-sdk-ts')
                     
                     return {
                         'test': test_name,
                         'status': 'pass' if is_valid else 'warn',
-                        'message': f'{"✓" if is_valid else "⚠"} @axionax/sdk เป็น symlink ไปยัง {real_path.parent.parent.name}',
+                        'message': f'{"✓" if is_valid else "⚠"} @axionax/sdk is a symlink to {real_path.parent.parent.name}',
                         'details': {
                             'is_symlink': True,
                             'target': str(real_path),
@@ -398,36 +398,36 @@ class RepoLinkTester:
                         }
                     }
                 else:
-                    # ไม่ใช่ symlink แต่เป็น directory
+                    # Not a symlink but a directory
                     return {
                         'test': test_name,
                         'status': 'warn',
-                        'message': '⚠ @axionax/sdk เป็น copied directory (ไม่ใช่ link)',
+                        'message': '⚠ @axionax/sdk is a copied directory (not a link)',
                         'details': {'is_symlink': False}
                     }
             else:
-                # ไม่มี @axionax/sdk
+                # No @axionax/sdk
                 return {
                     'test': test_name,
                     'status': 'skip',
-                    'message': 'ไม่มี @axionax/sdk dependency',
+                    'message': 'No @axionax/sdk dependency',
                     'details': {}
                 }
         
         return {
             'test': test_name,
             'status': 'skip',
-            'message': 'ยังไม่รองรับการทดสอบแบบนี้',
+            'message': 'This test type not yet supported',
             'details': {}
         }
 
     def run_all_tests(self):
-        """รันทดสอบทั้งหมด"""
+        """Run all tests"""
         self.print_header()
         
         for repo_name, repo_info in self.repos.items():
             if not repo_info['path'].exists():
-                print(f"{YELLOW}⚠ ข้าม {repo_name}: ไม่พบ directory{RESET}")
+                print(f"{YELLOW}⚠ Skipping {repo_name}: directory not found{RESET}")
                 continue
             
             print(f"\n{BOLD}{BLUE}Testing: {repo_name}{RESET}")
@@ -451,7 +451,7 @@ class RepoLinkTester:
             self.summary['total_tests'] += 3
 
     def print_test_result(self, result: dict):
-        """พิมพ์ผลการทดสอบ"""
+        """Print test result"""
         status = result['status']
         
         if status == 'pass':
@@ -474,7 +474,7 @@ class RepoLinkTester:
         print(f"     {color}{result['message']}{RESET}")
         
         if result['details']:
-            # พิมพ์รายละเอียดที่สำคัญ
+            # Print important details
             details = result['details']
             
             if 'links' in details:
@@ -490,25 +490,25 @@ class RepoLinkTester:
                 print(f"       {RED}Invalid: {', '.join(details['invalid_members'])}{RESET}")
 
     def print_summary(self):
-        """พิมพ์สรุปผล"""
+        """Print summary"""
         print(f"\n{BOLD}{'='*80}{RESET}")
-        print(f"{BOLD}📊 สรุปผลการทดสอบ{RESET}")
+        print(f"{BOLD}📊 Test Summary{RESET}")
         print(f"{BOLD}{'='*80}{RESET}")
         print(f"Total Tests: {self.summary['total_tests']}")
         print(f"{GREEN}✅ Passed: {self.summary['passed']}{RESET}")
         print(f"{YELLOW}⚠️  Warnings: {self.summary['warnings']}{RESET}")
         print(f"{RED}❌ Failed: {self.summary['failed']}{RESET}")
         
-        # คำนวณ pass rate
+        # Calculate pass rate
         if self.summary['total_tests'] > 0:
             pass_rate = (self.summary['passed'] / self.summary['total_tests']) * 100
             print(f"\n{BOLD}Pass Rate: {pass_rate:.1f}%{RESET}")
         
         print(f"{BOLD}{'='*80}{RESET}\n")
         
-        # แนะนำการแก้ไข
+        # Recommend fixes
         if self.summary['failed'] > 0 or self.summary['warnings'] > 0:
-            print(f"\n{BOLD}💡 คำแนะนำในการแก้ไข:{RESET}")
+            print(f"\n{BOLD}💡 Fix Recommendations:{RESET}")
             print("─"*80)
             
             for result in self.results:
@@ -517,19 +517,19 @@ class RepoLinkTester:
                     print(f"  Status: {result['status'].upper()}")
                     print(f"  Message: {result['message']}")
                     
-                    # แนะนำวิธีแก้
+                    # Recommend fixes
                     details = result['details']
                     if details.get('has_workspace_link'):
-                        print(f"  {YELLOW}→ ควรเปลี่ยนจาก 'workspace:*' เป็น 'file:../repo-name'{RESET}")
+                        print(f"  {YELLOW}→ Should change from 'workspace:*' to 'file:../repo-name'{RESET}")
                     
                     if not details.get('has_file_link') and details.get('total_deps', 0) > 0:
-                        print(f"  {YELLOW}→ ควรใช้ 'file:../axionax-sdk-ts' เพื่อลิงค์โดยตรง{RESET}")
+                        print(f"  {YELLOW}→ Should use 'file:../axionax-sdk-ts' for direct linking{RESET}")
                     
                     if 'invalid_members' in details and details['invalid_members']:
-                        print(f"  {YELLOW}→ ลบ members ที่ไม่มีอยู่ออกจาก Cargo.toml{RESET}")
+                        print(f"  {YELLOW}→ Remove non-existent members from Cargo.toml{RESET}")
 
     def save_report(self):
-        """บันทึกรายงาน"""
+        """Save report"""
         report_file = self.workspace_root / 'REPO_LINK_TEST_REPORT.txt'
         
         with open(report_file, 'w', encoding='utf-8') as f:
@@ -579,7 +579,7 @@ class RepoLinkTester:
             f.write("END OF REPORT\n")
             f.write("="*80 + "\n")
         
-        print(f"{GREEN}✓ รายงานถูกบันทึกที่: {report_file}{RESET}")
+        print(f"{GREEN}✓ Report saved to: {report_file}{RESET}")
 
 def main():
     workspace = os.getcwd()

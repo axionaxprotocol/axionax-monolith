@@ -1,64 +1,64 @@
 # Axionax Protocol - Refactoring Tools Summary
 
-## 📦 สคริปท์ทั้งหมดที่สร้าง
+## 📦 All Created Scripts
 
-### 🔍 การตรวจสอบและวิเคราะห์
+### 🔍 Inspection and Analysis
 
-| สคริปท์ | จุดประสงค์ | คำสั่ง |
-|---------|-----------|--------|
-| `check_repo_health.py` | ตรวจสอบสุขภาพ repositories | `python check_repo_health.py` |
-| `test_repo_links.py` | ทดสอบการลิงค์ระหว่าง repos | `python test_repo_links.py` |
-| `test_repo_integration.py` | ทดสอบการเชื่อมต่อทั้งระบบ | `python test_repo_integration.py` |
-| `analyze_code_quality.py` | วิเคราะห์คุณภาพ code | `python analyze_code_quality.py` |
-| `check_repo_connections.py` | วิเคราะห์ dependencies | `python check_repo_connections.py` |
+| Script | Purpose | Command |
+|--------|---------|---------|
+| `check_repo_health.py` | Check repository health | `python check_repo_health.py` |
+| `test_repo_links.py` | Test inter-repo links | `python test_repo_links.py` |
+| `test_repo_integration.py` | Test full system integration | `python test_repo_integration.py` |
+| `analyze_code_quality.py` | Analyze code quality | `python analyze_code_quality.py` |
+| `check_repo_connections.py` | Analyze dependencies | `python check_repo_connections.py` |
 
-### 🛠️ การแก้ไขและ Refactor
+### 🛠️ Fixing and Refactoring
 
-| สคริปท์ | จุดประสงค์ | คำสั่ง |
-|---------|-----------|--------|
-| `refactor_and_clean.py` | Refactor และทำความสะอาด code | `python refactor_and_clean.py` |
-| `quick_fix.py` | แก้ไขปัญหาเร่งด่วน | `python quick_fix.py` |
-| `fix_critical_issues.py` | แก้ไขปัญหา critical | `python fix_critical_issues.py` |
-| `fix_warnings.py` | แก้ไขปัญหา warnings | `python fix_warnings.py` |
-| `fix_npm_workspaces.py` | แก้ไข npm workspace | `python fix_npm_workspaces.py` |
+| Script | Purpose | Command |
+|--------|---------|---------|
+| `refactor_and_clean.py` | Refactor and clean code | `python refactor_and_clean.py` |
+| `quick_fix.py` | Fix urgent issues | `python quick_fix.py` |
+| `fix_critical_issues.py` | Fix critical issues | `python fix_critical_issues.py` |
+| `fix_warnings.py` | Fix warnings | `python fix_warnings.py` |
+| `fix_npm_workspaces.py` | Fix npm workspace | `python fix_npm_workspaces.py` |
 
 ### 🚀 Master Scripts
 
-| สคริปท์ | จุดประสงค์ | คำสั่ง |
-|---------|-----------|--------|
-| `master_refactor.py` | รันทุกอย่างพร้อมกัน | `python master_refactor.py` |
+| Script | Purpose | Command |
+|--------|---------|---------|
+| `master_refactor.py` | Run everything at once | `python master_refactor.py` |
 
 ## 🎯 Use Cases
 
-### 1. ตรวจสอบสถานะโครงการ
+### 1. Check Project Status
 ```bash
 python check_repo_health.py
 python test_repo_links.py
 python test_repo_integration.py
 ```
 
-### 2. วิเคราะห์คุณภาพ code
+### 2. Analyze Code Quality
 ```bash
 python analyze_code_quality.py
 python check_repo_connections.py
 ```
 
-### 3. Refactor และทำความสะอาด
+### 3. Refactor and Clean
 ```bash
 python refactor_and_clean.py
 ```
 
-### 4. แก้ไขปัญหาเร่งด่วน
+### 4. Fix Urgent Issues
 ```bash
 python quick_fix.py
 ```
 
-### 5. รันทุกอย่างพร้อมกัน
+### 5. Run Everything at Once
 ```bash
 python master_refactor.py
 ```
 
-## 📊 ผลลัพธ์ปัจจุบัน
+## 📊 Current Results
 
 ### Repository Health Scores
 - 🟢 axionax-web: 85.7/100
@@ -84,77 +84,77 @@ python master_refactor.py
   - 🟢 axionax-marketplace: 1 issue
 
 ### Repository Links
-- ✅ axionax-marketplace: ใช้ file: link ถูกต้อง
-- ✅ axionax-deploy: ใช้ file: link ถูกต้อง
-- ✅ axionax-core: Workspace members ครบถ้วน
+- ✅ axionax-marketplace: using correct file: link
+- ✅ axionax-deploy: using correct file: link
+- ✅ axionax-core: workspace members complete
 
 ## 🎯 Priority Actions
 
-### High Priority (ควรทำทันที)
-1. ✅ แก้ไข critical issues (เสร็จแล้ว - 0 issues)
-2. ✅ ตั้งค่า dependency links (เสร็จแล้ว)
-3. ⚠️ แก้ไข .gitignore ใน 7 repos
+### High Priority (should do immediately)
+1. ✅ Fix critical issues (done - 0 issues)
+2. ✅ Set up dependency links (done)
+3. ⚠️ Fix .gitignore in 7 repos
 4. ⚠️ Commit package-lock.json
 
-### Medium Priority (ควรทำในเร็ววัน)
-1. แก้ไข magic numbers ใน axionax-web (550 จุด)
-2. แยกฟังก์ชันยาวๆ (>50 บรรทัด)
-3. แก้ไข .unwrap() ใน Rust (28 จุด)
-4. เพิ่ม documentation สำหรับ public items
+### Medium Priority (should do soon)
+1. Fix magic numbers in axionax-web (550 occurrences)
+2. Split long functions (>50 lines)
+3. Fix .unwrap() in Rust (28 occurrences)
+4. Add documentation for public items
 
-### Low Priority (ทำเมื่อมีเวลา)
-1. แก้ไข TODO/FIXME comments (14 จุด)
-2. ลบ commented code
-3. ปรับปรุง README.md
-4. เพิ่ม type safety (.any types)
+### Low Priority (do when time permits)
+1. Fix TODO/FIXME comments (14 occurrences)
+2. Remove commented code
+3. Improve README.md
+4. Add type safety (.any types)
 
 ## 🔧 Quick Commands
 
-### ตรวจสอบทั้งหมด
+### Check all
 ```bash
 python master_refactor.py
 ```
 
-### แก้ไข gitignore
+### Fix gitignore
 ```bash
 python quick_fix.py
-# เลือก option 1
+# Select option 1
 ```
 
-### Refactor แบบไม่ format
+### Refactor without formatting
 ```bash
 python refactor_and_clean.py --skip-formatting
 ```
 
-### วิเคราะห์ repo เดียว
+### Analyze a single repo
 ```bash
 python refactor_and_clean.py --repo axionax-core
 ```
 
-## 📝 รายงานที่สร้าง
+## 📝 Generated Reports
 
-- `INTEGRATION_TEST_REPORT.txt` - รายงานการทดสอบ integration
-- `REPO_LINK_TEST_REPORT.txt` - รายงานการทดสอบ links
-- `REPOSITORY_ANALYSIS.txt` - วิเคราะห์ connections
-- `REPOSITORY_FLOW.md` - Diagram ของ dependencies
-- `INTEGRATION_SUMMARY.md` - สรุปผลทั้งหมด
-- `integration_test_results.json` - ข้อมูล JSON
+- `INTEGRATION_TEST_REPORT.txt` - Integration test report
+- `REPO_LINK_TEST_REPORT.txt` - Link test report
+- `REPOSITORY_ANALYSIS.txt` - Connection analysis
+- `REPOSITORY_FLOW.md` - Dependency diagram
+- `INTEGRATION_SUMMARY.md` - Overall summary
+- `integration_test_results.json` - JSON data
 
 ## 🚦 Status Legend
 
-- 🟢 ดีมาก (>70/100)
-- 🟡 พอใช้ (50-70/100)
-- 🔴 ควรปรับปรุง (<50/100)
+- 🟢 Excellent (>70/100)
+- 🟡 Fair (50-70/100)
+- 🔴 Needs improvement (<50/100)
 
 ## 💡 Tips
 
-1. **ก่อน Refactor:**
+1. **Before Refactoring:**
    ```bash
    git add -A
    git commit -m "backup before refactor"
    ```
 
-2. **หลัง Refactor:**
+2. **After Refactoring:**
    ```bash
    git diff
    npm test / cargo test
@@ -168,14 +168,14 @@ python refactor_and_clean.py --repo axionax-core
    git push
    ```
 
-## 📚 เอกสารเพิ่มเติม
+## 📚 Additional Documentation
 
-- `REFACTORING_GUIDE.md` - คู่มือการใช้งานสคริปท์
-- `README.md` - ข้อมูลโครงการ
-- แต่ละ repo มี README.md ของตัวเอง
+- `REFACTORING_GUIDE.md` - Script usage guide
+- `README.md` - Project information
+- Each repo has its own README.md
 
 ---
 
-**สร้างเมื่อ:** 2025-11-10  
-**สถานะ:** ✅ พร้อมใช้งาน  
+**Created:** 2025-11-10  
+**Status:** ✅ Ready for use  
 **Version:** 1.0.0

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Axionax Protocol Code Refactoring and Cleaning Tool
-เครื่องมือสำหรับ refactor และทำความสะอาด code ทั้ง protocol
+Tool for refactoring and cleaning code across the entire protocol
 """
 
 import os
@@ -42,19 +42,19 @@ class CodeRefactorCleaner:
         print(f"\n{BOLD}{'='*80}{RESET}")
         print(f"{BOLD}{MAGENTA}🔧 AXIONAX PROTOCOL CODE REFACTOR & CLEAN{RESET}")
         print(f"{BOLD}{'='*80}{RESET}")
-        print(f"เวลา: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"Workspace: {self.workspace_root}")
         print(f"{BOLD}{'='*80}{RESET}\n")
 
     # ==================== GITIGNORE MANAGEMENT ====================
     
     def create_or_update_gitignore(self, repo_name: str, repo_info: dict):
-        """สร้างหรืออัพเดท .gitignore"""
+        """Create or update .gitignore"""
         print(f"\n{CYAN}📝 Updating .gitignore for {repo_name}...{RESET}")
         
         gitignore_path = repo_info['path'] / '.gitignore'
         
-        # กำหนด patterns ตามประเภท
+        # Define patterns by type
         patterns = {
             'rust': [
                 '# Rust',
@@ -215,26 +215,26 @@ class CodeRefactorCleaner:
         repo_type = repo_info['type']
         new_content = '\n'.join(patterns.get(repo_type, ['node_modules/', '*.log']))
         
-        # ตรวจสอบว่ามี .gitignore อยู่แล้วหรือไม่
+        # Check if .gitignore already exists
         if gitignore_path.exists():
             with open(gitignore_path, 'r', encoding='utf-8') as f:
                 old_content = f.read()
             
             if old_content.strip() == new_content.strip():
-                print(f"  ⏭️  ไม่ต้องเปลี่ยนแปลง")
+                print(f"  ⏭️  No changes needed")
                 return
         
-        # เขียนไฟล์
+        # Write file
         with open(gitignore_path, 'w', encoding='utf-8', newline='\n') as f:
             f.write(new_content)
         
-        self.changes.append(f"{repo_name}: อัพเดท .gitignore")
-        print(f"  {GREEN}✓{RESET} อัพเดท .gitignore แล้ว")
+        self.changes.append(f"{repo_name}: updated .gitignore")
+        print(f"  {GREEN}✓{RESET} Updated .gitignore")
 
     # ==================== TYPESCRIPT/JAVASCRIPT CLEANING ====================
     
     def clean_typescript_code(self, repo_name: str, repo_info: dict):
-        """ทำความสะอาด TypeScript/JavaScript code"""
+        """Clean TypeScript/JavaScript code"""
         if repo_info['type'] != 'typescript':
             return
         
@@ -242,17 +242,17 @@ class CodeRefactorCleaner:
         
         src_dir = repo_info['path'] / 'src'
         if not src_dir.exists():
-            print(f"  ⏭️  ไม่มี src directory")
+            print(f"  ⏭️  No src directory")
             return
         
         changes_made = 0
         
-        # หาไฟล์ .ts และ .tsx ทั้งหมด
+        # Find all .ts and .tsx files
         ts_files = list(src_dir.glob('**/*.ts')) + list(src_dir.glob('**/*.tsx'))
         
         for file_path in ts_files:
             if file_path.name.endswith('.d.ts'):
-                continue  # ข้าม type definition files
+                continue  # skip type definition files
             
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
@@ -260,22 +260,22 @@ class CodeRefactorCleaner:
                 
                 original_content = content
                 
-                # 1. ลบ console.log ที่เหลือค้าง (แต่เก็บ console.error และ console.warn)
+                # 1. Remove leftover console.log (but keep console.error and console.warn)
                 content = re.sub(r'^(\s*)console\.log\([^)]*\);?\s*$', '', content, flags=re.MULTILINE)
                 
-                # 2. ลบ debugger statements
+                # 2. Remove debugger statements
                 content = re.sub(r'^(\s*)debugger;?\s*$', '', content, flags=re.MULTILINE)
                 
-                # 3. ลบ empty lines ที่ซ้อนกันเกิน 2 บรรทัด
+                # 3. Remove duplicate empty lines (more than 2 consecutive)
                 content = re.sub(r'\n{3,}', '\n\n', content)
                 
-                # 4. ลบ trailing whitespace
+                # 4. Remove trailing whitespace
                 content = re.sub(r'[ \t]+$', '', content, flags=re.MULTILINE)
                 
-                # 5. ตรวจสอบ unused imports (basic check)
-                # Note: การตรวจสอบ unused imports ที่แม่นยำต้องใช้ AST parser
+                # 5. Check unused imports (basic check)
+                # Note: accurate unused import checking requires an AST parser
                 
-                # 6. แน่ใจว่าไฟล์ลงท้ายด้วย newline
+                # 6. Ensure file ends with newline
                 if content and not content.endswith('\n'):
                     content += '\n'
                 
@@ -288,27 +288,27 @@ class CodeRefactorCleaner:
                 self.errors.append(f"{repo_name}/{file_path.name}: {str(e)}")
         
         if changes_made > 0:
-            self.changes.append(f"{repo_name}: ทำความสะอาด {changes_made} ไฟล์ TypeScript")
-            print(f"  {GREEN}✓{RESET} ทำความสะอาด {changes_made} ไฟล์")
+            self.changes.append(f"{repo_name}: cleaned {changes_made} TypeScript files")
+            print(f"  {GREEN}✓{RESET} Cleaned {changes_made} files")
         else:
-            print(f"  ⏭️  ไม่มีการเปลี่ยนแปลง")
+            print(f"  ⏭️  No changes")
 
     # ==================== RUST CODE CLEANING ====================
     
     def clean_rust_code(self, repo_name: str, repo_info: dict):
-        """ทำความสะอาด Rust code"""
+        """Clean Rust code"""
         if repo_info['type'] != 'rust':
             return
         
         print(f"\n{CYAN}🧹 Cleaning Rust code in {repo_name}...{RESET}")
         
-        # หา .rs files ทั้งหมด
+        # Find all .rs files
         rs_files = list(repo_info['path'].glob('**/*.rs'))
         
         changes_made = 0
         
         for file_path in rs_files:
-            # ข้าม target directory
+            # Skip target directory
             if 'target' in str(file_path):
                 continue
             
@@ -318,16 +318,16 @@ class CodeRefactorCleaner:
                 
                 original_content = content
                 
-                # 1. ลบ println! ที่ใช้สำหรับ debug (แต่เก็บ error! และ warn!)
-                # Note: นี่คือการทำความสะอาดเบื้องต้น ควรใช้ proper logging แทน
+                # 1. Remove debug println! (but keep error! and warn!)
+                # Note: this is basic cleaning; proper logging should be used instead
                 
-                # 2. ลบ empty lines ที่ซ้อนกันเกิน 2 บรรทัด
+                # 2. Remove duplicate empty lines (more than 2 consecutive)
                 content = re.sub(r'\n{3,}', '\n\n', content)
                 
-                # 3. ลบ trailing whitespace
+                # 3. Remove trailing whitespace
                 content = re.sub(r'[ \t]+$', '', content, flags=re.MULTILINE)
                 
-                # 4. แน่ใจว่าไฟล์ลงท้ายด้วย newline
+                # 4. Ensure file ends with newline
                 if content and not content.endswith('\n'):
                     content += '\n'
                 
@@ -340,15 +340,15 @@ class CodeRefactorCleaner:
                 self.errors.append(f"{repo_name}/{file_path.name}: {str(e)}")
         
         if changes_made > 0:
-            self.changes.append(f"{repo_name}: ทำความสะอาด {changes_made} ไฟล์ Rust")
-            print(f"  {GREEN}✓{RESET} ทำความสะอาด {changes_made} ไฟล์")
+            self.changes.append(f"{repo_name}: cleaned {changes_made} Rust files")
+            print(f"  {GREEN}✓{RESET} Cleaned {changes_made} files")
         else:
-            print(f"  ⏭️  ไม่มีการเปลี่ยนแปลง")
+            print(f"  ⏭️  No changes")
 
     # ==================== FORMATTING ====================
     
     def run_prettier(self, repo_name: str, repo_info: dict):
-        """รัน Prettier สำหรับ TypeScript repos"""
+        """Run Prettier for TypeScript repos"""
         if repo_info['type'] != 'typescript':
             return
         
@@ -356,20 +356,20 @@ class CodeRefactorCleaner:
         
         package_json = repo_info['path'] / 'package.json'
         if not package_json.exists():
-            print(f"  ⏭️  ไม่มี package.json")
+            print(f"  ⏭️  No package.json")
             return
         
-        # ตรวจสอบว่ามี prettier หรือไม่
+        # Check if prettier is available
         try:
             with open(package_json, 'r', encoding='utf-8') as f:
                 pkg = json.load(f)
             
             dev_deps = pkg.get('devDependencies', {})
             if 'prettier' not in dev_deps:
-                print(f"  ⏭️  ไม่มี Prettier ใน devDependencies")
+                print(f"  ⏭️  No Prettier in devDependencies")
                 return
             
-            # รัน prettier
+            # Run prettier
             result = subprocess.run(
                 ['npx', 'prettier', '--write', 'src/**/*.{ts,tsx,js,jsx,json}'],
                 cwd=repo_info['path'],
@@ -379,17 +379,17 @@ class CodeRefactorCleaner:
             )
             
             if result.returncode == 0:
-                self.changes.append(f"{repo_name}: รัน Prettier")
-                print(f"  {GREEN}✓{RESET} รัน Prettier สำเร็จ")
+                self.changes.append(f"{repo_name}: ran Prettier")
+                print(f"  {GREEN}✓{RESET} Ran Prettier successfully")
             else:
                 print(f"  {YELLOW}⚠{RESET}  Prettier: {result.stderr[:100]}")
                 
         except Exception as e:
             self.errors.append(f"{repo_name} Prettier: {str(e)}")
-            print(f"  {RED}✗{RESET} เกิดข้อผิดพลาด: {str(e)}")
+            print(f"  {RED}✗{RESET} Error occurred: {str(e)}")
 
     def run_rustfmt(self, repo_name: str, repo_info: dict):
-        """รัน rustfmt สำหรับ Rust repos"""
+        """Run rustfmt for Rust repos"""
         if repo_info['type'] != 'rust':
             return
         
@@ -404,21 +404,21 @@ class CodeRefactorCleaner:
             )
             
             if result.returncode == 0:
-                self.changes.append(f"{repo_name}: รัน rustfmt")
-                print(f"  {GREEN}✓{RESET} รัน rustfmt สำเร็จ")
+                self.changes.append(f"{repo_name}: ran rustfmt")
+                print(f"  {GREEN}✓{RESET} Ran rustfmt successfully")
             else:
                 print(f"  {YELLOW}⚠{RESET}  rustfmt: {result.stderr[:100]}")
                 
         except FileNotFoundError:
-            print(f"  {YELLOW}⚠{RESET}  rustfmt ไม่ได้ติดตั้ง")
+            print(f"  {YELLOW}⚠{RESET}  rustfmt not installed")
         except Exception as e:
             self.errors.append(f"{repo_name} rustfmt: {str(e)}")
-            print(f"  {RED}✗{RESET} เกิดข้อผิดพลาด: {str(e)}")
+            print(f"  {RED}✗{RESET} Error occurred: {str(e)}")
 
     # ==================== LINTING ====================
     
     def run_eslint_fix(self, repo_name: str, repo_info: dict):
-        """รัน ESLint --fix สำหรับ TypeScript repos"""
+        """Run ESLint --fix for TypeScript repos"""
         if repo_info['type'] != 'typescript':
             return
         
@@ -426,11 +426,11 @@ class CodeRefactorCleaner:
         
         package_json = repo_info['path'] / 'package.json'
         if not package_json.exists():
-            print(f"  ⏭️  ไม่มี package.json")
+            print(f"  ⏭️  No package.json")
             return
         
         try:
-            # รัน eslint --fix
+            # Run eslint --fix
             result = subprocess.run(
                 ['npx', 'eslint', 'src', '--ext', '.ts,.tsx,.js,.jsx', '--fix'],
                 cwd=repo_info['path'],
@@ -439,18 +439,18 @@ class CodeRefactorCleaner:
                 shell=True
             )
             
-            # ESLint อาจ return non-zero ถ้ายังมี errors หลัง fix
+            # ESLint may return non-zero if errors remain after fix
             if "error" not in result.stdout.lower() or result.returncode == 0:
-                self.changes.append(f"{repo_name}: รัน ESLint --fix")
-                print(f"  {GREEN}✓{RESET} รัน ESLint --fix สำเร็จ")
+                self.changes.append(f"{repo_name}: ran ESLint --fix")
+                print(f"  {GREEN}✓{RESET} Ran ESLint --fix successfully")
             else:
-                print(f"  {YELLOW}⚠{RESET}  ESLint พบ errors บางส่วนที่ไม่สามารถ fix อัตโนมัติได้")
+                print(f"  {YELLOW}⚠{RESET}  ESLint found some errors that cannot be auto-fixed")
                 
         except Exception as e:
-            print(f"  {YELLOW}⚠{RESET}  ข้าม ESLint (อาจไม่มีติดตั้ง)")
+            print(f"  {YELLOW}⚠{RESET}  Skipping ESLint (may not be installed)")
 
     def run_clippy_fix(self, repo_name: str, repo_info: dict):
-        """รัน clippy --fix สำหรับ Rust repos"""
+        """Run clippy --fix for Rust repos"""
         if repo_info['type'] != 'rust':
             return
         
@@ -465,26 +465,26 @@ class CodeRefactorCleaner:
             )
             
             if result.returncode == 0:
-                self.changes.append(f"{repo_name}: รัน clippy --fix")
-                print(f"  {GREEN}✓{RESET} รัน clippy --fix สำเร็จ")
+                self.changes.append(f"{repo_name}: ran clippy --fix")
+                print(f"  {GREEN}✓{RESET} Ran clippy --fix successfully")
             else:
                 print(f"  {YELLOW}⚠{RESET}  clippy: {result.stderr[:100]}")
                 
         except FileNotFoundError:
-            print(f"  {YELLOW}⚠{RESET}  cargo clippy ไม่ได้ติดตั้ง")
+            print(f"  {YELLOW}⚠{RESET}  cargo clippy not installed")
         except Exception as e:
             self.errors.append(f"{repo_name} clippy: {str(e)}")
-            print(f"  {RED}✗{RESET} เกิดข้อผิดพลาด: {str(e)}")
+            print(f"  {RED}✗{RESET} Error occurred: {str(e)}")
 
     # ==================== UNUSED CODE DETECTION ====================
     
     def detect_unused_files(self, repo_name: str, repo_info: dict):
-        """ตรวจหาไฟล์ที่ไม่ได้ใช้งาน"""
+        """Detect unused files"""
         print(f"\n{CYAN}🔎 Detecting unused files in {repo_name}...{RESET}")
         
         unused = []
         
-        # ตรวจสอบไฟล์ที่น่าสงสัย
+        # Check for suspicious files
         suspicious_patterns = [
             '*.backup',
             '*.bak',
@@ -497,61 +497,61 @@ class CodeRefactorCleaner:
         
         for pattern in suspicious_patterns:
             for file_path in repo_info['path'].glob(f'**/{pattern}'):
-                # ข้าม node_modules และ target
+                # Skip node_modules and target
                 if 'node_modules' in str(file_path) or 'target' in str(file_path):
                     continue
                 unused.append(file_path)
         
         if unused:
-            print(f"  {YELLOW}⚠{RESET}  พบไฟล์ที่น่าจะไม่ได้ใช้: {len(unused)} ไฟล์")
-            for file_path in unused[:5]:  # แสดงแค่ 5 ไฟล์แรก
+            print(f"  {YELLOW}⚠{RESET}  Found potentially unused files: {len(unused)} files")
+            for file_path in unused[:5]:  # show first 5 files only
                 print(f"     - {file_path.relative_to(repo_info['path'])}")
             if len(unused) > 5:
-                print(f"     ... และอีก {len(unused) - 5} ไฟล์")
+                print(f"     ... and {len(unused) - 5} files")
         else:
-            print(f"  {GREEN}✓{RESET} ไม่พบไฟล์ที่น่าสงสัย")
+            print(f"  {GREEN}✓{RESET} No suspicious files found")
 
     # ==================== DOCUMENTATION ====================
     
     def check_documentation(self, repo_name: str, repo_info: dict):
-        """ตรวจสอบ documentation"""
+        """Check documentation"""
         print(f"\n{CYAN}📚 Checking documentation in {repo_name}...{RESET}")
         
         readme = repo_info['path'] / 'README.md'
         issues = []
         
         if not readme.exists():
-            issues.append("ไม่มี README.md")
+            issues.append("Missing README.md")
         else:
             with open(readme, 'r', encoding='utf-8') as f:
                 content = f.read()
             
-            # ตรวจสอบ sections สำคัญ
+            # Check for important sections
             required_sections = ['installation', 'usage', 'development']
             missing = [s for s in required_sections if s.lower() not in content.lower()]
             
             if missing:
-                issues.append(f"ขาด sections: {', '.join(missing)}")
+                issues.append(f"Missing sections: {', '.join(missing)}")
             
             if len(content) < 200:
-                issues.append("README.md สั้นเกินไป")
+                issues.append("README.md is too short")
         
         if issues:
-            print(f"  {YELLOW}⚠{RESET}  พบปัญหา:")
+            print(f"  {YELLOW}⚠{RESET}  Issues found:")
             for issue in issues:
                 print(f"     - {issue}")
         else:
-            print(f"  {GREEN}✓{RESET} Documentation ดูดี")
+            print(f"  {GREEN}✓{RESET} Documentation looks good")
 
     # ==================== MAIN EXECUTION ====================
     
     def run_all_refactoring(self, skip_formatting: bool = False, skip_linting: bool = False):
-        """รัน refactoring และ cleaning ทั้งหมด"""
+        """Run all refactoring and cleaning"""
         self.print_header()
         
         for repo_name, repo_info in self.repos.items():
             if not repo_info['path'].exists():
-                print(f"{RED}⚠ ข้าม {repo_name}: ไม่พบ directory{RESET}")
+                print(f"{RED}⚠ Skipping {repo_name}: directory not found{RESET}")
                 continue
             
             print(f"\n{BOLD}{BLUE}{'='*80}{RESET}")
@@ -588,38 +588,38 @@ class CodeRefactorCleaner:
             self.check_documentation(repo_name, repo_info)
 
     def print_summary(self):
-        """พิมพ์สรุปผล"""
+        """Print summary"""
         print(f"\n{BOLD}{'='*80}{RESET}")
-        print(f"{BOLD}📊 สรุปผลการ Refactor & Clean{RESET}")
+        print(f"{BOLD}📊 Refactor & Clean Summary{RESET}")
         print(f"{BOLD}{'='*80}{RESET}")
         
         if self.changes:
-            print(f"\n{GREEN}✅ การเปลี่ยนแปลง ({len(self.changes)} รายการ):{RESET}")
+            print(f"\n{GREEN}✅ Changes ({len(self.changes)} items):{RESET}")
             for i, change in enumerate(self.changes, 1):
                 print(f"  {i}. {change}")
         else:
-            print(f"\n{YELLOW}⚠  ไม่มีการเปลี่ยนแปลง{RESET}")
+            print(f"\n{YELLOW}⚠  No changes{RESET}")
         
         if self.errors:
-            print(f"\n{RED}❌ ข้อผิดพลาด ({len(self.errors)} รายการ):{RESET}")
+            print(f"\n{RED}❌ Errors ({len(self.errors)} items):{RESET}")
             for i, error in enumerate(self.errors, 1):
                 print(f"  {i}. {error}")
         
         print(f"\n{BOLD}{'='*80}{RESET}")
-        print(f"{BOLD}💡 คำแนะนำถัดไป:{RESET}")
-        print(f"  1. ตรวจสอบการเปลี่ยนแปลงด้วย: git diff")
-        print(f"  2. ทดสอบ build: npm run build (TypeScript) หรือ cargo build (Rust)")
-        print(f"  3. รัน tests: npm test หรือ cargo test")
-        print(f"  4. Commit การเปลี่ยนแปลง: git add -A && git commit -m 'refactor: clean and format code'")
+        print(f"{BOLD}💡 Next Recommendations:{RESET}")
+        print(f"  1. Review changes with: git diff")
+        print(f"  2. Test build: npm run build (TypeScript) or cargo build (Rust)")
+        print(f"  3. Run tests: npm test or cargo test")
+        print(f"  4. Commit Changes: git add -A && git commit -m 'refactor: clean and format code'")
         print(f"{BOLD}{'='*80}{RESET}\n")
 
 def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='Axionax Protocol Code Refactoring & Cleaning Tool')
-    parser.add_argument('--skip-formatting', action='store_true', help='ข้ามการ format code')
-    parser.add_argument('--skip-linting', action='store_true', help='ข้ามการ lint และ fix')
-    parser.add_argument('--repo', type=str, help='ระบุ repo ที่ต้องการ refactor (ถ้าไม่ระบุจะทำทั้งหมด)')
+    parser.add_argument('--skip-formatting', action='store_true', help='Skip code formatting')
+    parser.add_argument('--skip-linting', action='store_true', help='Skip linting and fixing')
+    parser.add_argument('--repo', type=str, help='Specify repo to refactor (if not specified, refactor all)')
     
     args = parser.parse_args()
     
@@ -631,16 +631,16 @@ def main():
     cleaner = CodeRefactorCleaner(workspace)
     
     if args.repo:
-        # Refactor เฉพาะ repo ที่ระบุ
+        # Refactor only specified repo
         if args.repo in cleaner.repos:
             repo_info = cleaner.repos[args.repo]
             print(f"Refactoring only: {args.repo}")
             # TODO: Implement single repo refactoring
         else:
-            print(f"{RED}Error: ไม่พบ repo '{args.repo}'{RESET}")
+            print(f"{RED}Error: Repo not found '{args.repo}'{RESET}")
             sys.exit(1)
     else:
-        # Refactor ทั้งหมด
+        # Refactor all
         cleaner.run_all_refactoring(
             skip_formatting=args.skip_formatting,
             skip_linting=args.skip_linting

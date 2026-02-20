@@ -1,20 +1,20 @@
 # Axionax Protocol - Refactoring & Code Quality Tools
 
-เครื่องมือสำหรับ refactor และปรับปรุงคุณภาพของ code ทั้ง Axionax Protocol
+Tools for refactoring and improving code quality across the entire Axionax Protocol
 
-## 📚 สคริปท์ที่มีให้ใช้
+## 📚 Available Scripts
 
 ### 1. 🏥 `check_repo_health.py` - Repository Health Checker
-ตรวจสอบสุขภาพของ repositories ทั้งหมด
+Checks the health of all repositories
 
-**การใช้งาน:**
+**Usage:**
 ```bash
 python check_repo_health.py
 ```
 
-**ตรวจสอบ:**
-- ✅ .gitignore ครบถ้วนหรือไม่
-- ✅ ไฟล์ที่ยังไม่ commit
+**Checks:**
+- ✅ Whether .gitignore is complete
+- ✅ Uncommitted files
 - ✅ package-lock.json
 - ✅ dependency versions
 - ✅ README.md
@@ -22,34 +22,34 @@ python check_repo_health.py
 ---
 
 ### 2. 🔗 `test_repo_links.py` - Repository Link Tester
-ทดสอบการลิงค์ระหว่าง repositories
+Tests links between repositories
 
-**การใช้งาน:**
+**Usage:**
 ```bash
 python test_repo_links.py
 ```
 
-**ตรวจสอบ:**
-- ✅ file: links ถูกต้องหรือไม่
-- ✅ dependencies ระหว่าง repos
-- ✅ import resolution
-- ❌ ไม่ใช้ workspace: protocol
-- ❌ ไม่ลิงค์ผ่าน contributors
+**Checks:**
+- ✅ Whether file: links are correct
+- ✅ Dependencies between repos
+- ✅ Import resolution
+- ❌ Should not use workspace: protocol
+- ❌ Should not link through contributors
 
 ---
 
 ### 3. 🔍 `analyze_code_quality.py` - Code Quality Analyzer
-วิเคราะห์คุณภาพของ code อย่างละเอียด
+Detailed code quality analysis
 
-**การใช้งาน:**
+**Usage:**
 ```bash
 python analyze_code_quality.py
 ```
 
-**วิเคราะห์:**
+**Analyzes:**
 
 #### TypeScript/JavaScript:
-- ⚠️ ฟังก์ชันยาวเกินไป (>50 บรรทัด)
+- ⚠️ Functions too long (>50 lines)
 - ⚠️ Magic numbers
 - ⚠️ Nested if statements (>3 levels)
 - ⚠️ TODO/FIXME comments
@@ -58,64 +58,64 @@ python analyze_code_quality.py
 - ⚠️ Empty catch blocks
 
 #### Rust:
-- ⚠️ `.unwrap()` และ `.expect()` มากเกินไป
-- ⚠️ `.clone()` มากเกินไป
+- ⚠️ Excessive `.unwrap()` and `.expect()`
+- ⚠️ Excessive `.clone()`
 - ⚠️ `unsafe` blocks
-- ⚠️ Public items ไม่มี documentation
+- ⚠️ Public items without documentation
 - ⚠️ TODO/FIXME comments
 
 ---
 
 ### 4. 🧹 `refactor_and_clean.py` - Refactor & Clean Tool
-ทำความสะอาดและ refactor code อัตโนมัติ
+Automated code cleaning and refactoring
 
-**การใช้งาน:**
+**Usage:**
 ```bash
-# รัน refactor ทั้งหมด
+# Run full refactor
 python refactor_and_clean.py
 
-# ข้ามการ format
+# Skip formatting
 python refactor_and_clean.py --skip-formatting
 
-# ข้ามการ lint
+# Skip linting
 python refactor_and_clean.py --skip-linting
 
-# Refactor เฉพาะ repo
+# Refactor specific repo
 python refactor_and_clean.py --repo axionax-core
 ```
 
-**ทำอะไรบ้าง:**
+**Actions:**
 
-#### ทุก Repo:
-1. ✅ สร้าง/อัพเดท .gitignore
-2. ✅ ตรวจหาไฟล์ที่ไม่ได้ใช้
-3. ✅ ตรวจสอบ documentation
+#### All Repos:
+1. ✅ Create/update .gitignore
+2. ✅ Detect unused files
+3. ✅ Check documentation
 
 #### TypeScript Repos:
-1. ✅ ลบ `console.log()` ที่เหลือค้าง
-2. ✅ ลบ `debugger` statements
-3. ✅ ลบ empty lines ที่ซ้อนกัน
-4. ✅ ลบ trailing whitespace
-5. ✅ รัน Prettier (ถ้ามี)
-6. ✅ รัน ESLint --fix (ถ้ามี)
+1. ✅ Remove leftover `console.log()`
+2. ✅ Remove `debugger` statements
+3. ✅ Remove duplicate empty lines
+4. ✅ Remove trailing whitespace
+5. ✅ Run Prettier (if available)
+6. ✅ Run ESLint --fix (if available)
 
 #### Rust Repos:
-1. ✅ ลบ empty lines ที่ซ้อนกัน
-2. ✅ ลบ trailing whitespace
-3. ✅ รัน rustfmt
-4. ✅ รัน clippy --fix
+1. ✅ Remove duplicate empty lines
+2. ✅ Remove trailing whitespace
+3. ✅ Run rustfmt
+4. ✅ Run clippy --fix
 
 ---
 
 ### 5. ✅ `test_repo_integration.py` - Integration Tester
-ทดสอบการเชื่อมต่อและความพร้อมของทุก repo
+Tests connectivity and readiness of all repos
 
-**การใช้งาน:**
+**Usage:**
 ```bash
 python test_repo_integration.py
 ```
 
-**ทดสอบ:**
+**Tests:**
 - ✅ Repository existence
 - ✅ Git status
 - ✅ Package/Cargo validation
@@ -126,14 +126,14 @@ python test_repo_integration.py
 ---
 
 ### 6. 🚀 `master_refactor.py` - Master Script
-รันทุกสคริปท์ตามลำดับในคำสั่งเดียว
+Runs all scripts in sequence with a single command
 
-**การใช้งาน:**
+**Usage:**
 ```bash
 python master_refactor.py
 ```
 
-**ลำดับการทำงาน:**
+**Execution order:**
 1. 📋 Health Check
 2. 🔗 Link Testing
 3. 🔍 Code Quality Analysis
@@ -142,67 +142,67 @@ python master_refactor.py
 
 ---
 
-## 🎯 Workflow แนะนำ
+## 🎯 Recommended Workflow
 
-### สำหรับการพัฒนาประจำวัน:
+### For daily development:
 ```bash
-# 1. ตรวจสอบสุขภาพ
+# 1. Check health
 python check_repo_health.py
 
-# 2. ทำความสะอาด code
+# 2. Clean code
 python refactor_and_clean.py
 
-# 3. ทดสอบ
+# 3. Test
 python test_repo_integration.py
 ```
 
-### สำหรับการปรับปรุงคุณภาพ code:
+### For code quality improvement:
 ```bash
-# 1. วิเคราะห์คุณภาพ
+# 1. Analyze quality
 python analyze_code_quality.py
 
-# 2. ดู issues ที่พบ
-# 3. แก้ไข manual
-# 4. รัน refactor
+# 2. Review found issues
+# 3. Fix manually
+# 4. Run refactor
 python refactor_and_clean.py
 
-# 5. ทดสอบอีกครั้ง
+# 5. Test again
 python test_repo_integration.py
 ```
 
-### สำหรับ Full Refactor:
+### For Full Refactor:
 ```bash
-# รันทุกอย่างพร้อมกัน
+# Run everything at once
 python master_refactor.py
 ```
 
 ---
 
-## 📊 ผลลัพธ์ที่ได้
+## 📊 Expected Results
 
-หลังจากรันสคริปท์เหล่านี้ คุณจะได้:
+After running these scripts you will get:
 
-1. **Code ที่สะอาด:**
-   - ✅ ไม่มี console.log/debugger
-   - ✅ ไม่มี trailing whitespace
-   - ✅ Format สม่ำเสมอ
-   - ✅ Lint errors น้อยลง
+1. **Clean Code:**
+   - ✅ No console.log/debugger
+   - ✅ No trailing whitespace
+   - ✅ Consistent formatting
+   - ✅ Fewer lint errors
 
-2. **.gitignore ที่ถูกต้อง:**
-   - ✅ Ignore ไฟล์ที่ไม่ต้องการทั้งหมด
-   - ✅ แยกตามประเภท repo
+2. **Correct .gitignore:**
+   - ✅ All unwanted files ignored
+   - ✅ Separated by repo type
 
-3. **Dependencies ที่ชัดเจน:**
-   - ✅ ใช้ file: links
-   - ✅ ไม่ลิงค์ผ่าน workspace
-   - ✅ Resolve ได้ทุก repo
+3. **Clear Dependencies:**
+   - ✅ Using file: links
+   - ✅ Not linking through workspace
+   - ✅ Resolvable across all repos
 
 4. **Documentation:**
-   - ✅ README.md ครบถ้วน
-   - ✅ Code comments เหมาะสม
-   - ✅ ไม่มี TODO เก่าๆ
+   - ✅ Complete README.md
+   - ✅ Appropriate code comments
+   - ✅ No stale TODOs
 
-5. **รายงานครบถ้วน:**
+5. **Complete Reports:**
    - 📄 `REPO_LINK_TEST_REPORT.txt`
    - 📄 `INTEGRATION_TEST_REPORT.txt`
    - 📄 `integration_test_results.json`
@@ -212,7 +212,7 @@ python master_refactor.py
 ## ⚙️ Configuration
 
 ### Prettier (TypeScript)
-สร้างไฟล์ `.prettierrc` ใน repo:
+Create a `.prettierrc` file in the repo:
 ```json
 {
   "semi": true,
@@ -224,10 +224,10 @@ python master_refactor.py
 ```
 
 ### ESLint (TypeScript)
-ใช้ config ที่มีอยู่แล้วใน `package.json` หรือสร้าง `.eslintrc.json`
+Use the existing config in `package.json` or create `.eslintrc.json`
 
 ### rustfmt (Rust)
-สร้างไฟล์ `rustfmt.toml` ใน repo:
+Create a `rustfmt.toml` file in the repo:
 ```toml
 max_width = 100
 hard_tabs = false
@@ -237,20 +237,20 @@ edition = "2021"
 
 ---
 
-## 🚨 คำเตือน
+## 🚨 Warnings
 
-1. **Backup ก่อนรัน:**
+1. **Backup before running:**
    ```bash
    git add -A
    git commit -m "backup before refactor"
    ```
 
-2. **ตรวจสอบการเปลี่ยนแปลง:**
+2. **Review changes:**
    ```bash
    git diff
    ```
 
-3. **ทดสอบหลังแก้ไข:**
+3. **Test after changes:**
    ```bash
    # TypeScript
    npm test
@@ -261,7 +261,7 @@ edition = "2021"
    cargo build
    ```
 
-4. **อย่าลืม commit:**
+4. **Don't forget to commit:**
    ```bash
    git add -A
    git commit -m "refactor: improve code quality"
@@ -272,19 +272,19 @@ edition = "2021"
 
 ## 🤝 Contributing
 
-หากพบปัญหาหรือต้องการเพิ่ม feature:
+If you find issues or want to add features:
 
 1. Fork repository
-2. สร้าง branch ใหม่
-3. ทำการเปลี่ยนแปลง
-4. รัน `python master_refactor.py`
+2. Create a new branch
+3. Make changes
+4. Run `python master_refactor.py`
 5. Submit Pull Request
 
 ---
 
 ## 📝 License
 
-MIT License - ดูที่ LICENSE file
+MIT License - see LICENSE file
 
 ---
 

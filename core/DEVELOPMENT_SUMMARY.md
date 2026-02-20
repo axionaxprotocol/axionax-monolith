@@ -1,11 +1,11 @@
-﻿# axionax Core - Production Testnet Ready 🚀
+# axionax Core - Production Testnet Ready 🚀
 
-## 📋 สรุปผลการพัฒนา
+## Development Summary
 
-### ✅ Core Modules ที่พัฒนาเสร็จแล้ว
+### ✅ Completed Core Modules
 
 #### 1. **Cryptography Module** (`core/crypto`)
-- ✅ VRF (Verifiable Random Function) สำหรับ Consensus
+- ✅ VRF (Verifiable Random Function) for Consensus
 - ✅ Multiple Hash Functions: SHA3-256, Keccak256, Blake2s-256, Blake2b-512
 - ✅ Ed25519 Digital Signatures
 - ✅ **Argon2id Password Hashing** (OWASP Recommended)
@@ -13,7 +13,7 @@
 - ✅ Performance Optimized (Blake2 2-3x faster than SHA3)
 
 #### 2. **Blockchain Module** (`core/blockchain`)
-- ✅ Block และ Transaction Data Structures
+- ✅ Block and Transaction Data Structures
 - ✅ **Block Validation System**
   - Timestamp validation
   - Block size limits
@@ -21,7 +21,7 @@
   - Parent hash verification
 - ✅ **Transaction Validation System**
   - Address format validation
-  - Gas price และ gas limit checks
+  - Gas price and gas limit checks
   - Signature verification
   - Nonce tracking
 - ✅ **Transaction Pool (Mempool)**
@@ -36,14 +36,14 @@
 - ✅ Validator Management
 - ✅ Challenge Generation (VRF-based sampling)
 - ✅ Fraud Detection Probability Calculation
-- ✅ Configurable Sample Size และ Confidence Level
+- ✅ Configurable Sample Size and Confidence Level
 
 #### 4. **RPC Module** (`core/rpc`)
 - ✅ JSON-RPC 2.0 Server (Ethereum-compatible)
 - ✅ **Security Middleware**
   - **Rate Limiting** (IP-based with burst allowance)
   - **Request Size Validation**
-  - **CORS Configuration** (dev และ production modes)
+  - **CORS Configuration** (dev and production modes)
 - ✅ **Health Check Endpoints**
   - Component-level health monitoring
   - Node status information
@@ -58,7 +58,7 @@
 
 #### 5. **State Module** (`core/state`)
 - ✅ RocksDB Integration
-- ✅ Block Storage และ Retrieval
+- ✅ Block Storage and Retrieval
 - ✅ Transaction Storage
 - ✅ State Root Management
 - ✅ Chain Height Tracking
@@ -68,7 +68,7 @@
 - ✅ libp2p Integration
 - ✅ Gossipsub Protocol
 - ✅ mDNS Peer Discovery
-- ✅ Block และ Transaction Propagation
+- ✅ Block and Transaction Propagation
 - ✅ Network Message Types
 
 #### 7. **Node Module** (`core/node`)
@@ -83,7 +83,7 @@
 ## 🔒 Security Features Implemented
 
 ### 1. **Authentication & Cryptography**
-- ✅ Argon2id password hashing (แทน bcrypt)
+- ✅ Argon2id password hashing (replaces bcrypt)
 - ✅ Constant-time password verification (timing attack protection)
 - ✅ Secure random number generation
 - ✅ Ed25519 signature verification
@@ -100,7 +100,7 @@
   - Configurable allowed origins
   - Production-safe defaults
 - ✅ **Secure Error Handling**
-  - ไม่ expose internal errors
+  - Does not expose internal errors
   - Structured error codes
 
 ### 3. **Transaction Security**
@@ -125,25 +125,25 @@
 ### 1. **Hash Function Selection**
 ```rust
 // Blake2s-256: 2-3x faster than SHA3-256
-// ใช้สำหรับ:
+// Used for:
 - Block header hashing
 - Transaction ID generation
 - Merkle tree nodes
 
 // SHA3-256: Standards-compliant
-// ใช้สำหรับ:
+// Used for:
 - VRF operations
 - Consensus sampling
 ```
 
 ### 2. **Database Design**
-- Column families สำหรับ data separation
+- Column families for data separation
 - Efficient indexing (block hash → number)
 - Batch writes for performance
 
 ### 3. **Transaction Pool**
-- BTreeMap สำหรับ sorted nonce management
-- O(log n) insertion และ lookup
+- BTreeMap for sorted nonce management
+- O(log n) insertion and lookup
 - Lazy cleanup for memory efficiency
 
 ---
@@ -154,9 +154,9 @@
 
 1. **Crypto Module**
    - ✅ VRF prove/verify
-   - ✅ Hash function correctness และ determinism
+   - ✅ Hash function correctness and determinism
    - ✅ Performance benchmarks
-   - ✅ Password hashing และ verification
+   - ✅ Password hashing and verification
    - ✅ Key derivation
 
 2. **Blockchain Module**
@@ -363,10 +363,10 @@ RUST_LOG=info cargo run
 
 ### High Priority:
 1. ⚠️ **Fix Windows Build Issues**
-   - Install LLVM/Clang สำหรับ libp2p bindgen
-   - หรือ cross-compile จาก Linux
+   - Install LLVM/Clang for libp2p bindgen
+   - Or cross-compile from Linux
 
-2. 🔄 **Snyk Security Scan** (ตาม instructions)
+2. 🔄 **Snyk Security Scan** (per instructions)
    ```bash
    # Install Snyk CLI
    npm install -g snyk
@@ -449,15 +449,15 @@ curl -X POST http://localhost:8545 \
 
 ## 🎯 Summary
 
-### ✅ พร้อม Deploy:
+### ✅ Ready to Deploy:
 - Core blockchain functionality
 - Security middleware
 - Transaction validation
 - RPC API endpoints
 - Health monitoring
 
-### ⚠️ ต้องแก้ไขก่อน Deploy:
-- Fix compilation issues บน Windows (ติดตั้ง LLVM)
+### ⚠️ Must Fix Before Deploy:
+- Fix compilation issues on Windows (install LLVM)
 - Run Snyk security scan
 - Setup monitoring infrastructure
 
@@ -469,8 +469,8 @@ curl -X POST http://localhost:8545 \
 
 ---
 
-**Status**: 🟢 Ready for Testnet Deployment (หลัง fix build issues และ security scan)
+**Status**: 🟢 Ready for Testnet Deployment (after fixing build issues and security scan)
 
-**ผู้พัฒนา**: GitHub Copilot + axionax Protocol Team  
-**วันที่**: November 5, 2025  
-**เวอร์ชัน**: v0.1.0-testnet
+**Developers**: GitHub Copilot + axionax Protocol Team  
+**Date**: November 5, 2025  
+**Version**: v0.1.0-testnet

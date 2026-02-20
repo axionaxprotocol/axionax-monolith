@@ -4,8 +4,8 @@
 # axionax DeAI Worker Node - RunPod Quick Setup Script
 ###############################################################################
 # 
-# ใช้สำหรับติดตั้ง Worker Node บน RunPod.io
-# รองรับ: Ubuntu 22.04 LTS with NVIDIA GPU (A40, A100, RTX 4090, etc.)
+# For setting up a Worker Node on RunPod.io
+# Supports: Ubuntu 22.04 LTS with NVIDIA GPU (A40, A100, RTX 4090, etc.)
 #
 # Usage:
 #   wget https://raw.githubusercontent.com/axionaxprotocol/axionax-core-universe/main/ops/deploy/scripts/setup-runpod-worker.sh
@@ -173,7 +173,7 @@ log_success "Worker directories created in /workspace"
 log_info "Step 13: Creating worker config template..."
 cat > /workspace/axionax-worker/config/worker.toml << 'EOF'
 [worker]
-# ⚠️ แก้ไข address ของคุณที่นี่!
+# ⚠️ Edit your address here!
 address = "0xYOUR_WALLET_ADDRESS_HERE"
 region = "runpod-us-west"
 name = "runpod-worker-1"
@@ -338,7 +338,7 @@ log_info "Next steps:"
 echo ""
 echo "  1. Configure your wallet address:"
 echo "     ${YELLOW}nano /workspace/axionax-worker/config/worker.toml${NC}"
-echo "     (แก้ไข address = \"0xYOUR_WALLET_ADDRESS_HERE\")"
+echo "     (Edit address = \"0xYOUR_WALLET_ADDRESS_HERE\")"
 echo ""
 echo "  2. Activate worker environment:"
 echo "     ${YELLOW}source ~/activate-worker.sh${NC}"

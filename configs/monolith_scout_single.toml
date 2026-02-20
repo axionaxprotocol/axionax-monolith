@@ -1,6 +1,6 @@
 # Monolith MK-I Scout+ (Single Hailo) — Production
-# ใช้เมื่อมี Hailo ตัวเดียว (เช่น AI HAT+ 2 ตัวเดียว)
-# รัน: python core/deai/worker_node.py --config configs/monolith_scout_single.toml
+# Use when you have a single Hailo (e.g., one AI HAT+ 2 unit)
+# Run: python core/deai/worker_node.py --config configs/monolith_scout_single.toml
 
 [worker]
 name = "monolith-mk1-scout"

@@ -2,7 +2,7 @@
 
 ## Overview
 
-**axionax-devtools** เป็น development tools และ testing utilities สำหรับ axionax protocol ประกอบด้วย scripts สำหรับ testing, refactoring, fixing, และ analysis
+**axionax-devtools** is a collection of development tools and testing utilities for the axionax protocol, including scripts for testing, refactoring, fixing, and analysis
 
 **Repository:** https://github.com/axionaxprotocol/axionax-devtools
 
