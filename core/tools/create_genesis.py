@@ -1,278 +1,319 @@
 #!/usr/bin/env python3
 """
-Genesis Configuration Generator
-Creates genesis.json for axionax Testnet launch
+Axionax Genesis Block #0 Generator
+
+Total Supply : 1,000,000,000,000 AXX  (1 trillion, 18 decimals)
+Creator alias: axionaxius
+
+Usage:
+    python3 create_genesis.py                 # generate genesis.json
+    python3 create_genesis.py --verify        # generate + verify
+    python3 create_genesis.py --out /tmp/g.json
 """
 
+import hashlib
 import json
 import sys
+from pathlib import Path
 from datetime import datetime, timezone
-from typing import List, Dict
 
-class GenesisGenerator:
-    def __init__(self, chain_id: int = 86137):
-        self.chain_id = chain_id
-        self.genesis = {
-            "config": {
-                "chainId": chain_id,
-                "homesteadBlock": 0,
-                "eip150Block": 0,
-                "eip155Block": 0,
-                "eip158Block": 0,
-                "byzantiumBlock": 0,
-                "constantinopleBlock": 0,
-                "petersburgBlock": 0,
-                "istanbulBlock": 0,
-                "berlinBlock": 0,
-                "londonBlock": 0,
-                "axionax": {
-                    "consensus": "popc",
-                    "blockTime": 5,
-                    "epochLength": 100,
-                    "minValidatorStake": "10000000000000000000000",  # 10,000 AXX
-                    "maxValidators": 100,
-                    "slashingRate": 0.1,
-                    "falsPassPenalty": 500  # 5% in basis points
-                }
+CHAIN_ID = 86137
+CHAIN_NAME = "Axionax Mainnet"
+SYMBOL = "AXX"
+DECIMALS = 18
+ONE_AXX = 10 ** DECIMALS
+TOTAL_SUPPLY = 1_000_000_000_000  # 1 trillion AXX
+TOTAL_SUPPLY_WEI = TOTAL_SUPPLY * ONE_AXX
+
+# Q2 2026 Mainnet Genesis — 2026-04-01 00:00:00 UTC
+GENESIS_TIMESTAMP = 1_775_001_600
+
+CREATOR_ALIAS = "axionaxius"
+EXTRA_DATA_TEXT = f"{CREATOR_ALIAS} - Genesis Block #0 - Axionax Core Universe"
+
+# Deterministic EVM addresses (sha256 seed, 40 hex chars). Reproducible, EVM-compatible.
+def _evm_addr(seed: str) -> str:
+    h = hashlib.sha256(seed.encode()).hexdigest()
+    return "0x" + h[:40]
+
+
+def _faucet_address() -> str:
+    """Faucet address from deterministic key (testnet). For mainnet use --faucet-address."""
+    try:
+        from eth_account import Account
+        pk = hashlib.sha256(b"axionax_faucet_mainnet_q2_2026").digest()
+        return Account.from_key(pk).address
+    except ImportError:
+        return _evm_addr("axionax_genesis_faucet")
+
+
+def _get_allocations(faucet_address: str | None = None) -> dict:
+    """Build allocations dict with faucet address resolved."""
+    allocations = {
+    "creator": {
+        "address": _evm_addr("axionaxius_genesis_creator"),
+        "label": f"Creator ({CREATOR_ALIAS})",
+        "percent": 10,
+    },
+    "ecosystem_rewards": {
+        "address": _evm_addr("axionax_genesis_ecosystem"),
+        "label": "Ecosystem & Rewards Pool",
+        "percent": 30,
+        "note": "Validator rewards, worker incentives, staking emissions",
+    },
+    "foundation": {
+        "address": _evm_addr("axionax_genesis_foundation"),
+        "label": "Foundation / Treasury",
+        "percent": 20,
+        "vesting": {"enabled": True, "cliff": "1 year", "schedule": "4 years linear unlock"},
+    },
+    "community": {
+        "address": _evm_addr("axionax_genesis_community"),
+        "label": "Community",
+        "percent": 15,
+        "note": "Airdrops, incentives, DAO governance",
+        "vesting": {"enabled": True, "schedule": "2 years linear unlock"},
+    },
+    "team": {
+        "address": _evm_addr("axionax_genesis_team"),
+        "label": "Team & Advisors",
+        "percent": 10,
+        "vesting": {"enabled": True, "cliff": "1 year", "schedule": "4 years linear vest"},
+    },
+    "validators": {
+        "percent": 5,
+        "split": [
+            {
+                "address": _evm_addr("axionax_genesis_validator_eu_217_76_61_116"),
+                "label": "Validator-EU-01",
+                "region": "EU",
+                "ip": "217.76.61.116",
             },
-            "nonce": "0x0",
-            "timestamp": "0x0",  # Will be set
-            "extraData": "0x",
-            "gasLimit": "0x1c9c380",  # 30M gas
-            "difficulty": "0x1",
-            "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "coinbase": "0x0000000000000000000000000000000000000000",
-            "validators": [],
-            "alloc": {}
-        }
-    
-    def set_genesis_time(self, dt: datetime = None):
-        """Set genesis timestamp"""
-        if dt is None:
-            dt = datetime.now(timezone.utc)
-        timestamp = int(dt.timestamp())
-        self.genesis["timestamp"] = hex(timestamp)
-        print(f"Genesis time set to: {dt.isoformat()} (Unix: {timestamp})")
-    
-    def add_validator(self, address: str, name: str, stake: str, 
-                     commission: float, enode: str = ""):
-        """Add genesis validator"""
-        if not address.startswith("0x"):
-            address = f"0x{address}"
-        
-        validator = {
-            "address": address,
-            "name": name,
-            "stake": stake,
-            "commission": commission,
-            "enode": enode,
-            "active": True
-        }
-        self.genesis["validators"].append(validator)
-        
-        # Add to alloc (initial balance)
-        self.genesis["alloc"][address] = {
-            "balance": stake
-        }
-        print(f"Added validator: {name} ({address})")
-    
-    def add_allocation(self, address: str, balance: str, 
-                      vesting: bool = False, vesting_schedule: str = ""):
-        """Add token allocation"""
-        if not address.startswith("0x"):
-            address = f"0x{address}"
-        
-        alloc = {"balance": balance}
-        if vesting:
-            alloc["vesting"] = {
-                "enabled": True,
-                "schedule": vesting_schedule
-            }
-        
-        self.genesis["alloc"][address] = alloc
-        print(f"Added allocation: {address} = {balance} wei")
-    
-    def add_contract(self, address: str, bytecode: str, storage: Dict = None):
-        """Add pre-deployed contract"""
-        if not address.startswith("0x"):
-            address = f"0x{address}"
-        
-        contract = {
-            "balance": "0",
-            "code": bytecode
-        }
-        if storage:
-            contract["storage"] = storage
-        
-        self.genesis["alloc"][address] = contract
-        print(f"Added contract at: {address}")
-    
-    def load_validators_from_file(self, filepath: str):
-        """Load validators from JSON file"""
-        from pathlib import Path
-        
-        # Validate path to prevent traversal
-        file_path = Path(filepath).resolve()
-        if not file_path.is_file():
-            raise FileNotFoundError(f"Validator file not found: {filepath}")
-        if not str(file_path).startswith(str(Path.cwd())):
-            raise ValueError(f"Invalid file path: {filepath}")
-        
-        with open(file_path, 'r') as f:
-            validators = json.load(f)
-        
-        for v in validators:
-            self.add_validator(
-                address=v["address"],
-                name=v["name"],
-                stake=v.get("stake", "50000000000000000000000"),  # 50K AXX default
-                commission=v.get("commission", 0.10),
-                enode=v.get("enode", "")
-            )
-        print(f"Loaded {len(validators)} validators from {filepath}")
-    
-    def load_allocations_from_file(self, filepath: str):
-        """Load account allocations from JSON file"""
-        from pathlib import Path
-        
-        # Validate path to prevent traversal
-        file_path = Path(filepath).resolve()
-        if not file_path.is_file():
-            raise FileNotFoundError(f"Allocation file not found: {filepath}")
-        if not str(file_path).startswith(str(Path.cwd())):
-            raise ValueError(f"Invalid file path: {filepath}")
-        
-        with open(file_path, 'r') as f:
-            allocations = json.load(f)
-        
-        for alloc in allocations:
-            self.add_allocation(
-                address=alloc["address"],
-                balance=alloc["balance"],
-                vesting=alloc.get("vesting", False),
-                vesting_schedule=alloc.get("vesting_schedule", "")
-            )
-        print(f"Loaded {len(allocations)} allocations from {filepath}")
-    
-    def validate(self) -> bool:
-        """Validate genesis configuration"""
-        errors = []
-        
-        # Check validators
-        if len(self.genesis["validators"]) == 0:
-            errors.append("No validators defined")
-        
-        if len(self.genesis["validators"]) < 3:
-            errors.append("Warning: Less than 3 validators (not recommended)")
-        
-        # Check allocations
-        total_supply = 0
-        for addr, alloc in self.genesis["alloc"].items():
-            if "balance" in alloc:
-                total_supply += int(alloc["balance"], 16 if alloc["balance"].startswith("0x") else 10)
-        
-        print(f"\nValidation Results:")
-        print(f"  Validators: {len(self.genesis['validators'])}")
-        print(f"  Allocations: {len(self.genesis['alloc'])}")
-        print(f"  Total Supply: {total_supply / 10**18:.2f} AXX")
-        
-        if errors:
-            print("\nErrors:")
-            for error in errors:
-                print(f"  ❌ {error}")
-            return False
+            {
+                "address": _evm_addr("axionax_genesis_validator_au_46_250_244_4"),
+                "label": "Validator-AU-01",
+                "region": "AU",
+                "ip": "46.250.244.4",
+            },
+        ],
+    },
+    "public_sale": {
+        "address": _evm_addr("axionax_genesis_public_sale"),
+        "label": "Public Sale",
+        "percent": 5,
+    },
+    "faucet": {
+        "address": faucet_address or _faucet_address(),
+        "label": "Faucet (Testnet & Mainnet)",
+        "percent": 3,
+    },
+    "reserve": {
+        "address": _evm_addr("axionax_genesis_reserve"),
+        "label": "Strategic Reserve",
+        "percent": 2,
+        "note": "Emergency liquidity, strategic partnerships",
+    },
+}
+    return allocations
+
+
+def _wei(axx_amount: int) -> str:
+    return str(axx_amount * ONE_AXX)
+
+
+def _to_hex_str(data: str) -> str:
+    return "0x" + data.encode("utf-8").hex()
+
+
+def _sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def build_alloc(allocations: dict):
+    alloc = {}
+    running_total = 0
+
+    for key, spec in allocations.items():
+        pct = spec["percent"]
+        amount_axx = TOTAL_SUPPLY * pct // 100
+        amount_wei = amount_axx * ONE_AXX
+
+        if key == "validators":
+            n = len(spec["split"])
+            per_validator = amount_axx // n
+            for v in spec["split"]:
+                entry = {"label": v["label"], "balance": _wei(per_validator)}
+                alloc[v["address"]] = entry
+                running_total += per_validator * ONE_AXX
         else:
-            print("  ✅ Genesis configuration is valid")
-            return True
-    
-    def save(self, filepath: str = "genesis.json"):
-        """Save genesis to file"""
-        with open(filepath, 'w') as f:
-            json.dump(self.genesis, f, indent=2)
-        print(f"\n✅ Genesis saved to: {filepath}")
-        
-        # Calculate and print hash
-        import hashlib
-        with open(filepath, 'rb') as f:
-            genesis_hash = hashlib.sha256(f.read()).hexdigest()
-        print(f"📝 Genesis Hash: 0x{genesis_hash}")
-        return genesis_hash
+            entry = {"label": spec["label"], "percent": f"{pct}%", "balance": str(amount_wei)}
+            if "vesting" in spec:
+                entry["vesting"] = spec["vesting"]
+            if "note" in spec:
+                entry["note"] = spec["note"]
+            alloc[spec["address"]] = entry
+            running_total += amount_wei
+
+    assert running_total == TOTAL_SUPPLY_WEI, (
+        f"Allocation mismatch: {running_total} != {TOTAL_SUPPLY_WEI}"
+    )
+    return alloc
+
+
+def build_validators(allocations: dict):
+    spec = allocations["validators"]
+    per_validator = (TOTAL_SUPPLY * spec["percent"] // 100) // len(spec["split"])
+    validators = []
+    for v in spec["split"]:
+        validators.append({
+            "address": v["address"],
+            "name": v["label"],
+            "region": v["region"],
+            "ip": v["ip"],
+            "stake": _wei(per_validator),
+            "commission": 0.1,
+            "enode": f"enode://GENERATED@{v['ip']}:30303",
+            "active": True,
+        })
+    return validators
+
+
+def build_tokenomics(allocations: dict):
+    items = {}
+    for key, spec in allocations.items():
+        if key == "validators":
+            items[key] = {"percent": spec["percent"], "amount": str(TOTAL_SUPPLY * spec["percent"] // 100), "label": "Validator Bootstrap"}
+        else:
+            items[key] = {"percent": spec["percent"], "amount": str(TOTAL_SUPPLY * spec["percent"] // 100), "label": spec["label"]}
+    return {
+        "name": "Axionax",
+        "symbol": SYMBOL,
+        "decimals": DECIMALS,
+        "totalSupply": str(TOTAL_SUPPLY),
+        "totalSupplyWei": str(TOTAL_SUPPLY_WEI),
+        "allocation": items,
+    }
+
+
+def build_genesis(faucet_address: str | None = None) -> dict:
+    allocations = _get_allocations(faucet_address)
+    return {
+        "config": {
+            "chainId": CHAIN_ID,
+            "chainName": CHAIN_NAME,
+            "homesteadBlock": 0,
+            "eip150Block": 0,
+            "eip155Block": 0,
+            "eip158Block": 0,
+            "byzantiumBlock": 0,
+            "constantinopleBlock": 0,
+            "petersburgBlock": 0,
+            "istanbulBlock": 0,
+            "berlinBlock": 0,
+            "londonBlock": 0,
+            "axionax": {
+                "consensus": "popc",
+                "blockTime": 2,
+                "epochLength": 100,
+                "minValidatorStake": _wei(10_000),
+                "maxValidators": 100,
+                "slashingRate": 0.1,
+                "falsPassPenalty": 500,
+                "totalSupply": str(TOTAL_SUPPLY_WEI),
+                "decimals": DECIMALS,
+                "symbol": SYMBOL,
+            },
+        },
+        "nonce": "0x0",
+        "timestamp": hex(GENESIS_TIMESTAMP),
+        "extraData": _to_hex_str(EXTRA_DATA_TEXT),
+        "extraDataDecoded": EXTRA_DATA_TEXT,
+        "gasLimit": "0x1c9c380",
+        "difficulty": "0x1",
+        "mixHash": "0x" + "0" * 64,
+        "coinbase": "0x" + "0" * 40,
+        "creator": {
+            "alias": CREATOR_ALIAS,
+            "note": f"Genesis created by {CREATOR_ALIAS} — founder of Axionax Protocol",
+        },
+        "tokenomics": build_tokenomics(allocations),
+        "validators": build_validators(allocations),
+        "alloc": build_alloc(allocations),
+    }
+
+
+def print_summary(genesis: dict, allocations: dict):
+    ts = int(genesis["timestamp"], 16)
+    dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+
+    print("=" * 64)
+    print("  AXIONAX — Genesis Block #0 (Q2 2026 Mainnet)")
+    print("=" * 64)
+    print(f"  Creator     : {CREATOR_ALIAS}")
+    print(f"  Chain ID    : {CHAIN_ID}")
+    print(f"  Chain Name  : {CHAIN_NAME}")
+    print(f"  Symbol      : {SYMBOL}")
+    print(f"  Decimals    : {DECIMALS}")
+    print(f"  Total Supply: {TOTAL_SUPPLY:,} {SYMBOL}")
+    print(f"  Timestamp   : {dt.isoformat()}")
+    print()
+    print("  Token Allocation:")
+    print("  " + "-" * 56)
+    for key, spec in allocations.items():
+        if key == "validators":
+            label, pct = "Validator Bootstrap", spec["percent"]
+        else:
+            label, pct = spec.get("label", key.replace("_", " ").title()), spec["percent"]
+        amount = TOTAL_SUPPLY * pct // 100
+        print(f"    {label:<32} {pct:>3}%  {amount:>18,} {SYMBOL}")
+    print("  " + "-" * 56)
+    print(f"    {'TOTAL':<32} 100%  {TOTAL_SUPPLY:>18,} {SYMBOL}")
+    print()
+    print(f"  Validators: {len(genesis['validators'])}")
+    for v in genesis["validators"]:
+        print(f"    - {v['name']} ({v['region']}) @ {v['ip']}")
+    print()
+
 
 def main():
-    """Main function"""
-    if len(sys.argv) < 2:
-        print("Usage: python3 create_genesis.py <validators.json> [allocations.json]")
-        print("\nExample validators.json:")
-        print("""[
-  {
-    "name": "Validator-01",
-    "address": "0x1234567890abcdef1234567890abcdef12345678",
-    "stake": "50000000000000000000000",
-    "commission": 0.10,
-    "enode": "enode://..."
-  }
-]""")
-        sys.exit(1)
-    
-    validators_file = sys.argv[1]
-    allocations_file = sys.argv[2] if len(sys.argv) > 2 else None
-    
-    # Create generator
-    print("=" * 60)
-    print("axionax Genesis Generator")
-    print("=" * 60)
-    
-    gen = GenesisGenerator(chain_id=86137)
-    
-    # Set genesis time
-    # For production, set specific time
-    # genesis_time = datetime(2025, 1, 15, 0, 0, 0, tzinfo=timezone.utc)
-    # gen.set_genesis_time(genesis_time)
-    gen.set_genesis_time()  # Use current time
-    
-    # Load validators
-    print(f"\nLoading validators from: {validators_file}")
-    gen.load_validators_from_file(validators_file)
-    
-    # Load allocations (optional)
-    if allocations_file:
-        print(f"\nLoading allocations from: {allocations_file}")
-        gen.load_allocations_from_file(allocations_file)
-    else:
-        # Add default allocations
-        print("\nAdding default allocations...")
-        # Foundation
-        gen.add_allocation(
-            "0xF0UNDA7I0N0000000000000000000000000000001",
-            "300000000000000000000000000",  # 300M AXX
-            vesting=True,
-            vesting_schedule="4 years linear"
-        )
-        # Rewards Pool
-        gen.add_allocation(
-            "0xREWARD5P00L0000000000000000000000000000002",
-            "250000000000000000000000000",  # 250M AXX
-        )
-    
-    # Validate
-    print("\n" + "=" * 60)
-    if not gen.validate():
-        print("❌ Validation failed!")
-        sys.exit(1)
-    
-    # Save
-    print("=" * 60)
-    genesis_hash = gen.save("genesis.json")
-    
-    print("\n" + "=" * 60)
-    print("Next Steps:")
-    print("=" * 60)
-    print("1. Review genesis.json")
-    print("2. Distribute to all validators")
-    print(f"3. Announce genesis hash: 0x{genesis_hash}")
-    print("4. Validators verify and initialize nodes")
-    print("5. Coordinate launch time")
-    print("\nFor support: validators@axionax.org")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Axionax Genesis Block #0 Generator (Q2 2026 Mainnet)")
+    parser.add_argument("--out", default=None, help="Output path (default: genesis.json next to this script)")
+    parser.add_argument("--verify", action="store_true", help="Run verification after generation")
+    parser.add_argument("--faucet-address", default=None, help="Faucet EVM address (default: deterministic from seed)")
+    args = parser.parse_args()
+
+    allocations = _get_allocations(args.faucet_address)
+    genesis = build_genesis(args.faucet_address)
+    print_summary(genesis, allocations)
+
+    out_path = Path(args.out) if args.out else Path(__file__).parent / "genesis.json"
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w") as f:
+        json.dump(genesis, f, indent=2)
+
+    file_hash = _sha256(out_path.read_bytes())
+    print(f"  Saved to    : {out_path}")
+    print(f"  SHA-256     : 0x{file_hash}")
+    print("=" * 64)
+
+    if args.verify:
+        print()
+        alloc = genesis["alloc"]
+        total = sum(int(v["balance"]) for v in alloc.values())
+        ok = total == TOTAL_SUPPLY_WEI
+        print(f"  Verify alloc sum = total supply: {'PASS' if ok else 'FAIL'}")
+        if not ok:
+            print(f"    alloc sum  = {total}")
+            print(f"    expected   = {TOTAL_SUPPLY_WEI}")
+            sys.exit(1)
+        print(f"  Verify chain ID = {CHAIN_ID}: {'PASS' if genesis['config']['chainId'] == CHAIN_ID else 'FAIL'}")
+        print(f"  Verify creator  = {CREATOR_ALIAS}: {'PASS' if genesis['creator']['alias'] == CREATOR_ALIAS else 'FAIL'}")
+        print()
+        print("  All checks passed.")
+        print("=" * 64)
+
 
 if __name__ == "__main__":
     main()

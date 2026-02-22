@@ -163,3 +163,5 @@ Source: `core/core/network/src/protocol.rs` → `NodeCapabilities`, `PeerInfo.ca
 ---
 
 *This document is the single source of truth for node types on the Axionax network in this repo.*
+
+→ **Hardware specs (CPU, RAM, storage):** [NODE_SPECS.md](./NODE_SPECS.md)

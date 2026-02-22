@@ -75,12 +75,12 @@ We are at the **"crossroads of eras"** — the plan unfolds in three phases:
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| **OTPU (Optical Tensor)** | `deai/optical/tensor.py` | Simulation |
-| **Proof-of-Light (PoL)** | `core/consensus/src/proof_of_light.rs` | Simulation |
-| **HAL (ComputeBackend)** | `deai/compute_backend.py` | Ready (SILICON / PHOTONIC bridge) |
-| **Worker + Config** | `deai/worker_node.py`, `worker_config.toml` | `[experimental]` + HAL |
-| **NodeCapabilities** | `core/network/src/protocol.rs` | ASR / Fast Lane ready |
-| **Photonic Blueprint** | `photonic/README.md` | Metrics + evolution notes |
+| **OTPU (Optical Tensor)** | `core/deai/optical/tensor.py` | Simulation |
+| **Proof-of-Light (PoL)** | `core/core/consensus/src/proof_of_light.rs` | Simulation |
+| **HAL (ComputeBackend)** | `core/deai/compute_backend.py` | Ready (SILICON / PHOTONIC bridge) |
+| **Worker + Config** | `core/deai/worker_node.py`, `core/deai/worker_config.toml` | `[experimental]` + HAL |
+| **NodeCapabilities** | `core/core/network/src/protocol.rs` | ASR / Fast Lane ready |
+| **Photonic Blueprint** | `core/photonic/README.md` | Metrics + evolution notes |
 
 ---
 

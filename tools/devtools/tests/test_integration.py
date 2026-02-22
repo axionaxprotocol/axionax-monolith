@@ -52,9 +52,11 @@ class TestGitIntegration(unittest.TestCase):
         self.devtools_dir = Path(__file__).parent.parent
         
     def test_git_repository(self):
-        """Test that this is a valid git repository"""
-        git_dir = self.devtools_dir / ".git"
-        self.assertTrue(git_dir.exists(), "Should be a git repository")
+        """Test that this is a valid git repository (devtools is inside monorepo)"""
+        # .git is at repo root; devtools is at tools/devtools/
+        repo_root = self.devtools_dir.parent.parent
+        git_dir = repo_root / ".git"
+        self.assertTrue(git_dir.exists(), f"Should be a git repository (checked {git_dir})")
         
     def test_git_remote_configured(self):
         """Test that git remote is configured"""

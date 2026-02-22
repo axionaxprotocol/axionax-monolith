@@ -50,12 +50,15 @@ End-to-end architecture of Axionax Protocol: blockchain, network, DeAI, and hard
 
 | Layer | Folder / Component | Role |
 |-------|-------------------|------|
-| **Core (Rust)** | `core/` | Blockchain protocol and node services |
+| **Core (Rust)** | `core/` | Blockchain protocol and node services (Cargo workspace root) |
 | **DeAI (Python)** | `core/deai/` | Worker node, HAL (ComputeBackend), optical simulation |
 | **Ops** | `ops/deploy/` | Deploy scripts, environments, monitoring, nginx |
-| **Tools** | `tools/` | Faucet (Rust), devtools (Python), scripts |
+| **Tools (root)** | `tools/` | Devtools (Python), analysis scripts |
+| **Tools (core)** | `core/tools/` | Faucet (Rust), genesis generator, validators |
 | **Config** | `configs/` | Monolith HYDRA (sentinel / worker TOML) |
 | **Root** | `hydra_manager.py` | Project HYDRA — Dual-Core (Split-Brain) MK-I controller |
+
+**Rust workspace:** `core/Cargo.toml` is the workspace root. Protocol crates live under `core/core/` (blockchain, consensus, network, etc.). Bridge and faucet: `core/bridge/rust-python/`, `core/tools/faucet/`.
 
 ---
 
@@ -81,7 +84,7 @@ End-to-end architecture of Axionax Protocol: blockchain, network, DeAI, and hard
 | **cli** | Command-line interface |
 | **metrics** | Prometheus metrics |
 | **genesis** | Genesis block generator |
-| **bridge (rust-python)** | PyO3 bindings for Python |
+| **bridge (rust-python)** | `core/bridge/rust-python/` — PyO3 bindings for Python |
 
 ---
 

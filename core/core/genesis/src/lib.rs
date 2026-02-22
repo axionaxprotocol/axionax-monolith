@@ -1,47 +1,94 @@
 //! Genesis Block Generator
 //!
-//! Creates genesis blocks for new Axionax chains
+//! Creates Block #0 for the Axionax network.
+//!
+//! Total Supply : 1,000,000,000,000 AXX  (1 trillion, 18 decimals)
+//! Creator alias: axionaxius
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
 
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+pub const CHAIN_ID: u64 = 86137;
+pub const CHAIN_NAME: &str = "Axionax Mainnet";
+pub const SYMBOL: &str = "AXX";
+pub const DECIMALS: u32 = 18;
+
+/// 1 AXX in wei
+const ONE_AXX: u128 = 10_u128.pow(18);
+
+/// Total supply: 1 trillion AXX
+pub const TOTAL_SUPPLY: u128 = 1_000_000_000_000 * ONE_AXX;
+
+/// Genesis timestamp — Q2 2026 Mainnet: 2026-04-01 00:00:00 UTC
+pub const GENESIS_TIMESTAMP: u64 = 1_775_001_600;
+
+// ---------------------------------------------------------------------------
+// Allocation percentages (basis points, 10_000 = 100%)
+// ---------------------------------------------------------------------------
+
+pub const ALLOC_CREATOR_BPS: u16 = 1_000;       // 10%
+pub const ALLOC_ECOSYSTEM_BPS: u16 = 3_000;     // 30%
+pub const ALLOC_FOUNDATION_BPS: u16 = 2_000;    // 20%
+pub const ALLOC_COMMUNITY_BPS: u16 = 1_500;     // 15%
+pub const ALLOC_TEAM_BPS: u16 = 1_000;          // 10%
+pub const ALLOC_VALIDATORS_BPS: u16 = 500;      //  5%
+pub const ALLOC_PUBLIC_SALE_BPS: u16 = 500;     //  5%
+pub const ALLOC_FAUCET_BPS: u16 = 300;          //  3%
+pub const ALLOC_RESERVE_BPS: u16 = 200;         //  2%
+
+// ---------------------------------------------------------------------------
+// Well-known addresses
+// ---------------------------------------------------------------------------
+
+// EVM-compatible addresses (deterministic from sha256 seeds, matches core/tools/create_genesis.py)
+pub const ADDR_CREATOR: &str     = "0xb9e3968de4ec06c75ecb3c8ca151b446939aec7f";
+pub const ADDR_ECOSYSTEM: &str   = "0x866740f77e808b381bcb8622015b4a31cc3ca935";
+pub const ADDR_FOUNDATION: &str  = "0xa77f117ff23b672cf484b1d05cc48b5e7c03909d";
+pub const ADDR_COMMUNITY: &str   = "0x776b0130e806cb70003744a4691238052c0b972a";
+pub const ADDR_TEAM: &str        = "0x6af7d73fdcc0bf711ccada1422774ab1fdff9ae4";
+pub const ADDR_PUBLIC_SALE: &str = "0x58abb3d4e75f232b4177bfd6061972a210f4c9e6";
+pub const ADDR_FAUCET: &str      = "0x59927b9ed220aa6bf2f0ef46bc6efefaf935109f";
+pub const ADDR_RESERVE: &str     = "0xa61e8cb3ec1e6246a852ca0493f7e8c9c44006cd";
+
+pub const ADDR_VALIDATOR_EU: &str = "0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326";
+pub const ADDR_VALIDATOR_AU: &str = "0x26e714016c6a91b791bb440ca8db6cd7c4d1e6cb";
+
+// ---------------------------------------------------------------------------
+// Structs
+// ---------------------------------------------------------------------------
+
 /// Genesis configuration
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenesisConfig {
-    /// Chain ID
     pub chain_id: u64,
-
-    /// Chain name
     pub chain_name: String,
-
-    /// Genesis timestamp (Unix seconds)
     pub timestamp: u64,
-
-    /// Initial validators
     pub validators: Vec<GenesisValidator>,
-
-    /// Initial account balances
     pub balances: HashMap<String, u128>,
-
-    /// Protocol configuration
     pub config: ProtocolConfig,
-
-    /// Extra data (arbitrary)
     pub extra_data: String,
+    pub total_supply: u128,
+    pub creator_alias: String,
 }
 
 impl Default for GenesisConfig {
     fn default() -> Self {
         Self {
-            chain_id: 86137,
-            chain_name: "Axionax Testnet".to_string(),
+            chain_id: CHAIN_ID,
+            chain_name: CHAIN_NAME.to_string(),
             timestamp: Utc::now().timestamp() as u64,
             validators: vec![],
             balances: HashMap::new(),
             config: ProtocolConfig::default(),
-            extra_data: "Axionax Genesis".to_string(),
+            extra_data: "axionaxius - Genesis Block #0 - Axionax Core Universe".to_string(),
+            total_supply: TOTAL_SUPPLY,
+            creator_alias: "axionaxius".to_string(),
         }
     }
 }
@@ -254,62 +301,75 @@ impl GenesisGenerator {
         format!("0x{}", hex::encode(result))
     }
 
-    /// Generate genesis with default testnet configuration
-    pub fn testnet() -> GenesisBlock {
-        let mut config = GenesisConfig::default();
+    /// Helper: compute allocation from basis points
+    fn alloc(bps: u16) -> u128 {
+        TOTAL_SUPPLY / 10_000 * (bps as u128)
+    }
 
-        // Add default testnet validators
-        config.validators = vec![
-            GenesisValidator {
-                address: "0x1111111111111111111111111111111111111111".to_string(),
-                stake: 100_000 * 10_u128.pow(18),
-                public_key: "0x".to_string(),
-                node_url: "http://validator1.axionax.org:30333".to_string(),
-            },
-            GenesisValidator {
-                address: "0x2222222222222222222222222222222222222222".to_string(),
-                stake: 100_000 * 10_u128.pow(18),
-                public_key: "0x".to_string(),
-                node_url: "http://validator2.axionax.org:30333".to_string(),
-            },
-            GenesisValidator {
-                address: "0x3333333333333333333333333333333333333333".to_string(),
-                stake: 100_000 * 10_u128.pow(18),
-                public_key: "0x".to_string(),
-                node_url: "http://validator3.axionax.org:30333".to_string(),
-            },
-        ];
+    /// Build the canonical mainnet / testnet genesis with full token allocation.
+    ///
+    /// Total supply: 1 trillion AXX (1,000,000,000,000)
+    /// Creator alias: axionaxius (10 %)
+    pub fn mainnet() -> GenesisBlock {
+        let validator_half = Self::alloc(ALLOC_VALIDATORS_BPS) / 2;
 
-        // Add faucet account with initial supply
-        config.balances.insert(
-            "0xFAUCET0000000000000000000000000000000001".to_string(),
-            1_000_000_000 * 10_u128.pow(18), // 1 billion AXX
-        );
+        let mut config = GenesisConfig {
+            chain_id: CHAIN_ID,
+            chain_name: CHAIN_NAME.to_string(),
+            timestamp: GENESIS_TIMESTAMP,
+            extra_data: "axionaxius - Genesis Block #0 - Axionax Core Universe".to_string(),
+            total_supply: TOTAL_SUPPLY,
+            creator_alias: "axionaxius".to_string(),
+            config: ProtocolConfig::default(),
+            validators: vec![
+                GenesisValidator {
+                    address: ADDR_VALIDATOR_EU.to_string(),
+                    stake: validator_half,
+                    public_key: "0x".to_string(),
+                    node_url: "http://217.76.61.116:30303".to_string(),
+                },
+                GenesisValidator {
+                    address: ADDR_VALIDATOR_AU.to_string(),
+                    stake: validator_half,
+                    public_key: "0x".to_string(),
+                    node_url: "http://46.250.244.4:30303".to_string(),
+                },
+            ],
+            balances: HashMap::new(),
+        };
 
-        // Add team wallets
-        config.balances.insert(
-            "0xTEAM00000000000000000000000000000000001".to_string(),
-            100_000_000 * 10_u128.pow(18), // 100 million AXX
-        );
+        config.balances.insert(ADDR_CREATOR.to_string(),     Self::alloc(ALLOC_CREATOR_BPS));
+        config.balances.insert(ADDR_ECOSYSTEM.to_string(),   Self::alloc(ALLOC_ECOSYSTEM_BPS));
+        config.balances.insert(ADDR_FOUNDATION.to_string(),  Self::alloc(ALLOC_FOUNDATION_BPS));
+        config.balances.insert(ADDR_COMMUNITY.to_string(),   Self::alloc(ALLOC_COMMUNITY_BPS));
+        config.balances.insert(ADDR_TEAM.to_string(),        Self::alloc(ALLOC_TEAM_BPS));
+        config.balances.insert(ADDR_VALIDATOR_EU.to_string(), validator_half);
+        config.balances.insert(ADDR_VALIDATOR_AU.to_string(), validator_half);
+        config.balances.insert(ADDR_PUBLIC_SALE.to_string(), Self::alloc(ALLOC_PUBLIC_SALE_BPS));
+        config.balances.insert(ADDR_FAUCET.to_string(),      Self::alloc(ALLOC_FAUCET_BPS));
+        config.balances.insert(ADDR_RESERVE.to_string(),     Self::alloc(ALLOC_RESERVE_BPS));
 
         Self::generate(config)
     }
 
-    /// Generate genesis for local development
+    /// Alias kept for backward compatibility
+    pub fn testnet() -> GenesisBlock {
+        Self::mainnet()
+    }
+
+    /// Generate genesis for local development (small balances, single validator)
     pub fn localnet() -> GenesisBlock {
         let mut config = GenesisConfig::default();
-        config.chain_id = 31337; // Local chain ID
+        config.chain_id = 31337;
         config.chain_name = "Axionax Localnet".to_string();
 
-        // Single validator for local development
         config.validators = vec![GenesisValidator {
-            address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".to_string(), // Hardhat default
-            stake: 10_000 * 10_u128.pow(18),
+            address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".to_string(),
+            stake: 10_000 * ONE_AXX,
             public_key: "0x".to_string(),
             node_url: "http://localhost:30333".to_string(),
         }];
 
-        // Prefund development accounts (Hardhat defaults)
         let dev_accounts = vec![
             "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
             "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
@@ -319,7 +379,7 @@ impl GenesisGenerator {
         for account in dev_accounts {
             config.balances.insert(
                 account.to_string(),
-                10_000 * 10_u128.pow(18), // 10,000 AXX each
+                10_000 * ONE_AXX,
             );
         }
 
@@ -350,16 +410,30 @@ mod tests {
 
         assert_eq!(genesis.number, 0);
         assert!(genesis.hash.starts_with("0x"));
-        assert_eq!(genesis.parent_hash.len(), 66); // 0x + 64 chars
+        assert_eq!(genesis.parent_hash.len(), 66);
     }
 
     #[test]
-    fn test_testnet_genesis() {
-        let genesis = GenesisGenerator::testnet();
+    fn test_mainnet_genesis() {
+        let genesis = GenesisGenerator::mainnet();
 
-        assert_eq!(genesis.chain_id, 86137);
-        assert_eq!(genesis.config.validators.len(), 3);
-        assert!(!genesis.config.balances.is_empty());
+        assert_eq!(genesis.chain_id, CHAIN_ID);
+        assert_eq!(genesis.config.validators.len(), 2);
+        assert_eq!(genesis.config.balances.len(), 10);
+        assert_eq!(genesis.config.creator_alias, "axionaxius");
+        assert_eq!(genesis.config.total_supply, TOTAL_SUPPLY);
+        assert_eq!(genesis.timestamp, GENESIS_TIMESTAMP);
+
+        let total: u128 = genesis.config.balances.values().sum();
+        assert_eq!(total, TOTAL_SUPPLY, "allocations must sum to total supply");
+    }
+
+    #[test]
+    fn test_creator_gets_ten_percent() {
+        let genesis = GenesisGenerator::mainnet();
+        let creator_balance = genesis.config.balances.get(ADDR_CREATOR).unwrap();
+        let expected = TOTAL_SUPPLY / 10;
+        assert_eq!(*creator_balance, expected);
     }
 
     #[test]
@@ -372,22 +446,20 @@ mod tests {
 
     #[test]
     fn test_export_json() {
-        let genesis = GenesisGenerator::testnet();
+        let genesis = GenesisGenerator::mainnet();
         let json = GenesisGenerator::export_json(&genesis);
 
         assert!(json.contains("chain_id"));
         assert!(json.contains("86137"));
+        assert!(json.contains("axionaxius"));
     }
 
     #[test]
     fn test_deterministic_hash() {
-        let config1 = GenesisConfig::default();
-        let config2 = config1.clone();
+        let g1 = GenesisGenerator::mainnet();
+        let g2 = GenesisGenerator::mainnet();
 
-        let genesis1 = GenesisGenerator::generate(config1);
-        let genesis2 = GenesisGenerator::generate(config2);
-
-        assert_eq!(genesis1.hash, genesis2.hash);
-        assert_eq!(genesis1.state_root, genesis2.state_root);
+        assert_eq!(g1.hash, g2.hash);
+        assert_eq!(g1.state_root, g2.state_root);
     }
 }

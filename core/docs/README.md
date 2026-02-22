@@ -10,12 +10,14 @@ For the **project-wide master summary** (vision, tokenomics, roadmap), see [MAST
 | [ARCHITECTURE_OVERVIEW.md](./ARCHITECTURE_OVERVIEW.md) | **Start here** — full system architecture (layers, modules, hardware) |
 | [PROJECT_ASCENSION.md](./PROJECT_ASCENSION.md) | Vision, 9 Pillars, 4 Engines, implementation map |
 | [MONOLITH_ROADMAP.md](./MONOLITH_ROADMAP.md) | Monolith hardware MK-I → MK-IV (Vanguard to Gaia) |
+| [MAINNET_GENESIS_CHECKLIST.md](./MAINNET_GENESIS_CHECKLIST.md) | Q2 2026 Mainnet genesis launch checklist |
 
 ## Network & nodes
 
 | Doc | Description |
 |-----|-------------|
 | [NETWORK_NODES.md](./NETWORK_NODES.md) | All node types: Validator, RPC, Full, Light, Bootnode, Explorer, Faucet, Workers |
+| [NODE_SPECS.md](./NODE_SPECS.md) | **Hardware specs** — CPU, RAM, storage for Full Node, Validator, RPC, Worker, etc. |
 | [MARKETPLACE_WORKER_NODES.md](./MARKETPLACE_WORKER_NODES.md) | Worker nodes on the Compute Marketplace (specs, tiers, job types) |
 
 ## DeAI & Sentinels

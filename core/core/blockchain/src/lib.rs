@@ -16,6 +16,8 @@ use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
 
+use genesis::GenesisGenerator;
+
 pub mod mempool;
 pub mod storage;
 pub mod validation;
@@ -241,20 +243,39 @@ impl Blockchain {
         }
     }
 
-    /// Creates genesis block
+    /// Creates genesis block from canonical mainnet config (1T AXX, axionaxius, validators).
+    /// Uses the genesis crate so block hash, state_root, and timestamp match genesis.json.
     pub fn create_genesis() -> Block {
+        let g = GenesisGenerator::mainnet();
         Block {
-            number: 0,
-            hash: [0u8; 32],
-            parent_hash: [0u8; 32],
-            timestamp: 0,
-            proposer: "genesis".to_string(),
+            number: g.number,
+            hash: parse_hex_hash(&g.hash).expect("genesis crate must produce valid 64-char hex hashes"),
+            parent_hash: parse_hex_hash(&g.parent_hash).expect("genesis crate must produce valid 64-char hex hashes"),
+            timestamp: g.timestamp,
+            proposer: g
+                .config
+                .validators
+                .first()
+                .map(|v| v.address.clone())
+                .unwrap_or_else(|| "axionaxius".to_string()),
             transactions: vec![],
-            state_root: [0u8; 32],
+            state_root: parse_hex_hash(&g.state_root).expect("genesis crate must produce valid 64-char hex hashes"),
             gas_used: 0,
             gas_limit: 30_000_000,
         }
     }
+}
+
+/// Parse a 0x-prefixed 32-byte hex string into [u8; 32]. Fails on wrong length or invalid hex.
+fn parse_hex_hash(s: &str) -> std::result::Result<[u8; 32], String> {
+    let s = s.strip_prefix("0x").unwrap_or(s);
+    if s.len() != 64 {
+        return Err(format!("genesis hash must be 64 hex chars, got {}", s.len()));
+    }
+    let bytes = hex::decode(s).map_err(|e| e.to_string())?;
+    let mut arr = [0u8; 32];
+    arr.copy_from_slice(&bytes[..32]);
+    Ok(arr)
 }
 
 impl Default for BlockchainConfig {

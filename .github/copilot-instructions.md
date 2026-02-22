@@ -8,13 +8,17 @@
 
 ## 🏗️ Monorepo Structure
 
-This is a **monorepo** with three major components:
+This is a **monorepo** with these components:
 
 ```
 axionax-core-universe/
-├── core/              # Blockchain protocol (Rust + Python)
+├── core/              # Cargo workspace root — blockchain (Rust) + DeAI (Python)
+│   ├── core/          # Protocol crates (blockchain, consensus, network, ...)
+│   ├── bridge/       # PyO3 Rust↔Python bridge
+│   └── tools/         # Faucet (Rust), genesis generator
 ├── ops/deploy/        # Deployment infrastructure (Docker, K8s)
-└── tools/devtools/    # Development utilities (Python, Bash)
+├── tools/devtools/    # Development utilities (Python, Bash)
+└── configs/           # Monolith HYDRA (sentinel / worker TOML)
 ```
 
 **Key principle:** Each subdirectory has its own `.github/copilot-instructions.md` with component-specific guidance. This file covers cross-cutting concerns.

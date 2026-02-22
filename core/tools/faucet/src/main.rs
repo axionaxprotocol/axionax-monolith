@@ -11,7 +11,8 @@ use std::net::SocketAddr;
 use std::env;
 use std::time::{SystemTime, UNIX_EPOCH};
 use reqwest::Client;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{CorsLayer, AllowOrigin};
+use http::HeaderValue;
 use tracing::{info, error, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use dashmap::DashMap;
@@ -167,11 +168,29 @@ async fn main() -> anyhow::Result<()> {
         cooldown_secs,
     };
 
+    // CORS: restrict to CORS_ORIGINS in production (comma-separated); unset = permissive
+    let cors_layer = match env::var("CORS_ORIGINS") {
+        Ok(v) if !v.trim().is_empty() => {
+            let origins: Vec<HeaderValue> = v
+                .split(',')
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .filter_map(|s| s.parse().ok())
+                .collect();
+            if origins.is_empty() {
+                CorsLayer::permissive()
+            } else {
+                CorsLayer::new().allow_origin(AllowOrigin::list(origins))
+            }
+        }
+        _ => CorsLayer::permissive(),
+    };
+
     let app = Router::new()
         .route("/health", get(health_check))
         .route("/info", get(info_handler))
         .route("/request", post(request_handler))
-        .layer(CorsLayer::permissive())
+        .layer(cors_layer)
         .with_state(app_state);
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
@@ -196,12 +215,39 @@ async fn info_handler(State(state): State<AppState>) -> impl IntoResponse {
     }))
 }
 
+/// EVM address: 0x + 40 hex chars, not the zero address.
+fn is_valid_evm_address(s: &str) -> bool {
+    let s = s.strip_prefix("0x").unwrap_or(s);
+    if s.len() != 40 {
+        return false;
+    }
+    if s == "0000000000000000000000000000000000000000" {
+        return false;
+    }
+    s.chars().all(|c| c.is_ascii_hexdigit())
+}
+
 async fn request_handler(
     ConnectInfo(client_addr): ConnectInfo<SocketAddr>,
     State(state): State<AppState>,
     Json(payload): Json<RequestFunds>,
 ) -> impl IntoResponse {
-    let address = payload.address;
+    let address = payload.address.trim();
+    if !is_valid_evm_address(address) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(Response {
+                status: "error".to_string(),
+                tx_hash: None,
+                message: Some("Invalid address: must be 0x + 40 hex chars, not zero address.".to_string()),
+            }),
+        ).into_response();
+    }
+    let address = if address.starts_with("0x") {
+        address.to_string()
+    } else {
+        format!("0x{}", address)
+    };
     let client_ip = client_addr.ip().to_string();
     info!("Received request for {} from {}", address, client_ip);
 

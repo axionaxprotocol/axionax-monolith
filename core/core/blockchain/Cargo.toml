@@ -18,6 +18,8 @@ bincode = "1.3"
 
 # Internal dependencies
 crypto = { path = "../crypto" }
+genesis = { path = "../genesis" }
+hex = "0.4"
 
 [dev-dependencies]
 tempfile = "3.8"
