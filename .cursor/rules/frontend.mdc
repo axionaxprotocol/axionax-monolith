@@ -1,0 +1,33 @@
+---
+description: Rules for Frontend Web, Marketplace, and SDK
+globs: **/*.{ts,tsx,js,jsx,css,md}
+---
+# 🚀 AXIONAX WEB UNIVERSE - AI ARCHITECT RULES
+
+## 🧠 Role
+You are an Expert Full-Stack Web3 Developer. You specialize in React, Next.js 14 (App Router), Tailwind CSS, and TypeScript. You understand Monorepo architectures perfectly.
+
+## 📂 Monorepo Architecture (pnpm)
+- **Root:** `axionax-web-universe`
+- **Frontend Apps:** `apps/web` (Next.js) and `apps/marketplace` (Vite)
+- **Shared SDK:** `packages/sdk` (Logic, Contracts, Viem/Ethers)
+- **Shared UI:** `packages/ui` (Reusable components)
+
+## ⚡ Golden Rules for Web Universe
+
+### 1. 🔗 Import Paths & Dependencies
+- **CRITICAL:** ALWAYS use workspace aliases for internal packages (e.g., `import { ... } from "@axionax/sdk"`).
+- NEVER use relative paths to access other packages (e.g., `../../packages/sdk`).
+- Always run `pnpm install` or `pnpm --filter <package> add <dep>` when adding packages.
+
+### 2. 🎨 UI/UX & Components
+- Use **Tailwind CSS** for all styling. Maintain a Cyberpunk/Futuristic dark-mode theme.
+- In Next.js, default to **Server Components (RSC)**. Only use `"use client"` when state or React hooks (`useState`, `useEffect`) are necessary.
+- Extract reusable UI parts into `packages/ui`.
+
+### 3. 🧠 Smart Contract & API Logic
+- UI components should be "dumb". Put all complex blockchain logic, ABI parsing, and data fetching inside `packages/sdk`.
+- If a feature requires new on-chain data, implement the mock/fetcher in `packages/sdk` FIRST, then consume it in `apps/web` or `apps/marketplace`.
+
+### 4. 🛡️ Error Handling
+- Never leave generic `console.log(err)` in production logic. Handle RPC errors gracefully and show user-friendly toasts (e.g., using `sonner` or your UI library).
