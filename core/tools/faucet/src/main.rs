@@ -1,5 +1,5 @@
 use axum::{
-    extract::{State, Json},
+    extract::{ConnectInfo, State, Json},
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
@@ -28,7 +28,9 @@ struct AppState {
     faucet_address: String,
     chain_id: u64,
     amount_per_request: u128,
-    rate_limiter: Arc<DashMap<String, u64>>, // IP -> Timestamp
+    addr_limiter: Arc<DashMap<String, u64>>,  // address -> timestamp
+    ip_limiter: Arc<DashMap<String, u64>>,    // IP -> timestamp
+    cooldown_secs: u64,                       // configurable cooldown (default 86400)
 }
 
 #[derive(Deserialize)]
@@ -139,14 +141,30 @@ async fn main() -> anyhow::Result<()> {
     info!("Chain ID: {}", chain_id);
     info!("RPC URL: {}", rpc_url);
 
+    let cooldown_secs: u64 = env::var("RATE_LIMIT_MINUTES")
+        .ok()
+        .and_then(|v| v.parse::<u64>().ok())
+        .map(|m| m * 60)
+        .unwrap_or(86400); // default 24h
+
+    let amount: u128 = env::var("FAUCET_AMOUNT")
+        .ok()
+        .and_then(|v| v.parse::<u128>().ok())
+        .unwrap_or(100);
+
+    info!("Rate limit: {} seconds ({} hours)", cooldown_secs, cooldown_secs / 3600);
+    info!("Amount per request: {} AXX", amount);
+
     let app_state = AppState {
         client: Client::new(),
         rpc_url,
         signing_key: Arc::new(signing_key),
         faucet_address,
         chain_id,
-        amount_per_request: 100 * 10_u128.pow(18), // 100 AXX
-        rate_limiter: Arc::new(DashMap::new()),
+        amount_per_request: amount * 10_u128.pow(18),
+        addr_limiter: Arc::new(DashMap::new()),
+        ip_limiter: Arc::new(DashMap::new()),
+        cooldown_secs,
     };
 
     let app = Router::new()
@@ -160,7 +178,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Listening on {}", addr);
     
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await?;
 
     Ok(())
 }
@@ -179,22 +197,46 @@ async fn info_handler(State(state): State<AppState>) -> impl IntoResponse {
 }
 
 async fn request_handler(
+    ConnectInfo(client_addr): ConnectInfo<SocketAddr>,
     State(state): State<AppState>,
     Json(payload): Json<RequestFunds>,
 ) -> impl IntoResponse {
     let address = payload.address;
-    info!("Received request for {}", address);
+    let client_ip = client_addr.ip().to_string();
+    info!("Received request for {} from {}", address, client_ip);
 
-    // Rate limit check (simple IP-based would need extraction, here using address)
     let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
-    if let Some(last_request) = state.rate_limiter.get(&address) {
-        if now - *last_request < 86400 { // 24 hours
+    let cooldown = state.cooldown_secs;
+
+    // Rate limit per IP
+    if let Some(last) = state.ip_limiter.get(&client_ip) {
+        if now - *last < cooldown {
+            let remaining = cooldown - (now - *last);
+            warn!("IP rate limited: {} ({}s remaining)", client_ip, remaining);
             return (
                 StatusCode::TOO_MANY_REQUESTS,
                 Json(Response {
                     status: "error".to_string(),
                     tx_hash: None,
-                    message: Some("Rate limit exceeded (1 request per 24h)".to_string()),
+                    message: Some(format!("Rate limit: 1 request per {}h per IP. Try again in {}m.",
+                        cooldown / 3600, remaining / 60 + 1)),
+                }),
+            ).into_response();
+        }
+    }
+
+    // Rate limit per address
+    if let Some(last) = state.addr_limiter.get(&address) {
+        if now - *last < cooldown {
+            let remaining = cooldown - (now - *last);
+            warn!("Address rate limited: {} ({}s remaining)", address, remaining);
+            return (
+                StatusCode::TOO_MANY_REQUESTS,
+                Json(Response {
+                    status: "error".to_string(),
+                    tx_hash: None,
+                    message: Some(format!("Rate limit: 1 request per {}h per address. Try again in {}m.",
+                        cooldown / 3600, remaining / 60 + 1)),
                 }),
             ).into_response();
         }
@@ -259,7 +301,8 @@ async fn request_handler(
     // Send transaction
     match send_raw_transaction(&state.client, &state.rpc_url, tx_hex).await {
         Ok(hash) => {
-            state.rate_limiter.insert(address.clone(), now);
+            state.addr_limiter.insert(address.clone(), now);
+            state.ip_limiter.insert(client_ip.clone(), now);
             info!("Sent funds to {}: {}", address, hash);
             (
                 StatusCode::OK,
