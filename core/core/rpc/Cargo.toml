@@ -38,6 +38,8 @@ blockchain = { path = "../blockchain" }
 crypto = { path = "../crypto" }
 staking = { path = "../staking" }
 governance = { path = "../governance" }
+metrics = { path = "../metrics" }
+events = { path = "../events" }
 
 
 [dev-dependencies]

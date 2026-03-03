@@ -1,4 +1,4 @@
-﻿# axionax DeAI - AI/ML Layer for Security and Auto Selection
+# axionax DeAI - AI/ML Layer for Security and Auto Selection
 
 **Python-based AI/ML components for the axionax protocol**
 
@@ -45,6 +45,10 @@ pandas>=2.0.0
 scikit-learn>=1.3.0
 scipy>=1.10.0
 ```
+
+## Worker ↔ Contract (MOCK / LIVE)
+
+Workers use the JobMarketplace contract for registration and result submission. By default they run in **MOCK** mode (no contract deployed). To switch to **LIVE** once the contract is deployed, see **[CONTRACT_INTEGRATION.md](CONTRACT_INTEGRATION.md)** (config, env, ABI path).
 
 ## Usage
 

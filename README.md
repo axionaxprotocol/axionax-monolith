@@ -248,8 +248,10 @@ cargo bench
 
 ### Run Local Node
 
+From repo root (binary lives in `core` workspace):
+
 ```bash
-cargo run --bin axionax-node
+cd core && cargo run --bin axionax-node
 ```
 
 ### Deploy with Docker
@@ -268,6 +270,17 @@ docker compose -f ops/deploy/docker-compose.vps.yml up -d
 cd core/deai
 python3 -m pytest . -v --tb=short --ignore=tests
 ```
+
+---
+
+## Pre-launch checklist (Security, Performance, Infra, Worker)
+
+| Area | What was added | Where |
+|------|----------------|--------|
+| **Security** | Audit scope for external auditors + local tooling (cargo audit, bandit) | [docs/SECURITY_AUDIT_SCOPE.md](docs/SECURITY_AUDIT_SCOPE.md), [scripts/security/](scripts/security/) |
+| **Performance** | TPS & finality load test (45k TPS, &lt;0.5s finality targets) | [scripts/load_test/](scripts/load_test/) |
+| **Infra** | One-page: RPC multi-region, Explorer, Faucet, Monitoring (+ node-exporter) | [ops/deploy/environments/testnet/public/README_INFRA.md](ops/deploy/environments/testnet/public/README_INFRA.md) |
+| **Worker** | LIVE contract integration (config/env/ABI), mock fallback kept | [core/deai/CONTRACT_INTEGRATION.md](core/deai/CONTRACT_INTEGRATION.md) |
 
 ---
 
@@ -301,6 +314,8 @@ python3 -m pytest . -v --tb=short --ignore=tests
 ## Documentation
 
 - [**Master Summary**](MASTER_SUMMARY.md) — Vision, architecture, hardware, tokenomics, roadmap
+- [**Self-Sufficiency**](docs/SELF_SUFFICIENCY.md) — โปรโตคอลทำงานได้ด้วยตัวเอง ไม่บังคับพึ่ง external API/registry ตอนรัน
+- [**Cyber Defense (DeAI)**](docs/CYBER_DEFENSE.md) — ป้องกันภัยคุกคามทางไซเบอร์ได้ด้วยตัวเองผ่าน DeAI (7 Sentinels)
 - [Architecture Overview](core/docs/ARCHITECTURE_OVERVIEW.md)
 - [API Reference](core/docs/API_REFERENCE.md)
 - [Deployment Guide](core/DEPLOYMENT_GUIDE.md)

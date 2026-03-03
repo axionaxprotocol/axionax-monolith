@@ -2,6 +2,7 @@
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use pyo3::types::PyModule;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
@@ -117,7 +118,7 @@ impl PyConsensusEngine {
         // Generate VRF seed from job_id and timestamp
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or_default()
             .as_nanos();
 
         let mut hasher = Sha3_256::new();
@@ -129,9 +130,10 @@ impl PyConsensusEngine {
         vrf_seed.copy_from_slice(&hash);
 
         let engine = self.engine.clone();
+        let expected_root = [0u8; 32]; // Python bridge: no prior root; consensus uses for verification
         let challenge = self.runtime.block_on(async move {
             let eng = engine.read().await;
-            eng.generate_challenge(job_id, output_size, vrf_seed)
+            eng.generate_challenge(job_id, output_size, vrf_seed, expected_root)
         });
 
         Ok(PyChallenge { inner: challenge })
@@ -293,9 +295,9 @@ impl PyBlockchain {
     }
 }
 
-/// Python module definition
+/// Python module definition (pyo3 0.24: use Bound<PyModule>, no Python param)
 #[pymodule]
-fn axionax_python(_py: Python, m: &PyModule) -> PyResult<()> {
+fn axionax_python(m: &pyo3::Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyVRF>()?;
     m.add_class::<PyValidator>()?;
     m.add_class::<PyConsensusEngine>()?;

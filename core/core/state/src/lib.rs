@@ -1,16 +1,15 @@
 //! axionax State Module
 //!
-//! Persistent storage layer using RocksDB for:
+//! Persistent storage layer using redb (pure Rust) for:
 //! - Blocks and transactions
 //! - Chain state and metadata
 //! - Account balances and nonces
-//! - Smart contract state
 
-use rocksdb::{Options, DB};
+use redb::{Database, ReadableTable, TableDefinition};
 use std::path::Path;
 use std::sync::Arc;
 use thiserror::Error;
-use tracing::{debug, error, info};
+use tracing::{debug, info};
 
 use blockchain::{Block, Transaction};
 
@@ -38,42 +37,76 @@ pub enum StateError {
 
 pub type Result<T> = std::result::Result<T, StateError>;
 
-/// Column family names for RocksDB
-mod cf {
-    pub const BLOCKS: &str = "blocks";
-    pub const BLOCK_HASH_TO_NUMBER: &str = "block_hash_to_number";
-    pub const TRANSACTIONS: &str = "transactions";
-    pub const TX_TO_BLOCK: &str = "tx_to_block";
-    pub const CHAIN_STATE: &str = "chain_state";
-    pub const ACCOUNTS: &str = "accounts";
+impl From<redb::Error> for StateError {
+    fn from(e: redb::Error) -> Self {
+        StateError::DatabaseError(e.to_string())
+    }
+}
+impl From<redb::DatabaseError> for StateError {
+    fn from(e: redb::DatabaseError) -> Self {
+        StateError::DatabaseError(e.to_string())
+    }
+}
+impl From<redb::TableError> for StateError {
+    fn from(e: redb::TableError) -> Self {
+        StateError::DatabaseError(e.to_string())
+    }
+}
+impl From<redb::TransactionError> for StateError {
+    fn from(e: redb::TransactionError) -> Self {
+        StateError::DatabaseError(e.to_string())
+    }
+}
+impl From<redb::StorageError> for StateError {
+    fn from(e: redb::StorageError) -> Self {
+        StateError::DatabaseError(e.to_string())
+    }
+}
+impl From<redb::CommitError> for StateError {
+    fn from(e: redb::CommitError) -> Self {
+        StateError::DatabaseError(e.to_string())
+    }
 }
 
-/// State database wrapper for RocksDB
+const BLOCKS: TableDefinition<&str, &[u8]> = TableDefinition::new("blocks");
+const BLOCK_HASH_TO_NUMBER: TableDefinition<&[u8], u64> = TableDefinition::new("block_hash_to_number");
+const TRANSACTIONS: TableDefinition<&[u8], &[u8]> = TableDefinition::new("transactions");
+const TX_TO_BLOCK: TableDefinition<&[u8], &[u8]> = TableDefinition::new("tx_to_block");
+const CHAIN_STATE: TableDefinition<&str, &[u8]> = TableDefinition::new("chain_state");
+
+/// State database wrapper for redb
 pub struct StateDB {
-    db: Arc<DB>,
+    db: Arc<Database>,
 }
 
 impl StateDB {
-    /// Open or create a new state database
+    /// Open or create a new state database.
+    /// Accepts either a file path (e.g. `data/state.redb`) or a directory
+    /// (e.g. `data/`) — if a directory, appends `state.redb` automatically.
     pub fn open<P: AsRef<Path>>(path: P) -> Result<Self> {
-        info!("Opening state database at {:?}", path.as_ref());
+        let path = path.as_ref();
+        let file_path = if path.extension().is_none() {
+            std::fs::create_dir_all(path).ok();
+            path.join("state.redb")
+        } else {
+            if let Some(parent) = path.parent() {
+                std::fs::create_dir_all(parent).ok();
+            }
+            path.to_path_buf()
+        };
+        info!("Opening state database at {:?}", file_path);
 
-        let mut opts = Options::default();
-        opts.create_if_missing(true);
-        opts.create_missing_column_families(true);
+        let db = Database::create(&file_path).map_err(|e| StateError::DatabaseError(e.to_string()))?;
 
-        // Define column families
-        let cfs = vec![
-            cf::BLOCKS,
-            cf::BLOCK_HASH_TO_NUMBER,
-            cf::TRANSACTIONS,
-            cf::TX_TO_BLOCK,
-            cf::CHAIN_STATE,
-            cf::ACCOUNTS,
-        ];
-
-        let db =
-            DB::open_cf(&opts, path, &cfs).map_err(|e| StateError::DatabaseError(e.to_string()))?;
+        {
+            let write_txn = db.begin_write()?;
+            let _ = write_txn.open_table(BLOCKS)?;
+            let _ = write_txn.open_table(BLOCK_HASH_TO_NUMBER)?;
+            let _ = write_txn.open_table(TRANSACTIONS)?;
+            let _ = write_txn.open_table(TX_TO_BLOCK)?;
+            let _ = write_txn.open_table(CHAIN_STATE)?;
+            write_txn.commit()?;
+        }
 
         Ok(Self { db: Arc::new(db) })
     }
@@ -82,31 +115,38 @@ impl StateDB {
     pub fn store_block(&self, block: &Block) -> Result<()> {
         debug!("Storing block #{} with hash {:?}", block.number, block.hash);
 
-        // Serialize block
         let block_data =
             serde_json::to_vec(block).map_err(|e| StateError::SerializationError(e.to_string()))?;
 
-        // Get column family handles
-        let cf_blocks = self.db.cf_handle(cf::BLOCKS).ok_or_else(|| {
-            StateError::DatabaseError("Column family BLOCKS not found".to_string())
-        })?;
-        let cf_hash_map = self.db.cf_handle(cf::BLOCK_HASH_TO_NUMBER).ok_or_else(|| {
-            StateError::DatabaseError("Column family BLOCK_HASH_TO_NUMBER not found".to_string())
-        })?;
-
-        // Store block by number (key: block_number, value: block_data)
         let number_key = format!("block_{}", block.number);
-        self.db
-            .put_cf(cf_blocks, number_key.as_bytes(), &block_data)
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?;
 
-        // Store hash -> number mapping (hash as bytes)
-        self.db
-            .put_cf(cf_hash_map, block.hash, block.number.to_be_bytes())
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?;
+        let write_txn = self.db.begin_write()?;
+        {
+            let mut t = write_txn.open_table(BLOCKS)?;
+            t.insert(number_key.as_str(), block_data.as_slice())?;
+        }
+        {
+            let mut t = write_txn.open_table(BLOCK_HASH_TO_NUMBER)?;
+            t.insert(block.hash.as_slice(), block.number)?;
+        }
 
-        // Update chain height if this is the latest block
-        self.update_chain_height(block.number)?;
+        let current_height = {
+            let t = write_txn.open_table(CHAIN_STATE)?;
+            let h = match t.get("chain_height")? {
+                Some(v) => {
+                    let bytes: &[u8] = v.value();
+                    u64::from_be_bytes(bytes.try_into().unwrap_or([0; 8]))
+                }
+                None => 0,
+            };
+            h
+        };
+        if block.number > current_height {
+            let mut t = write_txn.open_table(CHAIN_STATE)?;
+            t.insert("chain_height", block.number.to_be_bytes().as_slice())?;
+        }
+
+        write_txn.commit()?;
 
         info!("Successfully stored block #{}", block.number);
         Ok(())
@@ -116,24 +156,16 @@ impl StateDB {
     pub fn get_block_by_hash(&self, hash: &[u8; 32]) -> Result<Block> {
         debug!("Retrieving block with hash: {:?}", hash);
 
-        // Get block number from hash
-        let cf_hash_map = self
-            .db
-            .cf_handle(cf::BLOCK_HASH_TO_NUMBER)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
+        let read_txn = self.db.begin_read()?;
+        let t = read_txn.open_table(BLOCK_HASH_TO_NUMBER)?;
+        let block_number = t
+            .get(hash.as_slice())?
+            .ok_or_else(|| StateError::BlockNotFound(hex::encode(hash)))?
+            .value();
 
-        let number_bytes = self
-            .db
-            .get_cf(cf_hash_map, hash)
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?
-            .ok_or_else(|| StateError::BlockNotFound(format!("{:?}", hash)))?;
+        drop(t);
+        drop(read_txn);
 
-        let block_number =
-            u64::from_be_bytes(number_bytes.try_into().map_err(|_| {
-                StateError::DatabaseError("Invalid block number format".to_string())
-            })?);
-
-        // Get block by number
         self.get_block_by_number(block_number)
     }
 
@@ -141,19 +173,15 @@ impl StateDB {
     pub fn get_block_by_number(&self, number: u64) -> Result<Block> {
         debug!("Retrieving block #{}", number);
 
-        let cf_blocks = self
-            .db
-            .cf_handle(cf::BLOCKS)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
-
         let number_key = format!("block_{}", number);
-        let block_data = self
-            .db
-            .get_cf(cf_blocks, number_key.as_bytes())
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?
+        let read_txn = self.db.begin_read()?;
+        let t = read_txn.open_table(BLOCKS)?;
+
+        let block_data = t
+            .get(number_key.as_str())?
             .ok_or_else(|| StateError::BlockNotFound(number.to_string()))?;
 
-        let block: Block = serde_json::from_slice(&block_data)
+        let block: Block = serde_json::from_slice(block_data.value())
             .map_err(|e| StateError::SerializationError(e.to_string()))?;
 
         Ok(block)
@@ -169,28 +197,19 @@ impl StateDB {
     pub fn store_transaction(&self, tx: &Transaction, block_hash: &[u8; 32]) -> Result<()> {
         debug!("Storing transaction {:?}", tx.hash);
 
-        // Serialize transaction
         let tx_data =
             serde_json::to_vec(tx).map_err(|e| StateError::SerializationError(e.to_string()))?;
 
-        let cf_txs = self
-            .db
-            .cf_handle(cf::TRANSACTIONS)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
-        let cf_tx_map = self
-            .db
-            .cf_handle(cf::TX_TO_BLOCK)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
-
-        // Store transaction
-        self.db
-            .put_cf(cf_txs, tx.hash, &tx_data)
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?;
-
-        // Store tx -> block mapping
-        self.db
-            .put_cf(cf_tx_map, tx.hash, block_hash)
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?;
+        let write_txn = self.db.begin_write()?;
+        {
+            let mut t = write_txn.open_table(TRANSACTIONS)?;
+            t.insert(tx.hash.as_slice(), tx_data.as_slice())?;
+        }
+        {
+            let mut t = write_txn.open_table(TX_TO_BLOCK)?;
+            t.insert(tx.hash.as_slice(), block_hash.as_slice())?;
+        }
+        write_txn.commit()?;
 
         Ok(())
     }
@@ -199,18 +218,14 @@ impl StateDB {
     pub fn get_transaction(&self, tx_hash: &[u8; 32]) -> Result<Transaction> {
         debug!("Retrieving transaction {:?}", tx_hash);
 
-        let cf_txs = self
-            .db
-            .cf_handle(cf::TRANSACTIONS)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
+        let read_txn = self.db.begin_read()?;
+        let t = read_txn.open_table(TRANSACTIONS)?;
 
-        let tx_data = self
-            .db
-            .get_cf(cf_txs, tx_hash)
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?
-            .ok_or_else(|| StateError::TransactionNotFound(format!("{:?}", tx_hash)))?;
+        let tx_data = t
+            .get(tx_hash.as_slice())?
+            .ok_or_else(|| StateError::TransactionNotFound(hex::encode(tx_hash)))?;
 
-        let tx: Transaction = serde_json::from_slice(&tx_data)
+        let tx: Transaction = serde_json::from_slice(tx_data.value())
             .map_err(|e| StateError::SerializationError(e.to_string()))?;
 
         Ok(tx)
@@ -218,106 +233,74 @@ impl StateDB {
 
     /// Get block hash containing a transaction
     pub fn get_transaction_block(&self, tx_hash: &[u8; 32]) -> Result<[u8; 32]> {
-        let cf_tx_map = self
-            .db
-            .cf_handle(cf::TX_TO_BLOCK)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
+        let read_txn = self.db.begin_read()?;
+        let t = read_txn.open_table(TX_TO_BLOCK)?;
 
-        let block_hash = self
-            .db
-            .get_cf(cf_tx_map, tx_hash)
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?
-            .ok_or_else(|| StateError::TransactionNotFound(format!("{:?}", tx_hash)))?;
+        let block_hash_val = t
+            .get(tx_hash.as_slice())?
+            .ok_or_else(|| StateError::TransactionNotFound(hex::encode(tx_hash)))?;
 
-        block_hash
+        let bytes: &[u8] = block_hash_val.value();
+        bytes
             .try_into()
             .map_err(|_| StateError::DatabaseError("Invalid block hash format".to_string()))
     }
 
     /// Get current chain height
     pub fn get_chain_height(&self) -> Result<u64> {
-        let cf_state = self
-            .db
-            .cf_handle(cf::CHAIN_STATE)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
+        let read_txn = self.db.begin_read()?;
+        let t = read_txn.open_table(CHAIN_STATE)?;
 
-        match self.db.get_cf(cf_state, b"chain_height") {
-            Ok(Some(bytes)) => {
-                let height =
-                    u64::from_be_bytes(bytes.try_into().map_err(|_| {
-                        StateError::DatabaseError("Invalid height format".to_string())
-                    })?);
+        match t.get("chain_height")? {
+            Some(v) => {
+                let bytes: &[u8] = v.value();
+                let height = u64::from_be_bytes(
+                    bytes
+                        .try_into()
+                        .map_err(|_| StateError::DatabaseError("Invalid height format".to_string()))?,
+                );
                 Ok(height)
             }
-            Ok(None) => Ok(0), // Genesis state
-            Err(e) => Err(StateError::DatabaseError(e.to_string())),
+            None => Ok(0),
         }
-    }
-
-    /// Update chain height (internal)
-    fn update_chain_height(&self, new_height: u64) -> Result<()> {
-        let current_height = self.get_chain_height()?;
-
-        if new_height > current_height {
-            let cf_state = self
-                .db
-                .cf_handle(cf::CHAIN_STATE)
-                .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
-
-            self.db
-                .put_cf(cf_state, b"chain_height", new_height.to_be_bytes())
-                .map_err(|e| StateError::DatabaseError(e.to_string()))?;
-
-            debug!("Updated chain height to {}", new_height);
-        }
-
-        Ok(())
     }
 
     /// Store state root hash
     pub fn store_state_root(&self, block_number: u64, state_root: &str) -> Result<()> {
-        let cf_state = self
-            .db
-            .cf_handle(cf::CHAIN_STATE)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
-
         let key = format!("state_root_{}", block_number);
-        self.db
-            .put_cf(cf_state, key.as_bytes(), state_root.as_bytes())
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?;
-
+        let write_txn = self.db.begin_write()?;
+        {
+            let mut t = write_txn.open_table(CHAIN_STATE)?;
+            t.insert(key.as_str(), state_root.as_bytes())?;
+        }
+        write_txn.commit()?;
         Ok(())
     }
 
     /// Get state root hash
     pub fn get_state_root(&self, block_number: u64) -> Result<String> {
-        let cf_state = self
-            .db
-            .cf_handle(cf::CHAIN_STATE)
-            .ok_or_else(|| StateError::DatabaseError("Column family not found".to_string()))?;
-
         let key = format!("state_root_{}", block_number);
-        let root_bytes = self
-            .db
-            .get_cf(cf_state, key.as_bytes())
-            .map_err(|e| StateError::DatabaseError(e.to_string()))?
+        let read_txn = self.db.begin_read()?;
+        let t = read_txn.open_table(CHAIN_STATE)?;
+
+        let root_val = t
+            .get(key.as_str())?
             .ok_or(StateError::KeyNotFound(key))?;
 
-        String::from_utf8(root_bytes).map_err(|e| StateError::DatabaseError(e.to_string()))
+        String::from_utf8(root_val.value().to_vec())
+            .map_err(|e| StateError::DatabaseError(e.to_string()))
     }
 
     /// Get all blocks in range
     pub fn get_blocks_range(&self, start: u64, end: u64) -> Result<Vec<Block>> {
         let mut blocks = Vec::new();
-
         for number in start..=end {
             match self.get_block_by_number(number) {
                 Ok(block) => blocks.push(block),
-                Err(StateError::BlockNotFound(_)) => break, // Stop at first missing block
+                Err(StateError::BlockNotFound(_)) => break,
                 Err(e) => return Err(e),
             }
         }
-
         Ok(blocks)
     }
 
@@ -365,68 +348,60 @@ mod tests {
 
         Transaction {
             hash,
-            from: "0xfrom".to_string(),
-            to: "0xto".to_string(),
+            from: "0xfrom000000000000000000000000000000000000".to_string(),
+            to: "0xto00000000000000000000000000000000000000".to_string(),
             value: 1000,
             gas_price: 20,
             gas_limit: 21000,
             nonce: 1,
             data: vec![],
+            signature: vec![],
+            signer_public_key: vec![],
         }
     }
 
     #[test]
     fn test_state_db_open() {
         let temp_dir = TempDir::new().unwrap();
-        let db = StateDB::open(temp_dir.path()).unwrap();
-
-        // Check initial chain height
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
         assert_eq!(db.get_chain_height().unwrap(), 0);
     }
 
     #[test]
     fn test_store_and_get_block() {
         let temp_dir = TempDir::new().unwrap();
-        let db = StateDB::open(temp_dir.path()).unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
         let block = create_test_block(1);
         let block_hash = block.hash;
 
-        // Store block
         db.store_block(&block).unwrap();
 
-        // Get block by number
         let retrieved = db.get_block_by_number(1).unwrap();
         assert_eq!(retrieved.hash, block_hash);
         assert_eq!(retrieved.number, block.number);
 
-        // Get block by hash
         let retrieved = db.get_block_by_hash(&block_hash).unwrap();
         assert_eq!(retrieved.number, block.number);
 
-        // Check chain height updated
         assert_eq!(db.get_chain_height().unwrap(), 1);
     }
 
     #[test]
     fn test_store_multiple_blocks() {
         let temp_dir = TempDir::new().unwrap();
-        let db = StateDB::open(temp_dir.path()).unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
-        // Store blocks 1-5
         for i in 1..=5 {
             let block = create_test_block(i);
             db.store_block(&block).unwrap();
         }
 
-        // Verify chain height
         assert_eq!(db.get_chain_height().unwrap(), 5);
 
-        // Get latest block
         let latest = db.get_latest_block().unwrap();
         assert_eq!(latest.number, 5);
 
-        // Get block range
         let blocks = db.get_blocks_range(2, 4).unwrap();
         assert_eq!(blocks.len(), 3);
         assert_eq!(blocks[0].number, 2);
@@ -436,7 +411,7 @@ mod tests {
     #[test]
     fn test_store_and_get_transaction() {
         let temp_dir = TempDir::new().unwrap();
-        let db = StateDB::open(temp_dir.path()).unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
         let tx = create_test_tx(1);
         let tx_hash = tx.hash;
@@ -444,15 +419,12 @@ mod tests {
         let mut block_hash = [0u8; 32];
         block_hash[31] = 10;
 
-        // Store transaction
         db.store_transaction(&tx, &block_hash).unwrap();
 
-        // Get transaction
         let retrieved = db.get_transaction(&tx_hash).unwrap();
         assert_eq!(retrieved.hash, tx_hash);
         assert_eq!(retrieved.from, tx.from);
 
-        // Get block containing transaction
         let retrieved_block_hash = db.get_transaction_block(&tx_hash).unwrap();
         assert_eq!(retrieved_block_hash, block_hash);
     }
@@ -460,15 +432,13 @@ mod tests {
     #[test]
     fn test_state_root() {
         let temp_dir = TempDir::new().unwrap();
-        let db = StateDB::open(temp_dir.path()).unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
         let block_number = 10;
         let state_root = "0xabcdef1234567890";
 
-        // Store state root
         db.store_state_root(block_number, state_root).unwrap();
 
-        // Get state root
         let retrieved = db.get_state_root(block_number).unwrap();
         assert_eq!(retrieved, state_root);
     }
@@ -476,7 +446,7 @@ mod tests {
     #[test]
     fn test_block_not_found() {
         let temp_dir = TempDir::new().unwrap();
-        let db = StateDB::open(temp_dir.path()).unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
         let result = db.get_block_by_number(999);
         assert!(result.is_err());
@@ -486,7 +456,7 @@ mod tests {
     #[test]
     fn test_transaction_not_found() {
         let temp_dir = TempDir::new().unwrap();
-        let db = StateDB::open(temp_dir.path()).unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
         let mut nonexistent_hash = [0u8; 32];
         nonexistent_hash[0] = 0xff;

@@ -8,15 +8,10 @@
 //! - System RPC (system_*)
 
 use std::net::SocketAddr;
-use std::sync::Arc;
 use jsonrpsee::server::{Server, ServerHandle};
 use jsonrpsee::RpcModule;
 use serde::{Deserialize, Serialize};
 use tracing::info;
-
-// Re-export modules
-pub mod staking_rpc;
-pub mod governance_rpc;
 
 /// Unified RPC Server Configuration
 #[derive(Debug, Clone)]
@@ -43,7 +38,7 @@ pub struct UnifiedRpcConfig {
 impl Default for UnifiedRpcConfig {
     fn default() -> Self {
         Self {
-            addr: "127.0.0.1:8545".parse().unwrap(),
+            addr: "127.0.0.1:8545".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([127, 0, 0, 1], 8545))),
             chain_id: 86137,
             enable_cors: true,
             max_connections: 1000,
@@ -95,35 +90,38 @@ pub async fn start_unified_server(
     let chain_id = config.chain_id;
     
     // system_status
-    module.register_method("system_status", move |_, _| {
+    module.register_method("system_status", move |_, _, _| {
         Ok::<_, jsonrpsee::types::ErrorObjectOwned>(SystemStatus {
             chain_id,
-            chain_name: "Axionax Testnet".to_string(),
-            block_height: 0, // TODO: Get from state
-            peers: 0,        // TODO: Get from network
+            chain_name: if chain_id == 86137 { "Axionax Testnet".to_string() } else if chain_id == 86150 { "Axionax Mainnet".to_string() } else { "Axionax Dev".to_string() },
+            block_height: metrics::BLOCK_HEIGHT.get() as u64,
+            peers: metrics::PEERS_CONNECTED.get() as usize,
             sync_status: "synced".to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
-            uptime_seconds: 0, // TODO: Track uptime
+            uptime_seconds: metrics::UPTIME_SECONDS.get() as u64,
         })
     })?;
     
     // system_health
-    module.register_method("system_health", |_, _| {
+    module.register_method("system_health", |_, _, _| {
+        let block_height = metrics::BLOCK_HEIGHT.get() as u64;
+        let peers = metrics::PEERS_CONNECTED.get() as usize;
+        let healthy = block_height > 0 || peers > 0;
         Ok::<_, jsonrpsee::types::ErrorObjectOwned>(HealthCheck {
-            status: "healthy".to_string(),
-            block_height: 0,
-            peers: 0,
+            status: if healthy { "healthy".to_string() } else { "starting".to_string() },
+            block_height,
+            peers,
             sync_status: "synced".to_string(),
             checks: HealthChecks {
                 database: true,
-                network: true,
+                network: peers > 0,
                 consensus: true,
             },
         })
     })?;
     
     // system_version
-    module.register_method("system_version", |_, _| {
+    module.register_method("system_version", |_, _, _| {
         Ok::<_, jsonrpsee::types::ErrorObjectOwned>(serde_json::json!({
             "version": env!("CARGO_PKG_VERSION"),
             "name": "axionax-core",
@@ -136,7 +134,7 @@ pub async fn start_unified_server(
     // ==========================================================================
     
     // events_subscribe (placeholder - WebSocket needed for real implementation)
-    module.register_method("events_subscribe", |params, _| {
+    module.register_method("events_subscribe", |params, _, _| {
         let event_types: Vec<String> = params.parse()?;
         Ok::<_, jsonrpsee::types::ErrorObjectOwned>(serde_json::json!({
             "subscription_id": "sub_placeholder",
@@ -146,7 +144,7 @@ pub async fn start_unified_server(
     })?;
     
     // events_getRecent
-    module.register_method("events_getRecent", |params, _| {
+    module.register_method("events_getRecent", |params, _, _| {
         let (count,): (usize,) = params.parse()?;
         let max_count = count.min(100);
         Ok::<_, jsonrpsee::types::ErrorObjectOwned>(serde_json::json!({
@@ -160,26 +158,20 @@ pub async fn start_unified_server(
     // ==========================================================================
     
     // metrics_prometheus
-    module.register_method("metrics_prometheus", |_, _| {
-        // Return Prometheus-formatted metrics
-        Ok::<_, jsonrpsee::types::ErrorObjectOwned>(
-            "# HELP axionax_block_height Current block height\n\
-             # TYPE axionax_block_height gauge\n\
-             axionax_block_height 0\n\
-             # HELP axionax_peers_connected Connected peers\n\
-             # TYPE axionax_peers_connected gauge\n\
-             axionax_peers_connected 0\n"
-        )
+    module.register_method("metrics_prometheus", |_, _, _| {
+        Ok::<_, jsonrpsee::types::ErrorObjectOwned>(metrics::export())
     })?;
     
     // metrics_json
-    module.register_method("metrics_json", |_, _| {
+    module.register_method("metrics_json", |_, _, _| {
         Ok::<_, jsonrpsee::types::ErrorObjectOwned>(serde_json::json!({
-            "block_height": 0,
-            "tx_total": 0,
-            "peers_connected": 0,
-            "validators_active": 0,
-            "mempool_size": 0,
+            "block_height": metrics::BLOCK_HEIGHT.get(),
+            "tx_total": metrics::TX_TOTAL.get(),
+            "tx_per_second": metrics::TX_PER_SECOND.get(),
+            "peers_connected": metrics::PEERS_CONNECTED.get(),
+            "validators_active": metrics::VALIDATORS_ACTIVE.get(),
+            "mempool_size": metrics::MEMPOOL_SIZE.get(),
+            "uptime_seconds": metrics::UPTIME_SECONDS.get(),
         }))
     })?;
     

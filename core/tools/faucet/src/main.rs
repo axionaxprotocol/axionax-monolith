@@ -6,13 +6,13 @@ use axum::{
     Router,
 };
 use serde::{Deserialize, Serialize};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::net::SocketAddr;
 use std::env;
 use std::time::{SystemTime, UNIX_EPOCH};
 use reqwest::Client;
 use tower_http::cors::{CorsLayer, AllowOrigin};
-use http::HeaderValue;
+use axum::http::HeaderValue;
 use tracing::{info, error, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use dashmap::DashMap;
@@ -76,7 +76,7 @@ async fn main() -> anyhow::Result<()> {
         .init();
 
     // Load environment variables
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
     let rpc_url = env::var("RPC_URL").unwrap_or_else(|_| "http://localhost:8545".to_string());
     let chain_id = env::var("CHAIN_ID").unwrap_or_else(|_| "86137".to_string()).parse::<u64>()?;
     let private_key_hex = env::var("FAUCET_PRIVATE_KEY").expect("FAUCET_PRIVATE_KEY must be set");
@@ -85,7 +85,7 @@ async fn main() -> anyhow::Result<()> {
     // Load private key
     // Assuming private key is 32 bytes hex
     let pk_bytes = hex::decode(private_key_hex.strip_prefix("0x").unwrap_or(&private_key_hex))
-        .expect("Invalid private key hex");
+        .map_err(|e| anyhow::anyhow!("FAUCET_PRIVATE_KEY contains invalid hex: {e}"))?;
     
     // We need to construct SigningKey from bytes. 
     // Since crypto::signature::generate_keypair() returns SigningKey, and we want to load one,
@@ -128,7 +128,9 @@ async fn main() -> anyhow::Result<()> {
     // Let's assume I need `ed25519-dalek` dependency.
     // I'll update Cargo.toml in next step if verification fails.
     
-    let signing_key = ed25519_dalek::SigningKey::from_bytes(&pk_bytes.try_into().expect("Invalid key length"));
+    let pk_array: [u8; 32] = pk_bytes.try_into()
+        .map_err(|v: Vec<u8>| anyhow::anyhow!("FAUCET_PRIVATE_KEY must be 32 bytes, got {}", v.len()))?;
+    let signing_key = ed25519_dalek::SigningKey::from_bytes(&pk_array);
     let verifying_key = signing_key.verifying_key();
     
     // Derive address
@@ -251,7 +253,7 @@ async fn request_handler(
     let client_ip = client_addr.ip().to_string();
     info!("Received request for {} from {}", address, client_ip);
 
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
     let cooldown = state.cooldown_secs;
 
     // Rate limit per IP
@@ -304,44 +306,36 @@ async fn request_handler(
         }
     };
 
-    // Create transaction
+    let pub_key = state.signing_key.verifying_key();
     let mut tx = Transaction {
         hash: [0u8; 32],
         from: state.faucet_address.clone(),
         to: address.clone(),
         value: state.amount_per_request,
-        gas_price: 20, // 20 wei (minimal)
+        gas_price: 20,
         gas_limit: 21000,
         nonce,
         data: vec![],
+        signature: vec![],
+        signer_public_key: pub_key.to_bytes().to_vec(),
     };
 
-    // Calculate hash (simple serialization for signing)
-    // We need to match what the node expects.
-    // But since signature verification is TODO in node, we just need a unique hash?
-    // Node converts tx to hash using `hex_to_hash`? No, Node computes hash from fields?
-    // `Transaction` struct has `hash` field.
-    // In `lib.rs`: `pub hash: [u8; 32]`.
-    // The hash should be derived from content.
-    // We'll use a simple method: hash(from + to + value + nonce)
-    let mut data_to_hash = Vec::new();
-    data_to_hash.extend_from_slice(tx.from.as_bytes());
-    data_to_hash.extend_from_slice(tx.to.as_bytes());
-    data_to_hash.extend_from_slice(&tx.value.to_le_bytes());
-    data_to_hash.extend_from_slice(&tx.nonce.to_le_bytes());
-    
-    // Using blake2s like in crypto lib docs
-    let tx_hash = hash::blake2s_256(&data_to_hash);
-    tx.hash = tx_hash;
-
-    // Sign transaction (even if node ignores it, we do it right)
-    // Signature is over the hash
-    // let signature = crypto::signature::sign(&state.signing_key, &tx_hash);
-    // Note: crypto::signature::sign takes &SigningKey.
+    tx.compute_hash();
+    let payload = tx.signing_payload();
+    tx.signature = crypto::signature::sign(&state.signing_key, &payload);
     
     // Serialize to JSON bytes
     // Since we defined `eth_sendRawTransaction` to take hex string of JSON bytes
-    let tx_json = serde_json::to_vec(&tx).unwrap();
+    let tx_json = match serde_json::to_vec(&tx) {
+        Ok(v) => v,
+        Err(e) => {
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(Response {
+                status: "error".to_string(),
+                tx_hash: None,
+                message: Some(format!("Failed to serialize transaction: {e}")),
+            })).into_response();
+        }
+    };
     let tx_hex = format!("0x{}", hex::encode(tx_json));
 
     // Send transaction

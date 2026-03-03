@@ -90,6 +90,50 @@ pub struct Transaction {
     pub gas_limit: u64,
     pub nonce: u64,
     pub data: Vec<u8>,
+    /// Ed25519 signature over signing_payload (64 bytes). Empty = unsigned.
+    #[serde(default)]
+    pub signature: Vec<u8>,
+    /// Ed25519 public key of the signer (32 bytes). Empty = unsigned.
+    #[serde(default)]
+    pub signer_public_key: Vec<u8>,
+}
+
+impl Transaction {
+    /// Canonical bytes that get signed. Excludes hash/signature/signer_public_key.
+    pub fn signing_payload(&self) -> Vec<u8> {
+        let mut buf = Vec::with_capacity(256);
+        buf.extend_from_slice(self.from.as_bytes());
+        buf.extend_from_slice(self.to.as_bytes());
+        buf.extend_from_slice(&self.value.to_le_bytes());
+        buf.extend_from_slice(&self.gas_price.to_le_bytes());
+        buf.extend_from_slice(&self.gas_limit.to_le_bytes());
+        buf.extend_from_slice(&self.nonce.to_le_bytes());
+        buf.extend_from_slice(&self.data);
+        buf
+    }
+
+    /// Compute and set the transaction hash from the signing payload.
+    pub fn compute_hash(&mut self) {
+        self.hash = crypto::hash::blake2s_256(&self.signing_payload());
+    }
+
+    /// Returns true if the transaction carries a signature.
+    pub fn is_signed(&self) -> bool {
+        self.signature.len() == 64 && self.signer_public_key.len() == 32
+    }
+
+    /// Verify the Ed25519 signature and check that the derived address matches `from`.
+    pub fn verify_signature(&self) -> bool {
+        let Some(vk) = crypto::signature::public_key_from_bytes(&self.signer_public_key) else {
+            return false;
+        };
+        let payload = self.signing_payload();
+        if !crypto::signature::verify(&vk, &payload, &self.signature) {
+            return false;
+        }
+        let derived = crypto::signature::address_from_public_key(&vk);
+        derived == self.from
+    }
 }
 
 /// Blockchain manages the chain state
@@ -305,6 +349,8 @@ mod tests {
             gas_limit: 21_000,
             nonce: id as u64,
             data: vec![],
+            signature: vec![],
+            signer_public_key: vec![],
         }
     }
 

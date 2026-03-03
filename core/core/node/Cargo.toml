@@ -7,6 +7,10 @@ rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[[bin]]
+name = "axionax-node"
+path = "src/main.rs"
+
 [dependencies]
 # Core modules
 network = { path = "../network" }
@@ -15,6 +19,8 @@ rpc = { path = "../rpc" }
 blockchain = { path = "../blockchain" }
 crypto = { path = "../crypto" }
 consensus = { path = "../consensus" }
+metrics = { path = "../metrics" }
+events = { path = "../events" }
 
 # CLI Parsing
 clap = { version = "4.4", features = ["derive"] }

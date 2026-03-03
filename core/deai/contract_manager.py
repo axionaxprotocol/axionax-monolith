@@ -23,7 +23,12 @@ logger = logging.getLogger("axionax.contract")
 
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
 
-ABI_PATH = Path(__file__).parent / "job_marketplace.json"
+def _abi_path() -> Path:
+    """ABI path: AXIONAX_ABI_PATH env or default job_marketplace.json beside this module."""
+    env_path = os.environ.get("AXIONAX_ABI_PATH", "").strip()
+    if env_path and Path(env_path).exists():
+        return Path(env_path)
+    return Path(__file__).parent / "job_marketplace.json"
 
 MARKETPLACE_ADDRESS = os.environ.get(
     "AXIONAX_MARKETPLACE_ADDRESS", ZERO_ADDRESS
@@ -33,10 +38,11 @@ CHAIN_ID = int(os.environ.get("AXIONAX_CHAIN_ID", "86137"))
 
 
 def _load_abi() -> list:
-    if ABI_PATH.exists():
-        with open(ABI_PATH, encoding="utf-8") as f:
+    abi_path = _abi_path()
+    if abi_path.exists():
+        with open(abi_path, encoding="utf-8") as f:
             return json.load(f)
-    logger.warning("ABI file not found at %s — using empty ABI", ABI_PATH)
+    logger.warning("ABI file not found at %s — using empty ABI", abi_path)
     return []
 
 

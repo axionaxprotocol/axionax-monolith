@@ -15,9 +15,13 @@ pub enum StorageError {
     #[error("Database error: {0}")]
     Database(#[from] sled::Error),
 
-    /// Serialization error
-    #[error("Serialization error: {0}")]
-    Serialization(#[from] bincode::Error),
+    /// Encode error (bincode)
+    #[error("Encode error: {0}")]
+    EncodeError(#[from] bincode::error::EncodeError),
+
+    /// Decode error (bincode)
+    #[error("Decode error: {0}")]
+    DecodeError(#[from] bincode::error::DecodeError),
 
     /// Block not found
     #[error("Block {0} not found")]
@@ -95,7 +99,7 @@ impl SledBlockStore {
 impl BlockStore for SledBlockStore {
     fn put_block(&self, block: &Block) -> StorageResult<()> {
         let key = Self::block_key(block.number);
-        let value = bincode::serialize(block)?;
+        let value = bincode::serde::encode_to_vec(block, bincode::config::standard())?;
         
         self.blocks_tree.insert(key, value)?;
         
@@ -113,7 +117,8 @@ impl BlockStore for SledBlockStore {
         
         match self.blocks_tree.get(key)? {
             Some(data) => {
-                let block: Block = bincode::deserialize(&data)?;
+                let (block, _): (Block, usize) =
+                    bincode::serde::decode_from_slice(&data, bincode::config::standard())?;
                 Ok(Some(block))
             }
             None => Ok(None),

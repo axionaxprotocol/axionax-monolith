@@ -11,14 +11,9 @@ repository.workspace = true
 # Async runtime
 tokio = { workspace = true }
 
-# P2P networking
-libp2p = { version = "0.53", features = [
+# P2P networking (workspace 0.55 — fixes ring 0.16 CVE via rcgen 0.13+)
+libp2p = { workspace = true, features = [
     "tokio",
-    "gossipsub",
-    "mdns",
-    "noise",
-    "yamux",
-    "tcp",
     "quic",
     "kad",
     "identify",

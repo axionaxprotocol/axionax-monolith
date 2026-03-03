@@ -12,6 +12,7 @@ ed25519-dalek = { workspace = true }
 sha3 = { workspace = true }
 rand = { workspace = true }
 blake2 = "0.10"
+hex = "0.4"
 argon2 = "0.5"
 
 # Production-grade VRF (used by Polkadot/Substrate)

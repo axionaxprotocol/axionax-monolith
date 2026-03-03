@@ -30,7 +30,7 @@ pub struct HttpHealthConfig {
 impl Default for HttpHealthConfig {
     fn default() -> Self {
         Self {
-            addr: "0.0.0.0:8080".parse().unwrap(),
+            addr: "0.0.0.0:8080".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([0, 0, 0, 0], 8080))),
             ready_path: "/ready".to_string(),
             live_path: "/health".to_string(),
             metrics_path: "/metrics".to_string(),
@@ -75,8 +75,8 @@ impl Default for HealthState {
     fn default() -> Self {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
+            .map(|d| d.as_secs())
+            .unwrap_or(0);
         Self {
             database_ok: true,
             sync_ok: true,
@@ -94,9 +94,9 @@ impl HealthState {
     pub fn update(&mut self) {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        self.uptime_seconds = now - self.start_time;
+            .map(|d| d.as_secs())
+            .unwrap_or(self.start_time);
+        self.uptime_seconds = now.saturating_sub(self.start_time);
     }
 
     /// Check if node is ready to serve traffic
@@ -208,10 +208,10 @@ async fn handle_request(
                     status: "ok".to_string(),
                     timestamp: SystemTime::now()
                         .duration_since(UNIX_EPOCH)
-                        .unwrap()
-                        .as_secs(),
+                        .map(|d| d.as_secs())
+                        .unwrap_or(0),
                 };
-                ("200 OK", serde_json::to_string(&response).unwrap())
+                ("200 OK", serde_json::to_string(&response).unwrap_or_else(|_| r#"{"status":"ok"}"#.to_string()))
             } else {
                 ("503 Service Unavailable", r#"{"status":"unhealthy"}"#.to_string())
             }
@@ -226,49 +226,36 @@ async fn handle_request(
                 },
                 timestamp: SystemTime::now()
                     .duration_since(UNIX_EPOCH)
-                    .unwrap()
-                    .as_secs(),
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0),
             };
             let status_code = if state.is_ready() {
                 "200 OK"
             } else {
                 "503 Service Unavailable"
             };
-            (status_code, serde_json::to_string(&response).unwrap())
+            (status_code, serde_json::to_string(&response).unwrap_or_else(|_| r#"{"ready":false}"#.to_string()))
         } else if path == metrics_path {
-            // Prometheus metrics
-            let metrics = format!(
-                "# HELP axionax_up Node is up\n\
-                 # TYPE axionax_up gauge\n\
-                 axionax_up {}\n\
-                 # HELP axionax_block_height Current block height\n\
-                 # TYPE axionax_block_height gauge\n\
-                 axionax_block_height {}\n\
-                 # HELP axionax_peers_connected Connected peers\n\
-                 # TYPE axionax_peers_connected gauge\n\
-                 axionax_peers_connected {}\n\
-                 # HELP axionax_uptime_seconds Node uptime in seconds\n\
-                 # TYPE axionax_uptime_seconds counter\n\
-                 axionax_uptime_seconds {}\n",
-                if state.is_alive() { 1 } else { 0 },
-                state.block_height,
-                state.peers_connected,
-                state.uptime_seconds
-            );
-            ("200 OK", metrics)
+            let mut body = metrics::export();
+            body.push_str("# HELP axionax_up Node is up\n");
+            body.push_str("# TYPE axionax_up gauge\n");
+            body.push_str(&format!("axionax_up {}\n", if state.is_alive() { 1 } else { 0 }));
+            ("200 OK", body)
         } else {
             ("404 Not Found", r#"{"error":"Not found"}"#.to_string())
         }
     };
 
+    let content_type = if path == metrics_path {
+        "text/plain; version=0.0.4; charset=utf-8"
+    } else {
+        "application/json"
+    };
+
     let response = format!(
-        "HTTP/1.1 {}\r\n\
-         Content-Type: application/json\r\n\
-         Content-Length: {}\r\n\
-         Connection: close\r\n\
-         \r\n\
-         {}",
+        "HTTP/1.1 {}\r\nContent-Type: {}\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
         status,
+        content_type,
         body.len(),
         body
     );

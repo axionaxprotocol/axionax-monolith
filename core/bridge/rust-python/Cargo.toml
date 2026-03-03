@@ -12,7 +12,8 @@ name = "axionax_python"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.20", features = ["extension-module", "abi3-py310"] }
+# pyo3 >= 0.24.1 fixes RUSTSEC-2025-0020 (buffer overflow in PyString::from_object)
+pyo3 = { version = "0.24", features = ["extension-module", "abi3-py310"] }
 tokio = { version = "1.35", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -24,4 +25,4 @@ blockchain = { path = "../../core/blockchain" }
 crypto = { path = "../../core/crypto" }
 
 [build-dependencies]
-pyo3-build-config = "0.20"
+pyo3-build-config = "0.24"

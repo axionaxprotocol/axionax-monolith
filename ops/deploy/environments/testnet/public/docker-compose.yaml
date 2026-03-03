@@ -1,4 +1,4 @@
-﻿version: "3.9"
+version: "3.9"
 
 x-logging: &default-logging
   driver: json-file
@@ -7,6 +7,7 @@ x-logging: &default-logging
     max-file: "5"
 
 services:
+  # Self-sufficient/air-gapped: remove the two --telemetry lines below so the node does not depend on any external URL
   validator:
     image: ${CONTAINER_REGISTRY:-ghcr.io/axionaxprotocol}/core:${CORE_TAG:-latest}
     restart: unless-stopped
@@ -121,6 +122,16 @@ services:
       - prometheus
     ports:
       - "3000:3000"
+    logging: *default-logging
+
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    restart: unless-stopped
+    command: [ "--path.rootfs", "/host" ]
+    volumes:
+      - "/:/host:ro,rslave"
+    ports:
+      - "9100:9100"
     logging: *default-logging
 
 volumes:

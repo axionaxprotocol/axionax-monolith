@@ -28,7 +28,7 @@ pub struct HealthChecks {
 pub async fn health_check() -> impl IntoResponse {
     let timestamp = SystemTime::now()
         .duration_since(SystemTime::UNIX_EPOCH)
-        .unwrap()
+        .unwrap_or_default()
         .as_secs();
 
     let health = HealthStatus {

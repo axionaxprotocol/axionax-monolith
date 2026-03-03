@@ -180,6 +180,23 @@ pub mod signature {
     pub fn generate_keypair() -> SigningKey {
         SigningKey::from_bytes(&rand::random())
     }
+
+    /// Derive an Ethereum-style 0x address from an Ed25519 public key.
+    /// address = 0x + hex(keccak256(pubkey_bytes)[12..])
+    pub fn address_from_public_key(verifying_key: &VerifyingKey) -> String {
+        let hash = super::hash::keccak256(&verifying_key.to_bytes());
+        format!("0x{}", hex::encode(&hash[12..]))
+    }
+
+    /// Parse a 32-byte public key from raw bytes and return as VerifyingKey.
+    pub fn public_key_from_bytes(bytes: &[u8]) -> Option<VerifyingKey> {
+        if bytes.len() != 32 {
+            return None;
+        }
+        let mut arr = [0u8; 32];
+        arr.copy_from_slice(bytes);
+        VerifyingKey::from_bytes(&arr).ok()
+    }
 }
 
 impl Default for VRF {

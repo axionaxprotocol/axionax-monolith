@@ -66,6 +66,7 @@ impl From<Proposal> for ProposalResponse {
             ProposalStatus::Cancelled => "cancelled",
         };
 
+        let total_votes = format!("0x{:x}", p.total_votes());
         Self {
             id: p.id,
             proposer: p.proposer,
@@ -78,7 +79,7 @@ impl From<Proposal> for ProposalResponse {
             votes_for: format!("0x{:x}", p.votes_for),
             votes_against: format!("0x{:x}", p.votes_against),
             votes_abstain: format!("0x{:x}", p.votes_abstain),
-            total_votes: format!("0x{:x}", p.total_votes()),
+            total_votes,
         }
     }
 }

@@ -361,7 +361,7 @@ impl ASR {
         eligible.sort_by(|a, b| {
             b.selection_score(&self.config)
                 .partial_cmp(&a.selection_score(&self.config))
-                .unwrap()
+                .unwrap_or(std::cmp::Ordering::Equal)
         });
 
         let top_k = eligible.into_iter().take(self.config.top_k).collect::<Vec<_>>();

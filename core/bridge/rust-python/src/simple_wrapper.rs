@@ -20,5 +20,6 @@ pub fn default_blockchain_config() -> BlockchainConfig {
         block_time_secs: 12,
         max_block_size: 1_000_000,
         gas_limit: 30_000_000,
+        db_path: None,
     }
 }

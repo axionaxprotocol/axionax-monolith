@@ -143,10 +143,6 @@ impl NetworkManager {
             match node.parse::<Multiaddr>() {
                 Ok(addr) => {
                     if let Some(Protocol::P2p(peer_id)) = addr.iter().last() {
-                        let peer_id = PeerId::from_multihash(peer_id.into()).map_err(|_e| {
-                            NetworkError::InvalidPeerId("Invalid peer ID".to_string())
-                        })?;
-
                         self.swarm
                             .behaviour_mut()
                             .add_address(&peer_id, addr.clone());

@@ -47,11 +47,12 @@ pub struct ValidatorResponse {
 
 impl From<ValidatorInfo> for ValidatorResponse {
     fn from(v: ValidatorInfo) -> Self {
+        let voting_power = format!("0x{:x}", v.voting_power());
         Self {
             address: v.address,
             stake: format!("0x{:x}", v.stake),
             delegated: format!("0x{:x}", v.delegated),
-            voting_power: format!("0x{:x}", v.voting_power()),
+            voting_power,
             is_active: v.is_active,
             commission_bps: v.commission_bps,
             total_rewards: format!("0x{:x}", v.total_rewards),

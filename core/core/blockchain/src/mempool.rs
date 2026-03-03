@@ -143,12 +143,12 @@ impl TransactionPool {
         }
     }
 
-    /// Add a transaction to the pool
+    /// Add a transaction to the pool.
+    /// Requires a valid Ed25519 signature — unsigned transactions are rejected.
     pub async fn add_transaction(&self, tx: Transaction) -> Result<()> {
         debug!("Adding transaction {:?} to pool", &tx.hash[..8]);
 
-        // Validate transaction
-        self.validator.validate_transaction(&tx)
+        self.validator.validate_signed_transaction(&tx)
             .map_err(|e| PoolError::ValidationFailed(e.to_string()))?;
 
         let mut accounts = self.accounts.write().await;
@@ -202,7 +202,7 @@ impl TransactionPool {
             transaction: tx.clone(),
             added_at: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
+                .unwrap_or_default()
                 .as_secs(),
             gas_price: tx.gas_price,
         };
@@ -383,32 +383,47 @@ impl TransactionPool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ed25519_dalek::SigningKey;
 
-    fn create_test_tx(from: &str, nonce: u64, gas_price: u128) -> Transaction {
-        let mut hash = [0u8; 32];
-        hash[0] = nonce as u8;
-        hash[1] = (gas_price >> 8) as u8;
+    struct TestAccount {
+        sk: SigningKey,
+        addr: String,
+    }
 
-        Transaction {
-            hash,
-            from: from.to_string(),
-            to: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd".to_string(),
-            value: 1000,
-            gas_price,
-            gas_limit: 21_000,
-            nonce,
-            data: vec![],
+    impl TestAccount {
+        fn new() -> Self {
+            let sk = crypto::signature::generate_keypair();
+            let vk = sk.verifying_key();
+            let addr = crypto::signature::address_from_public_key(&vk);
+            Self { sk, addr }
+        }
+
+        fn tx(&self, nonce: u64, gas_price: u128) -> Transaction {
+            let vk = self.sk.verifying_key();
+            let mut tx = Transaction {
+                hash: [0u8; 32],
+                from: self.addr.clone(),
+                to: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd".to_string(),
+                value: 1000,
+                gas_price,
+                gas_limit: 21_000,
+                nonce,
+                data: vec![],
+                signature: vec![],
+                signer_public_key: vk.to_bytes().to_vec(),
+            };
+            tx.compute_hash();
+            tx.signature = crypto::signature::sign(&self.sk, &tx.signing_payload());
+            tx
         }
     }
 
     #[tokio::test]
     async fn test_add_transaction() {
-        let pool = TransactionPool::new(
-            PoolConfig::default(),
-            ValidationConfig::default(),
-        );
+        let pool = TransactionPool::new(PoolConfig::default(), ValidationConfig::default());
+        let acct = TestAccount::new();
 
-        let tx = create_test_tx("0x1234567890123456789012345678901234567890", 0, 20_000_000_000);
+        let tx = acct.tx(0, 20_000_000_000);
         assert!(pool.add_transaction(tx).await.is_ok());
 
         let stats = pool.stats().await;
@@ -418,12 +433,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_duplicate_transaction() {
-        let pool = TransactionPool::new(
-            PoolConfig::default(),
-            ValidationConfig::default(),
-        );
+        let pool = TransactionPool::new(PoolConfig::default(), ValidationConfig::default());
+        let acct = TestAccount::new();
 
-        let tx = create_test_tx("0x1234567890123456789012345678901234567890", 0, 20_000_000_000);
+        let tx = acct.tx(0, 20_000_000_000);
         assert!(pool.add_transaction(tx.clone()).await.is_ok());
 
         let result = pool.add_transaction(tx).await;
@@ -432,45 +445,31 @@ mod tests {
 
     #[tokio::test]
     async fn test_nonce_too_low() {
-        let pool = TransactionPool::new(
-            PoolConfig::default(),
-            ValidationConfig::default(),
-        );
+        let pool = TransactionPool::new(PoolConfig::default(), ValidationConfig::default());
+        let acct = TestAccount::new();
 
-        let addr = "0x1234567890123456789012345678901234567890";
-
-        // Add transaction with nonce 5
-        let tx1 = create_test_tx(addr, 5, 20_000_000_000);
+        let tx1 = acct.tx(5, 20_000_000_000);
         pool.add_transaction(tx1).await.unwrap();
 
-        // Update account nonce to 6
-        pool.update_nonce(addr, 6).await;
+        pool.update_nonce(&acct.addr, 6).await;
 
-        // Try to add transaction with nonce 5 (too low)
-        let tx2 = create_test_tx(addr, 5, 20_000_000_000);
+        let tx2 = acct.tx(5, 20_000_000_000);
         let result = pool.add_transaction(tx2).await;
-        eprintln!("Result: {:?}", result);
         assert!(matches!(result, Err(PoolError::NonceTooLow { .. })));
     }
 
     #[tokio::test]
     async fn test_get_pending_transactions() {
-        let pool = TransactionPool::new(
-            PoolConfig::default(),
-            ValidationConfig::default(),
-        );
+        let pool = TransactionPool::new(PoolConfig::default(), ValidationConfig::default());
+        let acct = TestAccount::new();
 
-        let addr = "0x1234567890123456789012345678901234567890";
-
-        // Add transactions with different gas prices
-        pool.add_transaction(create_test_tx(addr, 0, 10_000_000_000)).await.unwrap();
-        pool.add_transaction(create_test_tx(addr, 1, 30_000_000_000)).await.unwrap();
-        pool.add_transaction(create_test_tx(addr, 2, 20_000_000_000)).await.unwrap();
+        pool.add_transaction(acct.tx(0, 10_000_000_000)).await.unwrap();
+        pool.add_transaction(acct.tx(1, 30_000_000_000)).await.unwrap();
+        pool.add_transaction(acct.tx(2, 20_000_000_000)).await.unwrap();
 
         let pending = pool.get_pending_transactions(10).await;
         assert_eq!(pending.len(), 3);
 
-        // Should be sorted by gas price (highest first)
         assert_eq!(pending[0].gas_price, 30_000_000_000);
         assert_eq!(pending[1].gas_price, 20_000_000_000);
         assert_eq!(pending[2].gas_price, 10_000_000_000);
@@ -478,12 +477,10 @@ mod tests {
 
     #[tokio::test]
     async fn test_remove_transaction() {
-        let pool = TransactionPool::new(
-            PoolConfig::default(),
-            ValidationConfig::default(),
-        );
+        let pool = TransactionPool::new(PoolConfig::default(), ValidationConfig::default());
+        let acct = TestAccount::new();
 
-        let tx = create_test_tx("0x1234567890123456789012345678901234567890", 0, 20_000_000_000);
+        let tx = acct.tx(0, 20_000_000_000);
         let tx_hash = tx.hash;
 
         pool.add_transaction(tx).await.unwrap();
@@ -497,15 +494,32 @@ mod tests {
     async fn test_pool_size_limit() {
         let mut config = PoolConfig::default();
         config.max_pool_size = 2;
-
         let pool = TransactionPool::new(config, ValidationConfig::default());
+        let acct = TestAccount::new();
 
-        let addr = "0x1234567890123456789012345678901234567890";
+        pool.add_transaction(acct.tx(0, 20_000_000_000)).await.unwrap();
+        pool.add_transaction(acct.tx(1, 20_000_000_000)).await.unwrap();
 
-        pool.add_transaction(create_test_tx(addr, 0, 20_000_000_000)).await.unwrap();
-        pool.add_transaction(create_test_tx(addr, 1, 20_000_000_000)).await.unwrap();
-
-        let result = pool.add_transaction(create_test_tx(addr, 2, 20_000_000_000)).await;
+        let result = pool.add_transaction(acct.tx(2, 20_000_000_000)).await;
         assert!(matches!(result, Err(PoolError::PoolFull(_))));
+    }
+
+    #[tokio::test]
+    async fn test_unsigned_tx_rejected() {
+        let pool = TransactionPool::new(PoolConfig::default(), ValidationConfig::default());
+        let tx = Transaction {
+            hash: [1u8; 32],
+            from: "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd".to_string(),
+            to: "0x1234567890123456789012345678901234567890".to_string(),
+            value: 1000,
+            gas_price: 20_000_000_000,
+            gas_limit: 21_000,
+            nonce: 0,
+            data: vec![],
+            signature: vec![],
+            signer_public_key: vec![],
+        };
+        let result = pool.add_transaction(tx).await;
+        assert!(matches!(result, Err(PoolError::ValidationFailed(_))));
     }
 }

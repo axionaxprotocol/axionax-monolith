@@ -1,0 +1,42 @@
+---
+description: หลักการโปรโตคอล Axionax — Self-Sufficiency และการป้องกันภัยคุกคามทางไซเบอร์ด้วย DeAI
+globs: docs/**/*, README.md
+alwaysApply: false
+---
+
+# Axionax Protocol — หลักการหลัก
+
+## 1. Self-Sufficiency (การทำงานได้ด้วยตัวเอง)
+
+โปรโตคอลต้องสามารถทำงานบน chain ของตัวเองได้ แม้วันหนึ่ง server แม่ของภาษาหรือ ecosystem (PyPI, npm, crates.io) หรือ service ภายนอก (API, telemetry, CDN) จะถูกโจมตีหรือใช้ไม่ได้ ก็ไม่ทำให้ **การทำงานของ chain และ node** หยุดลง
+
+- **Runtime:** ไม่เรียก PyPI / npm / crates.io ตอนรัน; ไม่บังคับเรียก third-party API เพื่อให้ chain ทำงาน
+- **Telemetry:** optional — ปิดได้; node ยัง sync และ produce block ได้
+- **Bootnodes/RPC:** เป็น node บน chain นี้หรือที่ operator กำหนด (รวมเครือข่ายในองค์กร / air-gapped)
+
+**สรุป:** ตอนรันใช้แค่ binary ที่ build แล้ว, config และการเชื่อมต่อกับ node อื่นบน chain ก็เพียงพอ
+
+---
+
+## 2. Cyber Defense via DeAI (ป้องกันภัยคุกคามทางไซเบอร์ได้ด้วยตัวเองผ่าน DeAI)
+
+โปรโตคอลสามารถ **ป้องกันตัวเองจากภัยคุกคามทางไซเบอร์ได้ด้วยตัวเอง** ผ่านชั้น DeAI — ไม่พึ่งระบบความปลอดภัยจากศูนย์กลางหรือ vendor ภายนอก
+
+| Sentinel | บทบาท |
+|----------|--------|
+| AION-VX | Temporal integrity (เวลา/ลำดับเหตุการณ์) |
+| SERAPH-VX | Network defense |
+| ORION-VX | Fraud detection |
+| DIAOCHAN-VX | Reputation scoring |
+| VULCAN-VX | Hardware verification |
+| THEMIS-VX | Dispute resolution |
+| NOESIS-VX | GenAI core; governance & analysis |
+
+- **PoPC:** consensus ตรวจสอบแบบสุ่มตัวอย่าง ตรวจจับ fraud ได้
+- **Local inference:** การตัดสินใจด้านความปลอดภัยเกิดขึ้นในเครือข่าย ไม่บังคับเรียก API ภายนอก
+
+**สรุป:** ป้องกันภัยคุกคามทางไซเบอร์ได้ด้วยตัวเองผ่าน DeAI (7 Sentinels, PoPC, ASR)
+
+---
+
+*รายละเอียดเต็ม: docs/SELF_SUFFICIENCY.md, docs/CYBER_DEFENSE.md*

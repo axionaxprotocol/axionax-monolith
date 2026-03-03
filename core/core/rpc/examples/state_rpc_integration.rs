@@ -55,6 +55,8 @@ async fn main() -> anyhow::Result<()> {
         gas_limit: 21000,
         nonce: 0,
         data: vec![],
+        signature: vec![],
+        signer_public_key: vec![],
     };
 
     let block1_hash = [1u8; 32];

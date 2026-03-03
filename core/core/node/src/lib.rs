@@ -90,6 +90,7 @@ pub struct AxionaxNode {
     network: Arc<RwLock<NetworkManager>>,
     state: Arc<StateDB>,
     mempool: Arc<TransactionPool>,
+    event_bus: Arc<events::EventBus>,
     stats: Arc<RwLock<NodeStats>>,
     rpc_handle: Option<ServerHandle>,
     sync_handle: Option<JoinHandle<()>>,
@@ -121,7 +122,9 @@ impl AxionaxNode {
         ));
         info!("Transaction pool initialized");
 
-        // Initialize statistics
+        let event_bus = Arc::new(events::EventBus::new(1024));
+        info!("Event bus initialized");
+
         let stats = Arc::new(RwLock::new(NodeStats::default()));
 
         Ok(Self {
@@ -129,6 +132,7 @@ impl AxionaxNode {
             network,
             state,
             mempool,
+            event_bus,
             stats,
             rpc_handle: None,
             sync_handle: None,
@@ -151,12 +155,12 @@ impl AxionaxNode {
         self.sync_handle = Some(sync_handle);
         info!("Sync task started");
 
-        // Start RPC server
         let rpc_handle = start_rpc_server(
             self.config.rpc_addr,
             self.state.clone(),
             self.config.network.chain_id,
             Some(self.mempool.clone()),
+            Some(self.event_bus.clone()),
         ).await?;
         self.rpc_handle = Some(rpc_handle);
         info!("RPC server started on {}", self.config.rpc_addr);
@@ -327,6 +331,8 @@ impl AxionaxNode {
             gas_limit: 21000, // Default gas limit (not in TransactionMessage)
             nonce: tx_msg.nonce,
             data: tx_msg.data,
+            signature: vec![],
+            signer_public_key: vec![],
         };
 
         // Note: We store transactions when they're included in blocks

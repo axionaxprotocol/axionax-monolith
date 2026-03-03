@@ -3,8 +3,6 @@
 //! Comprehensive validation logic for blocks and transactions
 
 use crate::{Block, Transaction};
-use crypto::signature;
-use ed25519_dalek::VerifyingKey;
 use thiserror::Error;
 use tracing::{debug, warn};
 
@@ -156,7 +154,7 @@ impl BlockValidator {
 
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or_default()
             .as_secs();
 
         // Block timestamp cannot be too far in the future
@@ -241,15 +239,13 @@ impl TransactionValidator {
         Self { config }
     }
 
-    /// Validate a transaction
+    /// Validate a transaction (format, gas, addresses).
     pub fn validate_transaction(&self, tx: &Transaction) -> Result<()> {
         debug!("Validating transaction {:?}", &tx.hash[..8]);
 
-        // Validate addresses
         self.validate_address(&tx.from)?;
         self.validate_address(&tx.to)?;
 
-        // Validate gas
         if tx.gas_limit < self.config.min_transaction_gas {
             return Err(ValidationError::InsufficientGas {
                 provided: tx.gas_limit,
@@ -257,7 +253,6 @@ impl TransactionValidator {
             });
         }
 
-        // Validate gas price
         if tx.gas_price < self.config.min_gas_price {
             return Err(ValidationError::InvalidGasPrice {
                 price: tx.gas_price,
@@ -265,12 +260,10 @@ impl TransactionValidator {
             });
         }
 
-        // Validate value doesn't overflow
         if tx.value == u128::MAX {
             return Err(ValidationError::ValueOverflow);
         }
 
-        // Validate hash is not zero
         if tx.hash == [0u8; 32] {
             return Err(ValidationError::InvalidSignature);
         }
@@ -278,22 +271,19 @@ impl TransactionValidator {
         Ok(())
     }
 
-    /// Validate transaction signature
-    pub fn validate_signature(
-        &self,
-        tx: &Transaction,
-        signature: &[u8],
-        public_key: &VerifyingKey,
-    ) -> Result<()> {
-        // Create transaction message to verify
-        let mut message = Vec::new();
-        message.extend_from_slice(&tx.hash);
-        message.extend_from_slice(tx.from.as_bytes());
-        message.extend_from_slice(tx.to.as_bytes());
-        message.extend_from_slice(&tx.value.to_le_bytes());
-        message.extend_from_slice(&tx.nonce.to_le_bytes());
+    /// Full validation including Ed25519 signature verification.
+    /// Returns `Ok(())` only if the signature is present, valid, and the
+    /// derived address matches `tx.from`.
+    pub fn validate_signed_transaction(&self, tx: &Transaction) -> Result<()> {
+        self.validate_transaction(tx)?;
 
-        if !signature::verify(public_key, &message, signature) {
+        if !tx.is_signed() {
+            warn!("Transaction {:?} is missing signature", &tx.hash[..8]);
+            return Err(ValidationError::InvalidSignature);
+        }
+
+        if !tx.verify_signature() {
+            warn!("Transaction {:?} has invalid signature or address mismatch", &tx.hash[..8]);
             return Err(ValidationError::InvalidSignature);
         }
 
@@ -354,6 +344,8 @@ mod tests {
             gas_limit: 21_000,
             nonce: 1,
             data: vec![],
+            signature: vec![],
+            signer_public_key: vec![],
         }
     }
 

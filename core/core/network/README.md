@@ -1,4 +1,4 @@
-﻿# axionax Network Layer
+# axionax Network Layer
 
 Peer-to-peer networking layer for axionax blockchain using libp2p.
 
@@ -215,17 +215,17 @@ cargo test -p network
 ## Future Enhancements
 
 - [ ] Message compression (gzip/zstd)
-- [ ] Advanced peer scoring and reputation
+- [x] Advanced peer scoring and reputation (via `reputation.rs`)
 - [ ] Bandwidth monitoring and rate limiting
-- [ ] Custom transport protocols (QUIC fully tested)
+- [x] QUIC transport (enabled in libp2p 0.55)
 - [ ] NAT traversal (STUN/TURN)
-- [ ] Network metrics and monitoring
+- [x] Network metrics and monitoring (via `metrics` crate)
 - [ ] Message prioritization
 - [ ] Sharding support for scalability
 
 ## Dependencies
 
-- **libp2p 0.53**: Core P2P networking framework
+- **libp2p 0.55**: Core P2P networking framework
 - **tokio**: Async runtime
 - **serde/serde_json**: Serialization
 - **sha3**: Message ID hashing
