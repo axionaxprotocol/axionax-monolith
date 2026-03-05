@@ -59,7 +59,7 @@ impl NodeConfig {
     pub fn testnet() -> Self {
         Self {
             network: NetworkConfig::testnet(),
-            rpc_addr: "0.0.0.0:8545".parse().unwrap(),
+            rpc_addr: "127.0.0.1:8545".parse().unwrap(),
             state_path: "/var/lib/axionax/testnet".to_string(),
         }
     }
@@ -68,7 +68,7 @@ impl NodeConfig {
     pub fn mainnet() -> Self {
         Self {
             network: NetworkConfig::mainnet(),
-            rpc_addr: "0.0.0.0:8545".parse().unwrap(),
+            rpc_addr: "127.0.0.1:8545".parse().unwrap(),
             state_path: "/var/lib/axionax/mainnet".to_string(),
         }
     }
@@ -326,7 +326,7 @@ impl AxionaxNode {
             hash,
             from: tx_msg.from,
             to: tx_msg.to,
-            value: tx_msg.value as u128, // Convert u64 -> u128
+            value: tx_msg.value,
             gas_price: 20, // Default gas price (not in TransactionMessage)
             gas_limit: 21000, // Default gas limit (not in TransactionMessage)
             nonce: tx_msg.nonce,
@@ -383,7 +383,7 @@ impl AxionaxNode {
             hash: hash_to_hex(&tx.hash),
             from: tx.from.clone(),
             to: tx.to.clone(),
-            value: tx.value as u64, // Convert u128 -> u64
+            value: tx.value,
             data: tx.data.clone(),
             nonce: tx.nonce,
             signature: vec![], // TODO: Extract signature from transaction data when ECDSA is implemented

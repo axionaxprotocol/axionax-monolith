@@ -37,7 +37,7 @@ pub struct TransactionMessage {
     pub hash: String,
     pub from: String,
     pub to: String,
-    pub value: u64,
+    pub value: u128,
     pub data: Vec<u8>,
     pub nonce: u64,
     pub signature: Vec<u8>,

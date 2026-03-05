@@ -142,6 +142,10 @@ impl ConsensusEngine {
         sample_size: usize,
         seed: &[u8; 32],
     ) -> Vec<usize> {
+        if output_size == 0 {
+            return Vec::new();
+        }
+
         use sha3::{Digest, Sha3_256};
 
         let mut samples = Vec::with_capacity(sample_size);

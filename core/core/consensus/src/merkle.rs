@@ -189,6 +189,10 @@ pub fn deserialize_proofs(data: &[u8]) -> Option<Vec<MerkleProof>> {
     let mut offset = 0;
     let num_proofs = u32::from_le_bytes(data[offset..offset + 4].try_into().ok()?) as usize;
     offset += 4;
+
+    if num_proofs > 10_000 {
+        return None;
+    }
     
     let mut proofs = Vec::with_capacity(num_proofs);
     
@@ -209,6 +213,10 @@ pub fn deserialize_proofs(data: &[u8]) -> Option<Vec<MerkleProof>> {
         // Number of siblings
         let num_siblings = u32::from_le_bytes(data[offset..offset + 4].try_into().ok()?) as usize;
         offset += 4;
+
+        if num_siblings > 64 {
+            return None;
+        }
         
         // Siblings
         let mut siblings = Vec::with_capacity(num_siblings);
