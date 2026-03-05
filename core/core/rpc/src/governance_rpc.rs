@@ -9,6 +9,7 @@ use jsonrpsee::{
 };
 use serde::{Deserialize, Serialize};
 use governance::{Governance, GovernanceConfig, Proposal, ProposalStatus, ProposalType, VoteOption};
+use staking::Staking;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::info;
@@ -21,6 +22,9 @@ pub enum GovernanceRpcError {
     
     #[error("Invalid parameters: {0}")]
     InvalidParams(String),
+
+    #[error("Authentication failed: {0}")]
+    AuthError(String),
 }
 
 impl From<GovernanceRpcError> for ErrorObjectOwned {
@@ -28,6 +32,7 @@ impl From<GovernanceRpcError> for ErrorObjectOwned {
         match error {
             GovernanceRpcError::GovernanceError(msg) => ErrorObjectOwned::owned(-32000, msg, None::<()>),
             GovernanceRpcError::InvalidParams(msg) => ErrorObjectOwned::owned(-32602, msg, None::<()>),
+            GovernanceRpcError::AuthError(msg) => ErrorObjectOwned::owned(-32003, msg, None::<()>),
         }
     }
 }
@@ -111,34 +116,36 @@ pub trait GovernanceRpc {
     #[method(name = "gov_getStats")]
     async fn get_stats(&self) -> RpcResult<GovernanceStatsResponse>;
 
-    /// Create a new proposal
+    /// Create a new proposal. Requires signature. Proposer stake is looked up server-side.
     #[method(name = "gov_createProposal")]
     async fn create_proposal(
         &self,
         proposer: String,
-        proposer_stake: String,
         title: String,
         description: String,
         proposal_type: String,
+        signature: String,
+        public_key: String,
     ) -> RpcResult<u64>;
 
-    /// Vote on a proposal
+    /// Vote on a proposal. Requires signature. Vote weight is looked up from staking.
     #[method(name = "gov_vote")]
     async fn vote(
         &self,
         voter: String,
         proposal_id: u64,
         vote: String,
-        vote_weight: String,
+        signature: String,
+        public_key: String,
     ) -> RpcResult<bool>;
 
     /// Get vote status for a voter on a proposal
     #[method(name = "gov_getVote")]
     async fn get_vote(&self, proposal_id: u64, voter: String) -> RpcResult<Option<String>>;
 
-    /// Finalize a proposal (after voting ends)
+    /// Finalize a proposal (after voting ends). total_staked is fetched server-side.
     #[method(name = "gov_finalizeProposal")]
-    async fn finalize_proposal(&self, proposal_id: u64, total_staked: String) -> RpcResult<String>;
+    async fn finalize_proposal(&self, proposal_id: u64) -> RpcResult<String>;
 
     /// Execute a passed proposal
     #[method(name = "gov_executeProposal")]
@@ -148,12 +155,17 @@ pub trait GovernanceRpc {
 /// Governance RPC Server Implementation
 pub struct GovernanceRpcServerImpl {
     governance: Arc<RwLock<Governance>>,
+    staking: Arc<RwLock<Staking>>,
     config: GovernanceConfig,
 }
 
 impl GovernanceRpcServerImpl {
-    pub fn new(governance: Arc<RwLock<Governance>>, config: GovernanceConfig) -> Self {
-        Self { governance, config }
+    pub fn new(
+        governance: Arc<RwLock<Governance>>,
+        staking: Arc<RwLock<Staking>>,
+        config: GovernanceConfig,
+    ) -> Self {
+        Self { governance, staking, config }
     }
 }
 
@@ -189,23 +201,30 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
     async fn create_proposal(
         &self,
         proposer: String,
-        proposer_stake: String,
         title: String,
         description: String,
         proposal_type: String,
+        signature: String,
+        public_key: String,
     ) -> RpcResult<u64> {
-        let stake = parse_hex_u128(&proposer_stake)
-            .map_err(|e| GovernanceRpcError::InvalidParams(e))?;
+        let verified_addr = verify_signed_request(&proposer, "createProposal", &signature, &public_key)
+            .map_err(|e| GovernanceRpcError::AuthError(e))?;
+
+        // Look up actual stake from the staking module
+        let staking = self.staking.read().await;
+        let actual_stake = staking.get_validator(&verified_addr).await
+            .map(|v| v.voting_power())
+            .unwrap_or(0);
 
         let ptype = parse_proposal_type(&proposal_type)
             .map_err(|e| GovernanceRpcError::InvalidParams(e))?;
 
         let gov = self.governance.read().await;
-        let id = gov.create_proposal(proposer.clone(), stake, title.clone(), description, ptype)
+        let id = gov.create_proposal(verified_addr.clone(), actual_stake, title.clone(), description, ptype)
             .await
             .map_err(|e| GovernanceRpcError::GovernanceError(e.to_string()))?;
 
-        info!("RPC: Created proposal {} by {}: {}", id, proposer, title);
+        info!("RPC: Created proposal {} by {}: {}", id, verified_addr, title);
         Ok(id)
     }
 
@@ -214,10 +233,23 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
         voter: String,
         proposal_id: u64,
         vote: String,
-        vote_weight: String,
+        signature: String,
+        public_key: String,
     ) -> RpcResult<bool> {
-        let weight = parse_hex_u128(&vote_weight)
-            .map_err(|e| GovernanceRpcError::InvalidParams(e))?;
+        let verified_addr = verify_signed_request(&voter, "vote", &signature, &public_key)
+            .map_err(|e| GovernanceRpcError::AuthError(e))?;
+
+        // Look up actual vote weight from the staking module
+        let staking = self.staking.read().await;
+        let actual_weight = staking.get_validator(&verified_addr).await
+            .map(|v| v.voting_power())
+            .unwrap_or(0);
+
+        if actual_weight == 0 {
+            return Err(GovernanceRpcError::InvalidParams(
+                "Voter has no stake — cannot vote".to_string()
+            ).into());
+        }
 
         let vote_option = match vote.to_lowercase().as_str() {
             "for" | "yes" | "1" => VoteOption::For,
@@ -229,11 +261,11 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
         };
 
         let gov = self.governance.read().await;
-        gov.vote(voter.clone(), proposal_id, vote_option, weight)
+        gov.vote(verified_addr.clone(), proposal_id, vote_option, actual_weight)
             .await
             .map_err(|e| GovernanceRpcError::GovernanceError(e.to_string()))?;
 
-        info!("RPC: Vote {:?} by {} on proposal {} with weight {}", vote_option, voter, proposal_id, weight);
+        info!("RPC: Vote {:?} by {} on proposal {} with weight {}", vote_option, verified_addr, proposal_id, actual_weight);
         Ok(true)
     }
 
@@ -247,9 +279,10 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
         }))
     }
 
-    async fn finalize_proposal(&self, proposal_id: u64, total_staked: String) -> RpcResult<String> {
-        let staked = parse_hex_u128(&total_staked)
-            .map_err(|e| GovernanceRpcError::InvalidParams(e))?;
+    async fn finalize_proposal(&self, proposal_id: u64) -> RpcResult<String> {
+        // Fetch total_staked from the staking module — never trust the caller
+        let staking = self.staking.read().await;
+        let staked = staking.get_total_staked().await;
 
         let gov = self.governance.read().await;
         let status = gov.finalize_proposal(proposal_id, staked)
@@ -280,6 +313,36 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
 fn parse_hex_u128(hex: &str) -> Result<u128, String> {
     let hex = hex.strip_prefix("0x").unwrap_or(hex);
     u128::from_str_radix(hex, 16).map_err(|e| format!("Invalid hex: {}", e))
+}
+
+/// Verify that the caller owns the claimed address by checking an Ed25519 signature.
+fn verify_signed_request(
+    claimed_address: &str,
+    action: &str,
+    signature_hex: &str,
+    public_key_hex: &str,
+) -> Result<String, String> {
+    let pk_bytes = hex::decode(public_key_hex.strip_prefix("0x").unwrap_or(public_key_hex))
+        .map_err(|e| format!("Invalid public_key hex: {}", e))?;
+    let sig_bytes = hex::decode(signature_hex.strip_prefix("0x").unwrap_or(signature_hex))
+        .map_err(|e| format!("Invalid signature hex: {}", e))?;
+
+    let vk = crypto::signature::public_key_from_bytes(&pk_bytes)
+        .ok_or_else(|| "Invalid public key (must be 32 bytes)".to_string())?;
+
+    if !crypto::signature::verify(&vk, action.as_bytes(), &sig_bytes) {
+        return Err("Signature verification failed".to_string());
+    }
+
+    let derived = crypto::signature::address_from_public_key(&vk);
+    if derived != claimed_address {
+        return Err(format!(
+            "Address mismatch: claimed {} but signature proves {}",
+            claimed_address, derived
+        ));
+    }
+
+    Ok(derived)
 }
 
 fn parse_proposal_type(s: &str) -> Result<ProposalType, String> {

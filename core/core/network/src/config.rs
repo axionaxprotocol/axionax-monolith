@@ -1,6 +1,7 @@
 //! Network configuration
 
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 use std::time::Duration;
 
 /// Network layer configuration
@@ -41,6 +42,13 @@ pub struct NetworkConfig {
 
     /// Chain ID for network isolation
     pub chain_id: u64,
+
+    /// Path to persist the node's identity keypair.
+    /// If the file exists, the keypair is loaded from it; otherwise a new one
+    /// is generated and saved.  `None` means generate an ephemeral keypair
+    /// (suitable for tests only).
+    #[serde(default)]
+    pub key_file: Option<PathBuf>,
 }
 
 /// Gossipsub validation mode
@@ -65,10 +73,11 @@ impl Default for NetworkConfig {
             enable_mdns: true,
             enable_kad: true,
             gossipsub_cache_size: 1000,
-            validation_mode: ValidationMode::Permissive,
+            validation_mode: ValidationMode::Strict,
             idle_timeout: Duration::from_secs(60),
             protocol_version: "1.0.0".to_string(),
             chain_id: 86137, // axionax Testnet
+            key_file: None,
         }
     }
 }

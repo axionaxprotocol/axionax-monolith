@@ -5,6 +5,7 @@ use libp2p::{
     identity::Keypair, multiaddr::Protocol, swarm::SwarmEvent, Multiaddr, PeerId, Swarm,
     SwarmBuilder,
 };
+use std::path::Path;
 use tokio::sync::mpsc;
 use tracing::{debug, error, info, warn};
 
@@ -41,18 +42,51 @@ pub enum NetworkEvent {
 }
 
 impl NetworkManager {
+    /// Load a persisted keypair from `path`, or generate a new one and save it.
+    fn load_or_generate_keypair(path: &Path) -> Result<Keypair> {
+        if path.exists() {
+            let bytes = std::fs::read(path)
+                .map_err(|e| NetworkError::InitializationError(format!("Cannot read key file: {}", e)))?;
+            let kp = Keypair::from_protobuf_encoding(&bytes)
+                .map_err(|e| NetworkError::InitializationError(format!("Invalid key file: {}", e)))?;
+            info!("Loaded node identity from {}", path.display());
+            return Ok(kp);
+        }
+
+        let kp = Keypair::generate_ed25519();
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| NetworkError::InitializationError(format!("Cannot create key dir: {}", e)))?;
+        }
+        let encoded = kp.to_protobuf_encoding()
+            .map_err(|e| NetworkError::InitializationError(format!("Cannot encode keypair: {}", e)))?;
+        std::fs::write(path, &encoded)
+            .map_err(|e| NetworkError::InitializationError(format!("Cannot write key file: {}", e)))?;
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
+        }
+
+        info!("Generated and saved new node identity to {}", path.display());
+        Ok(kp)
+    }
+
     /// Create new network manager
     pub async fn new(config: NetworkConfig) -> Result<Self> {
         info!("Initializing network manager");
 
-        // Generate keypair for peer identity
-        let keypair = Keypair::generate_ed25519();
+        let keypair = match &config.key_file {
+            Some(path) => Self::load_or_generate_keypair(path)?,
+            None => Keypair::generate_ed25519(),
+        };
         let local_peer_id = PeerId::from(keypair.public());
 
         info!("Local peer ID: {}", local_peer_id);
 
-        // Create network behaviour
-        let behaviour = AxionaxBehaviour::new(local_peer_id, &config)
+        // Create network behaviour using the node's actual keypair
+        let behaviour = AxionaxBehaviour::new(&keypair, &config)
             .map_err(|e| NetworkError::InitializationError(e.to_string()))?;
 
         // Build swarm

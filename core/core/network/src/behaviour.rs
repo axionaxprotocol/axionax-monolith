@@ -28,11 +28,14 @@ pub struct AxionaxBehaviour {
 }
 
 impl AxionaxBehaviour {
-    /// Create new network behaviour
+    /// Create new network behaviour.
+    /// Accepts the node's actual keypair so Gossipsub messages and Identify
+    /// announcements are bound to the real node identity (not a throwaway key).
     pub fn new(
-        peer_id: PeerId,
+        keypair: &libp2p::identity::Keypair,
         config: &NetworkConfig,
     ) -> Result<Self, Box<dyn std::error::Error>> {
+        let peer_id = PeerId::from(keypair.public());
         // Configure Gossipsub
         let gossipsub_config = gossipsub::ConfigBuilder::default()
             .heartbeat_interval(Duration::from_secs(1))
@@ -53,7 +56,7 @@ impl AxionaxBehaviour {
             .build()?;
 
         let gossipsub = gossipsub::Behaviour::new(
-            MessageAuthenticity::Signed(libp2p::identity::Keypair::generate_ed25519()),
+            MessageAuthenticity::Signed(keypair.clone()),
             gossipsub_config,
         )?;
 
@@ -73,7 +76,7 @@ impl AxionaxBehaviour {
         let identify = identify::Behaviour::new(
             identify::Config::new(
                 format!("/axionax/{}", config.protocol_version),
-                libp2p::identity::Keypair::generate_ed25519().public(),
+                keypair.public(),
             )
             .with_agent_version(format!("axionax-core/{}", config.protocol_version)),
         );
@@ -137,10 +140,9 @@ mod tests {
     #[tokio::test]
     async fn test_behaviour_creation() {
         let keypair = Keypair::generate_ed25519();
-        let peer_id = PeerId::from(keypair.public());
         let config = NetworkConfig::dev();
 
-        let behaviour = AxionaxBehaviour::new(peer_id, &config);
+        let behaviour = AxionaxBehaviour::new(&keypair, &config);
         assert!(behaviour.is_ok());
     }
 }

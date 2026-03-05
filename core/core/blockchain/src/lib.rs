@@ -261,6 +261,17 @@ impl Blockchain {
             });
         }
 
+        // Enforce parent hash linkage for all blocks after genesis
+        if block.number > 0 {
+            if let Some(prev_block) = blocks.get(&(*latest)) {
+                if block.parent_hash != prev_block.hash {
+                    return Err(BlockchainError::InvalidParentHash {
+                        block_number: block.number,
+                    });
+                }
+            }
+        }
+
         blocks.insert(block.number, block);
         *latest += 1;
         Ok(())
