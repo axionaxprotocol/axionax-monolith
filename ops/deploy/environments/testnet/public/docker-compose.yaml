@@ -45,7 +45,6 @@ services:
       - /genesis/testnet.json
       - --rpc
       - 0.0.0.0:8545
-      - --unsafe-rpc
     env_file:
       - rpc.env
     volumes:

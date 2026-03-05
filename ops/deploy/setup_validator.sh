@@ -41,9 +41,12 @@ if id "$AXIONAX_USER" &>/dev/null; then
 else
     useradd -m -s /bin/bash $AXIONAX_USER
     usermod -aG sudo $AXIONAX_USER
-    echo "$AXIONAX_USER:axionax2025" | chpasswd
-    echo "User $AXIONAX_USER created with default password: axionax2025"
-    echo -e "${RED}⚠️  IMPORTANT: Change password immediately!${NC}"
+    GENERATED_PASSWORD=$(openssl rand -base64 24)
+    echo "$AXIONAX_USER:$GENERATED_PASSWORD" | chpasswd
+    chage -d 0 $AXIONAX_USER
+    echo -e "${GREEN}User $AXIONAX_USER created. Initial password:${NC}"
+    echo -e "${YELLOW}  $GENERATED_PASSWORD${NC}"
+    echo -e "${RED}⚠️  Password change will be forced on first login.${NC}"
 fi
 
 # Step 3: Configure Firewall

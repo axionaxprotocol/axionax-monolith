@@ -73,7 +73,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: axionax
-      POSTGRES_PASSWORD: axionax_dev_2026
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set in .env}
       POSTGRES_DB: axionax_testnet
     ports:
       - "5432:5432"
@@ -94,6 +94,7 @@ services:
     image: redis:7-alpine
     container_name: axionax-redis
     restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?Set in .env}"]
     ports:
       - "6379:6379"
     volumes:
@@ -160,7 +161,7 @@ services:
       - PORT=3002
       - CHAIN_ID=86137
       # Dev only: use a test key; production must set FAUCET_PRIVATE_KEY securely
-      - FAUCET_PRIVATE_KEY=${FAUCET_PRIVATE_KEY:-0x0000000000000000000000000000000000000000000000000000000000000001}
+      - FAUCET_PRIVATE_KEY=${FAUCET_PRIVATE_KEY:?Set in .env}
     networks:
       - axionax-core
     healthcheck:
@@ -200,7 +201,7 @@ services:
       - "3030:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=axionax
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:?Set in .env}
     volumes:
       - grafana_data:/var/lib/grafana
       - ./ops/deploy/monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro

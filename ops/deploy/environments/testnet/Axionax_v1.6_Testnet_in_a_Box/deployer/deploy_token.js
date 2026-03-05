@@ -10,8 +10,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
 const RPC = process.env.RPC_URL || "http://127.0.0.1:8545";
-const PK  = process.env.DEPLOYER_PRIVATE_KEY || process.env.FAUCET_PRIVATE_KEY
-         || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+const PK  = process.env.DEPLOYER_PRIVATE_KEY || process.env.FAUCET_PRIVATE_KEY;
+if (!PK) {
+  console.error("ERROR: DEPLOYER_PRIVATE_KEY or FAUCET_PRIVATE_KEY must be set in environment");
+  process.exit(1);
+}
 
 function compile() {
   // --- Read source and strip BOM ---

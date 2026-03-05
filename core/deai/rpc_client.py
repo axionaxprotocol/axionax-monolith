@@ -7,10 +7,18 @@ class AxionaxRpcClient:
     """
     Simple JSON-RPC client for Axionax Chain
     """
-    def __init__(self, rpc_url: str = "http://217.76.61.116:8545"):
+    def __init__(self, rpc_url: str = "https://rpc.axionax.org"):
         self.rpc_url = rpc_url
         self.headers = {'content-type': 'application/json'}
         self.id_counter = 0
+
+        if rpc_url.startswith("http://") and not rpc_url.startswith("http://127.0.0.1") and not rpc_url.startswith("http://localhost"):
+            import warnings
+            warnings.warn(
+                f"RPC URL '{rpc_url}' uses plaintext HTTP for a non-localhost address. "
+                "Use HTTPS to protect traffic in transit.",
+                stacklevel=2,
+            )
 
     def _call(self, method: str, params: List[Any] = []) -> Any:
         self.id_counter += 1

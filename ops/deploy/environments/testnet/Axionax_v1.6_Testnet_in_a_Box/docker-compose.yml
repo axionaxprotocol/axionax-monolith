@@ -61,7 +61,7 @@ services:
     image: postgres:15
     environment:
       POSTGRES_USER: blockscout
-      POSTGRES_PASSWORD: blockscout
+      POSTGRES_PASSWORD: ${BLOCKSCOUT_DB_PASSWORD:?Must be set}
       POSTGRES_DB: blockscout
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -83,7 +83,7 @@ services:
     environment:
       MIX_ENV: prod
       # Database
-      DATABASE_URL: postgresql://blockscout:blockscout@postgres:5432/blockscout
+      DATABASE_URL: postgresql://blockscout:${BLOCKSCOUT_DB_PASSWORD:?Must be set}@postgres:5432/blockscout
       ECTO_USE_SSL: "false"
       # UI
       DISABLE_WEBAPP: "false"
@@ -97,7 +97,7 @@ services:
       SUBNETWORK: "Rust"
       COIN: "AXX"
       # Web
-      SECRET_KEY_BASE: pd1+T03FiW54uPGlkL+xx5U3alkXpgky+kP1/55JyElDiOM1LMnAl7s2ueF4/rQ4m6xkwmjtnIoC2VMYb0+kJg==
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:?Must be set}
       PORT: "4000"
       # Optional: speed up dev/local indexer by disabling extras
       DISABLE_EXCHANGE_RATES: "true"
