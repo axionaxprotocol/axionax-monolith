@@ -1,783 +1,411 @@
-# Axionax Blockchain Project — Security Audit Report
+# Axionax Protocol -- Security Audit Report
 
-**Date:** 2026-03-05  
-**Scope:** Python DeAI Worker, Rust-Python Bridge, TypeScript SDK, Next.js Website/Deploy, Mock RPC Server  
-**Auditor:** Automated Security Analysis  
-
----
-
-## Executive Summary
-
-This audit reviewed all source files across five major components of the Axionax blockchain project. **34 findings** were identified across Critical, High, Medium, Low, and Informational severity levels. The most critical issues involve hardcoded credentials in deployment scripts, insecure HTTP RPC connections without TLS, a hardcoded default private key in the deployer, and private key exposure through the `ContractManager` constructor.
-
-| Severity      | Count |
-|---------------|-------|
-| Critical      | 4     |
-| High          | 7     |
-| Medium        | 10    |
-| Low           | 8     |
-| Informational | 5     |
+**Scope:** 13 crates, 39 Rust source files in `core/core/`  
+**Date:** 2026-03-05
 
 ---
 
-## Findings
+## CRITICAL Findings
 
----
+### C-1: No Authentication / Authorization on State-Mutating RPC Endpoints
 
-### FINDING-01: Hardcoded Default Private Key in Deployer
-
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/deployer/deploy_token.js`, line 13-14
+- **Files:** `core/core/rpc/src/staking_rpc.rs:93-107`, `core/core/rpc/src/governance_rpc.rs:114-146`
 - **Severity:** Critical
-- **Category:** Hardcoded Credentials
+- **Category:** Missing Access Controls
 
-**Description:**  
-The deployer script contains a well-known Hardhat default private key as a fallback:
-```javascript
-const PK = process.env.DEPLOYER_PRIVATE_KEY || process.env.FAUCET_PRIVATE_KEY
-         || "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-```
-This is Hardhat Account #0's private key. If environment variables are not set, the deployer will use this widely-known key. While intended for local dev, if accidentally used in a testnet or production deployment, all funds from this account are immediately compromisable.
+**Description:** The RPC endpoints `staking_stake`, `staking_unstake`, `staking_delegate`, `staking_claimRewards`, `gov_createProposal`, `gov_vote`, `gov_finalizeProposal`, and `gov_executeProposal` accept a plain-text `address`/`proposer`/`voter` string parameter supplied by the caller. There is no signature verification, no authentication, and no authorization. Anyone can call these endpoints impersonating any address.
 
-**Impact:** Any attacker who recognizes this key (it is publicly documented) can drain all funds and control all contracts deployed by this account.
+**Impact:** An attacker can stake/unstake/delegate on behalf of any address, vote on governance proposals as any voter with arbitrary weight, claim rewards belonging to any validator, and create/finalize/execute governance proposals without holding any stake. This completely compromises the staking and governance systems.
 
-**Recommendation:** Remove the hardcoded fallback. Require the environment variable and exit with a clear error if not set:
-```javascript
-const PK = process.env.DEPLOYER_PRIVATE_KEY || process.env.FAUCET_PRIVATE_KEY;
-if (!PK) { console.error("DEPLOYER_PRIVATE_KEY or FAUCET_PRIVATE_KEY must be set"); process.exit(1); }
-```
+**Recommendation:** All state-mutating RPC methods must require a cryptographically signed transaction. The `address`/`voter`/`proposer` fields must be derived from a verified signature (e.g., ECDSA `ecrecover`), never accepted as a plain-text parameter from the caller.
 
 ---
 
-### FINDING-02: Hardcoded Default Password in Validator Setup Script
+### C-2: Vote Weight Not Verified Against Actual Stake
 
-- **File:** `ops/deploy/setup_validator.sh`, line 44
+- **Files:** `core/core/rpc/src/governance_rpc.rs:212-238`, `core/core/governance/src/lib.rs:270-316`
 - **Severity:** Critical
-- **Category:** Hardcoded Credentials
+- **Category:** Vote Manipulation
 
-**Description:**  
-The validator setup script sets a default, publicly visible password for the `axionax` system user:
-```bash
-echo "$AXIONAX_USER:axionax2025" | chpasswd
-```
-This password is committed to the repository. Anyone with read access to the repo can SSH into a freshly provisioned validator using `axionax:axionax2025`.
+**Description:** The `gov_vote` RPC method accepts a `vote_weight` parameter directly from the caller. The governance module's `vote()` function trusts this value and applies it without checking whether the voter actually holds that amount of stake.
 
-**Impact:** Full system-level access to any validator node provisioned with this script before the password is manually changed. Attackers could steal validator keys, manipulate consensus, or compromise the entire node.
+**Impact:** Any attacker can pass a vote weight of `u128::MAX` to single-handedly pass or defeat any proposal, completely subverting the governance system.
 
-**Recommendation:**
-- Generate a random password at provisioning time and display it once, or require the operator to set one interactively.
-- Better: set `--disabled-password` and require SSH key-only authentication.
-- Never commit passwords to version control.
+**Recommendation:** The vote weight must be looked up from the staking module based on the authenticated voter's actual staked amount at the proposal's snapshot block. Remove the `vote_weight` parameter from the RPC interface.
 
 ---
 
-### FINDING-03: Private Key Passed as Plain String to ContractManager
+### C-3: Proposer Stake Not Verified Against Actual Stake
 
-- **File:** `core/deai/worker_node.py`, line 367
+- **Files:** `core/core/rpc/src/governance_rpc.rs:189-210`
 - **Severity:** Critical
-- **Category:** Key Management / Credential Exposure
+- **Category:** Governance Bypass
 
-**Description:**  
-The worker node extracts the wallet's raw private key and passes it as a plaintext hex string to `ContractManager`:
-```python
-self.contract = ContractManager(
-    rpc_url=self.network.active_node_url,
-    private_key=self.wallet.account.key.hex(),
-    contract_address=contract_address,
-)
-```
-This means the private key exists as a plain Python string in memory at multiple points. If the process crashes and a core dump is generated, or if debug logging inadvertently captures it, the key is exposed.
+**Description:** The `gov_createProposal` method accepts `proposer_stake` as an RPC parameter from the caller. This value is used to check against `min_proposal_stake`, but it is never verified against the proposer's actual stake in the staking module.
 
-**Impact:** The worker's private key (which holds staked tokens) could be leaked through crash dumps, debug logs, or memory inspection.
+**Impact:** An attacker with zero stake can create proposals by claiming a high `proposer_stake` value. Combined with C-2, an attacker can create and pass any proposal including treasury spend proposals.
 
-**Recommendation:**
-- Pass the `Account` object directly instead of the raw key string.
-- Refactor `ContractManager` to accept an `Account` or a signing callback rather than a raw private key.
-- Ensure the private key string is zeroed/overwritten after use where possible.
+**Recommendation:** The proposer's stake must be fetched from the staking module server-side.
 
 ---
 
-### FINDING-04: Insecure HTTP (No TLS) for RPC Communication
+### C-4: `finalize_proposal` total_staked Parameter is Caller-Supplied
 
-- **File:** `core/deai/rpc_client.py`, line 10
-- **File:** `core/deai/worker_config.toml`, lines 17-19
+- **Files:** `core/core/rpc/src/governance_rpc.rs:250-267`
 - **Severity:** Critical
-- **Category:** Insecure Communication / Missing TLS
+- **Category:** Governance Manipulation
 
-**Description:**  
-The RPC client defaults to plain HTTP:
-```python
-def __init__(self, rpc_url: str = "http://217.76.61.116:8545"):
-```
-And the worker config hardcodes HTTP URLs for bootnodes:
-```toml
-bootnodes = [
-    "http://217.76.61.116:8545",
-    "http://46.250.244.4:8545"
-]
-```
-All RPC traffic — including signed transactions, wallet addresses, and blockchain queries — is sent unencrypted over the internet.
+**Description:** The `gov_finalizeProposal` RPC endpoint accepts `total_staked` as a parameter from the caller. This value is used in the quorum calculation. An attacker can supply an artificially small `total_staked` to make any small number of votes meet the quorum threshold.
 
-**Impact:** Man-in-the-middle attacks can intercept, modify, or replay transactions. Signed transaction data sent over HTTP can be captured, enabling potential replay or front-running attacks.
+**Impact:** Proposals can be finalized as "passed" even with negligible actual voter participation.
 
-**Recommendation:**
-- Use HTTPS (TLS) for all RPC endpoints, especially those on the public internet.
-- Validate TLS certificates. Consider certificate pinning for production.
-- The nginx config in `ops/deploy/nginx/conf.d/rpc.conf` already configures TLS for `rpc.axionax.org` — ensure all clients use this endpoint.
+**Recommendation:** `total_staked` must be retrieved from the staking module server-side.
 
 ---
 
-### FINDING-05: Hardcoded Blockscout SECRET_KEY_BASE in docker-compose
+## HIGH Findings
 
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/docker-compose.yml`, line 100
+### H-1: No Transaction Signature Verification in `send_raw_transaction`
+
+- **File:** `core/core/rpc/src/lib.rs:253-275`
 - **Severity:** High
-- **Category:** Hardcoded Secrets
+- **Category:** Missing Input Validation / Authentication
 
-**Description:**  
-The Blockscout `SECRET_KEY_BASE` is hardcoded in the docker-compose file:
-```yaml
-SECRET_KEY_BASE: pd1+T03FiW54uPGlkL+xx5U3alkXpgky+kP1/55JyElDiOM1LMnAl7s2ueF4/rQ4m6xkwmjtnIoC2VMYb0+kJg==
-```
-This key is used by Phoenix/Elixir for session signing and CSRF tokens.
+**Description:** The `eth_sendRawTransaction` endpoint deserializes a `Transaction` from user-provided hex bytes and submits it to the mempool. There is no verification of the transaction signature. The `signature` and `signer_public_key` fields are never validated.
 
-**Impact:** An attacker who knows this key can forge sessions, bypass CSRF protection, and potentially gain admin access to Blockscout.
+**Impact:** Anyone can submit transactions with arbitrary `from` fields, spending other users' funds.
 
-**Recommendation:** Move to an environment variable. Generate a unique key per deployment:
-```bash
-mix phx.gen.secret
-```
+**Recommendation:** Implement ECDSA signature verification. Derive `from` from `ecrecover(signature, hash)`.
 
 ---
 
-### FINDING-06: Hardcoded Database Credentials in docker-compose
+### H-2: RPC Server Binds to 0.0.0.0 in Testnet/Mainnet Without Authentication
 
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/docker-compose.yml`, lines 63-65, 86
+- **File:** `core/core/node/src/lib.rs:60-74`
 - **Severity:** High
-- **Category:** Hardcoded Credentials
+- **Category:** Network Exposure / Missing Authentication
 
-**Description:**  
-PostgreSQL credentials are hardcoded:
-```yaml
-POSTGRES_USER: blockscout
-POSTGRES_PASSWORD: blockscout
-POSTGRES_DB: blockscout
-```
-And:
-```yaml
-DATABASE_URL: postgresql://blockscout:blockscout@postgres:5432/blockscout
-```
+**Description:** Testnet and mainnet `NodeConfig` presets bind the RPC server to `0.0.0.0:8545`, exposing all RPC endpoints (including state-mutating ones) to the public internet. The `--unsafe-rpc` flag has no actual effect.
 
-**Impact:** If the database port is exposed or the container is accessed, the trivial username/password combination provides immediate database access.
+**Impact:** All staking, governance, and transaction submission endpoints are publicly accessible without any authentication.
 
-**Recommendation:** Use environment variables or Docker secrets. Generate strong random passwords per deployment.
+**Recommendation:** Default to `127.0.0.1`. Implement JWT or API-key authentication. Make `--unsafe-rpc` actually gate dangerous methods.
 
 ---
 
-### FINDING-07: Hardcoded Basic Auth Credentials in .env.example
+### H-3: Rate Limiter / CORS / Request Validator Not Applied to Server
 
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/.env.example`, line 11
+- **File:** `core/core/rpc/src/middleware.rs` (entire), `core/core/rpc/src/lib.rs:279-306`
 - **Severity:** High
-- **Category:** Hardcoded Credentials
+- **Category:** DoS / Missing Security Controls
 
-**Description:**  
-The `.env.example` file contains an actual credential value:
-```
-BASIC_AUTH=admin:password
-```
-While `.env.example` files are templates, users commonly copy them verbatim. This default would give anyone `admin:password` access to the faucet.
+**Description:** `RateLimiter`, `RequestValidator`, and `CorsConfig` are fully implemented but never integrated into the actual RPC server.
 
-**Impact:** Unauthorized faucet access allowing token draining.
+**Impact:** The RPC server is unprotected against DoS, oversized payloads, and cross-origin attacks.
 
-**Recommendation:** Use a placeholder like `BASIC_AUTH=changeme_user:changeme_password` and add validation in the faucet code to reject these default values.
+**Recommendation:** Integrate the existing middleware into `Server::builder()`.
 
 ---
 
-### FINDING-08: Public IP Addresses and SSH Access Details in Committed Files
+### H-4: Unstake Does Not Actually Reduce Stake Amount
 
-- **File:** `ops/deploy/VPS_CONNECTION.txt`, line 5
-- **File:** `core/deai/worker_config.toml`, lines 17-18
+- **File:** `core/core/staking/src/lib.rs:210-239`
 - **Severity:** High
-- **Category:** Information Disclosure
+- **Category:** Staking Logic Error
 
-**Description:**  
-The repository contains live server IP addresses and SSH commands:
-```
-ssh root@217.216.109.5
-```
-And real validator IPs in the worker config:
-```toml
-bootnodes = [
-    "http://217.76.61.116:8545",
-    "http://46.250.244.4:8545"
-]
-```
+**Description:** The `unstake` function validates `amount <= validator.stake` but never subtracts the amount. It only sets the `unlock_block`. The `withdraw` function later withdraws the entire stake regardless of the requested amount.
 
-**Impact:** Attackers gain immediate knowledge of infrastructure topology. Combined with the hardcoded password (FINDING-02), this enables direct SSH access to validators.
+**Impact:** A validator requesting to unstake 1 token can later withdraw their entire stake. Breaks partial unstaking semantics.
 
-**Recommendation:**
-- Remove `VPS_CONNECTION.txt` from version control and add it to `.gitignore`.
-- Move bootnode IPs to environment variables or a separate non-committed config.
+**Recommendation:** Store the unstake amount separately and subtract from total stake. `withdraw` should return only the pending amount.
 
 ---
 
-### FINDING-09: Faucet Endpoint Lacks Rate Limiting (server.js variant)
+### H-5: Truncation of Transaction Value (u128 to u64) in Node
 
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/faucet/server.js`, line 33
+- **File:** `core/core/node/src/lib.rs:386`
 - **Severity:** High
-- **Category:** Denial of Service / Resource Exhaustion
+- **Category:** Integer Overflow / Data Loss
 
-**Description:**  
-The `server.js` faucet variant has no rate limiting on the `/request` endpoint:
-```javascript
-app.get("/request", async (req, res) => {
-    const to = (req.query.address||"").trim();
-```
-While the `index.js` variant implements `express-rate-limit`, this separate `server.js` does not.
+**Description:** When publishing a transaction to the network, `tx.value as u64` silently truncates a `u128` value to `u64`.
 
-**Impact:** An attacker can drain the faucet wallet by sending unlimited requests, exhausting all native tokens and AXX ERC-20 tokens.
+**Impact:** Transactions with value > `u64::MAX` will have their value silently truncated, leading to loss of funds or incorrect propagation.
 
-**Recommendation:** Add rate limiting (per-IP and per-address) to `server.js`, consistent with the protections in `index.js`.
+**Recommendation:** Use `u128` throughout the network protocol or implement checked conversion with error handling.
 
 ---
 
-### FINDING-10: Faucet ERC-20 Endpoint Accepts User-Controlled Amount
+### H-6: `execute_proposal` Has No Access Control
 
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/faucet/index.js`, line 86
+- **Files:** `core/core/rpc/src/governance_rpc.rs:269-277`, `core/core/governance/src/lib.rs:347-388`
 - **Severity:** High
-- **Category:** Input Validation / Business Logic
+- **Category:** Missing Access Control
 
-**Description:**  
-The `/request-erc20` endpoint accepts a user-supplied `amount` query parameter:
-```javascript
-const rawAmt = req.query.amount ?? FAUCET_AMOUNT_ERC20;
-```
-An attacker can request arbitrary amounts:
-```
-GET /request-erc20?address=0x...&amount=999999999999999
-```
+**Description:** The `gov_executeProposal` endpoint can be called by anyone. It marks the proposal as `Executed`, preventing legitimate execution.
 
-**Impact:** Complete drain of the faucet's ERC-20 token balance in a single request.
+**Impact:** An attacker could front-run the intended execution flow or grief the system.
 
-**Recommendation:** Remove the user-controlled `amount` parameter. Always use the server-configured `FAUCET_AMOUNT_ERC20` value.
+**Recommendation:** Restrict to authorized callers or implement automatic execution.
 
 ---
 
-### FINDING-11: Mock RPC web3_sha3 Returns Random Hash Instead of Keccak256
+## MEDIUM Findings
 
-- **File:** `ops/deploy/mock-rpc/server.js`, lines 549-553
-- **Severity:** High
-- **Category:** Incorrect Implementation / Integrity
+### M-1: `.unwrap()` on `SystemTime` in Production Code
 
-**Description:**  
-The `web3_sha3` method returns a random hash instead of computing the actual keccak256:
-```javascript
-case 'web3_sha3': {
-    const [data] = params;
-    return jsonRpcResponse(id, generateHash());
-}
-```
-
-**Impact:** Any client relying on `web3_sha3` for cryptographic verification (e.g., signature verification, address derivation) will get incorrect results. This could mask bugs that rely on deterministic hashing, leading to issues when transitioning to real nodes.
-
-**Recommendation:** Implement proper keccak256 hashing using a library like `ethers.js` or `js-sha3`.
-
----
-
-### FINDING-12: CORS Wildcard on RPC Configuration
-
-- **File:** `ops/deploy/configs/rpc-config.toml`, line 14
-- **File:** `ops/deploy/environments/testnet/public/.env.rpc`, line 29
-- **File:** `ops/deploy/nginx/conf.d/rpc.conf`, line 57
+- **Files:** `core/core/rpc/src/health.rs:87`, `core/core/events/src/lib.rs:178,209`, `core/core/da/src/lib.rs:443-445`, `core/core/genesis/src/lib.rs:391`
 - **Severity:** Medium
-- **Category:** Cross-Origin Security
+- **Category:** Improper Error Handling
 
-**Description:**  
-Multiple configurations set CORS to allow all origins:
-```toml
-cors_origins = ["*"]
-```
-```
-RPC_CORS_ALLOWED_ORIGINS=*
-```
-```nginx
-add_header Access-Control-Allow-Origin * always;
-```
+**Description:** Multiple `.unwrap()` calls on `SystemTime::now().duration_since(UNIX_EPOCH)` and serialization, violating the project's own rule to never use `.unwrap()` in production code.
 
-**Impact:** Any website can make authenticated cross-origin requests to the RPC node. This enables potential phishing sites to interact with the chain on behalf of users who visit them while having MetaMask connected.
+**Impact:** A panic would crash the node, causing denial of service.
 
-**Recommendation:** Restrict CORS to known frontend domains (e.g., `https://explorer.axionax.org`, `https://app.axionax.org`).
+**Recommendation:** Replace with `.unwrap_or(0)` / `.unwrap_or_default()` or proper error handling.
 
 ---
 
-### FINDING-13: No TLS Certificate Verification in Python RPC Client
+### M-2: `unwrap_or(0)` Silently Hides State DB Errors
 
-- **File:** `core/deai/rpc_client.py`, lines 25-30
+- **File:** `core/core/rpc/src/lib.rs:316-317,333-334`
 - **Severity:** Medium
-- **Category:** Insecure Communication
+- **Category:** Error Handling / Silent Failures
 
-**Description:**  
-The `requests.post()` call does not explicitly set `verify=True` (though this is the default). More importantly, there is no hostname validation or certificate pinning, and the default URL is HTTP (not HTTPS). If a user provides an HTTPS URL, default `requests` behavior will verify, but there is no enforcement or warning for HTTP usage.
+**Description:** `system_status` and `system_health` silently swallow database errors by using `.unwrap_or(0)`.
 
-**Impact:** Combined with FINDING-04 (HTTP default), traffic is unencrypted. Even if HTTPS were used, there's no pinning against MITM attacks with rogue CAs.
+**Impact:** Operators will not be alerted to database failures.
 
-**Recommendation:**
-- Enforce HTTPS URLs at initialization time.
-- Add certificate pinning for production endpoints.
-- Warn or refuse to connect over plain HTTP unless explicitly opted in.
+**Recommendation:** Surface database errors through the health check response.
 
 ---
 
-### FINDING-14: Mutable Default Argument in rpc_client.py
+### M-3: Event History Uses O(n) `Vec::remove(0)`
 
-- **File:** `core/deai/rpc_client.py`, lines 15, 51
+- **File:** `core/core/events/src/lib.rs:189-194`
 - **Severity:** Medium
-- **Category:** Code Quality / Potential Bug
+- **Category:** DoS / Performance
 
-**Description:**  
-Two methods use mutable default arguments:
-```python
-def _call(self, method: str, params: List[Any] = []) -> Any:
-def get_logs(self, from_block: str, address: Optional[str] = None, topics: List[str] = []) -> List[Dict]:
-```
+**Description:** The event history uses `Vec::remove(0)` for eviction, which is O(n).
 
-**Impact:** If the list is ever mutated, the default value is shared across all calls, which can lead to subtle, hard-to-debug issues that could be exploited in adversarial conditions.
+**Impact:** Performance bottleneck under high event throughput.
 
-**Recommendation:** Use `None` as default and initialize inside the function:
-```python
-def _call(self, method: str, params: Optional[List[Any]] = None) -> Any:
-    if params is None:
-        params = []
-```
+**Recommendation:** Use `VecDeque` for O(1) front removal.
 
 ---
 
-### FINDING-15: Private Key Logged in Worker Startup (Wallet Address Logged, Key Passes Through Memory)
+### M-4: `block_on` Inside Async Context
 
-- **File:** `core/deai/worker_node.py`, line 399
+- **File:** `core/core/rpc/src/lib.rs:433-435`
 - **Severity:** Medium
-- **Category:** Information Disclosure
+- **Category:** Concurrency / Potential Deadlock
 
-**Description:**  
-While the wallet address (not the key) is logged:
-```python
-logger.info(f"👛 Worker Wallet: {self.wallet.get_address()}")
-```
-The `WalletManager.get_private_key()` method (line 138-143) exists as a public API and returns the raw hex key. If any future logging or error handler accidentally calls this, or if the traceback includes the `ContractManager` constructor arguments (which include the plaintext key, per FINDING-03), the private key would be exposed in logs.
+**Description:** `tokio::runtime::Handle::current().block_on()` is called inside an async context.
 
-**Impact:** Private key exposure in log files, potentially accessible to operations staff or log aggregation systems.
+**Impact:** Can deadlock the RPC server if all tokio worker threads are blocked.
 
-**Recommendation:**
-- Rename `get_private_key()` to `_get_private_key()` (private by convention).
-- Add a `__repr__` to `ContractManager` that masks the key.
-- Ensure no logging captures the private key argument.
+**Recommendation:** Use `register_async_method` or `tokio::task::block_in_place`.
 
 ---
 
-### FINDING-16: Keystore File Written with Potentially Insecure Permissions on Non-Unix Systems
+### M-5: No Nonce Validation on Transactions
 
-- **File:** `core/deai/wallet_manager.py`, lines 125-132
+- **File:** `core/core/rpc/src/lib.rs:253-275`
 - **Severity:** Medium
-- **Category:** Key Management
+- **Category:** Transaction Replay
 
-**Description:**  
-The keystore file is written and then permissions are set:
-```python
-with open(self.key_file, "w") as f:
-    json.dump(encrypted, f, indent=2)
-try:
-    os.chmod(self.key_file, 0o600)
-except (OSError, AttributeError):
-    pass
-```
-The file is briefly world-readable between `open()` and `chmod()`. On Windows, `chmod` fails silently.
+**Description:** `send_raw_transaction` does not validate transaction nonces.
 
-**Impact:** A race condition window where the keystore is readable by other users. On Windows, the keystore is permanently world-readable.
+**Impact:** Transactions could be replayed, causing double-spending.
 
-**Recommendation:**
-- On Unix, use `os.open()` with `O_CREAT | O_WRONLY` and mode `0o600`, then `os.fdopen()` to write.
-- On Windows, use `icacls` or platform-appropriate ACLs.
+**Recommendation:** Implement per-account nonce tracking and validation.
 
 ---
 
-### FINDING-17: Legacy Plaintext Key Migration in WalletManager
+### M-6: Slashing Calculation Includes Delegations But Only Deducts From Self-Stake
 
-- **File:** `core/deai/wallet_manager.py`, lines 88-96
+- **File:** `core/core/staking/src/lib.rs:334-366`
 - **Severity:** Medium
-- **Category:** Key Management
+- **Category:** Staking Logic Error
 
-**Description:**  
-The code supports loading plaintext private keys from a JSON field:
-```python
-elif "private_key" in keystore:
-    print("⚠️  WARNING: Found plaintext key! Migrating to encrypted format...")
-    private_key = keystore["private_key"]
-```
-While it migrates to encrypted format, the original plaintext file is not securely deleted afterward — the content remains on disk until overwritten by the OS.
+**Description:** Slash amount is based on `voting_power()` (stake + delegated) but only deducted from self-stake. Validators with high delegation ratios may become unslashable.
 
-**Impact:** The plaintext key persists on disk after migration, recoverable with forensic tools.
+**Impact:** Reduces economic security; delegators don't share slashing risk.
 
-**Recommendation:** After migration, securely overwrite the original file contents before writing the encrypted version, or at minimum explicitly delete the file and recreate it.
+**Recommendation:** Calculate slash based on self-stake only, or distribute proportionally.
 
 ---
 
-### FINDING-18: No Input Validation on RPC Method Names in find_peers.py
+### M-7: No Bound on Subscription Count (DoS)
 
-- **File:** `core/deai/find_peers.py`, lines 28-30
+- **Files:** `core/core/rpc/src/lib.rs:385-428`, `core/core/events/src/lib.rs:231-248`
 - **Severity:** Medium
+- **Category:** DoS
+
+**Description:** No limit on the number of active event subscriptions.
+
+**Impact:** Memory exhaustion via subscription flooding.
+
+**Recommendation:** Implement per-IP and global subscription limits.
+
+---
+
+### M-8: Secret Key Bytes Exposed Through Public Method
+
+- **File:** `core/core/vrf/src/lib.rs:142-146`
+- **Severity:** Medium
+- **Category:** Key Material Exposure
+
+**Description:** `VRFKeyPair::secret_key_bytes()` is public and returns raw secret key bytes.
+
+**Impact:** Key material could be leaked if logged or transmitted.
+
+**Recommendation:** Remove or restrict to `pub(crate)`.
+
+---
+
+## LOW Findings
+
+### L-1: Hardcoded Validator IP Addresses in Genesis
+
+- **File:** `core/core/genesis/src/lib.rs:329,334`
+- **Severity:** Low
+- **Category:** Information Leakage
+
+**Description:** Validator IPs are hardcoded in source code.
+
+**Impact:** Infrastructure IPs exposed to targeted DoS.
+
+**Recommendation:** Move to external configuration files.
+
+---
+
+### L-2: Metrics Endpoints Expose Internal State Without Auth
+
+- **Files:** `core/core/rpc/src/lib.rs:357-371`, `core/core/rpc/src/server.rs:161-176`
+- **Severity:** Low
+- **Category:** Information Leakage
+
+**Description:** `metrics_prometheus` and `metrics_json` expose internal state without authentication.
+
+**Impact:** Reconnaissance for front-running, activity pattern analysis.
+
+**Recommendation:** Restrict metrics to internal networks or add authentication.
+
+---
+
+### L-3: `--unsafe-rpc` Flag Has No Effect
+
+- **File:** `core/core/node/src/main.rs:68-69,105-107`
+- **Severity:** Low
+- **Category:** Dead Code / Misconfiguration
+
+**Description:** The flag is parsed and logged but has no effect on behavior.
+
+**Impact:** False sense of security for operators.
+
+**Recommendation:** Implement actual method gating based on the flag.
+
+---
+
+### L-4: Peer Reputation Metric Labels Could Be Spoofed
+
+- **File:** `core/core/metrics/src/lib.rs:287-288`
+- **Severity:** Low
+- **Category:** Metrics Injection
+
+**Description:** Label values are not sanitized for Prometheus exposition format.
+
+**Impact:** Crafted peer IDs could inject arbitrary metrics.
+
+**Recommendation:** Sanitize label values per Prometheus spec.
+
+---
+
+### L-5: CORS `dev()` Config Allows All Origins
+
+- **File:** `core/core/rpc/src/middleware.rs:198-207`
+- **Severity:** Low
+- **Category:** Insecure Default
+
+**Description:** `CorsConfig::dev()` allows all origins; could be accidentally used in production.
+
+**Impact:** Cross-origin attacks if used in production.
+
+**Recommendation:** Add environment checks to prevent dev CORS in production.
+
+---
+
+### L-6: No Maximum Length on Proposal Title/Description
+
+- **Files:** `core/core/rpc/src/governance_rpc.rs:189-210`, `core/core/governance/src/lib.rs:227-267`
+- **Severity:** Low
+- **Category:** Input Validation / DoS
+
+**Description:** No max length on proposal strings.
+
+**Impact:** Memory exhaustion via oversized proposals.
+
+**Recommendation:** Add length limits (e.g., 256 chars title, 10K chars description).
+
+---
+
+### L-7: No Gas Price/Limit Validation on Submitted Transactions
+
+- **File:** `core/core/rpc/src/lib.rs:253-275`
+- **Severity:** Low
 - **Category:** Input Validation
 
-**Description:**  
-The `find_peers.py` script calls administrative RPC methods:
-```python
-methods_to_try = ["admin_peers", "net_peers", "parity_netPeers"]
-```
-While these are hardcoded (not user-controlled), the script calls them against a public RPC node. If the node has these methods enabled, it exposes internal network topology.
+**Description:** No validation on gas_price, gas_limit, or value fields.
 
-**Impact:** Information disclosure of peer network topology, IP addresses, and node versions.
+**Impact:** Malformed transactions could flood the mempool.
 
-**Recommendation:** This script should only run against local/controlled nodes, not production validators. Add a warning or restrict to localhost URLs.
+**Recommendation:** Validate gas_price >= minimum and gas_limit within bounds.
 
 ---
 
-### FINDING-19: RPC Endpoint Logging Truncates Data but Still Logs Payloads
+## INFORMATIONAL Findings
 
-- **File:** `ops/deploy/mock-rpc/server.js`, line 199
-- **Severity:** Medium
-- **Category:** Information Disclosure
+### I-1: Simplified Erasure Coding (XOR Only)
 
-**Description:**  
-```javascript
-console.log(`[RPC] ${method}`, JSON.stringify(params).slice(0, 100));
-```
-While truncated to 100 characters, this could still log sensitive data like transaction parameters, signed data, or private method calls.
+- **File:** `core/core/da/src/lib.rs:247-272`
+- **Category:** Implementation Completeness
+- **Note:** XOR parity provides no real redundancy. Implement Reed-Solomon before production.
 
-**Impact:** Sensitive transaction data could appear in server logs.
+### I-2: ASR VRF Is a Hash, Not a True VRF
 
-**Recommendation:** Exclude sensitive methods (like `eth_sendRawTransaction`) from detailed param logging, or log only the method name.
-
----
-
-### FINDING-20: Mock RPC Server Has No Authentication
-
-- **File:** `ops/deploy/mock-rpc/server.js`
-- **Severity:** Medium
-- **Category:** Missing Authentication
-
-**Description:**  
-The mock RPC server accepts all requests without any authentication. While it's a mock, it binds to `0.0.0.0` (line 638), making it accessible on all network interfaces.
-
-**Impact:** If deployed on a machine with a public IP (even accidentally), anyone can interact with the mock chain, register workers, and submit jobs.
-
-**Recommendation:** Bind to `127.0.0.1` by default. Add a warning if binding to `0.0.0.0`. Consider requiring an API key for non-read methods.
-
----
-
-### FINDING-21: MockSandbox Provides No Security Isolation
-
-- **File:** `core/deai/sandbox.py`, lines 273-289
-- **Severity:** Medium
-- **Category:** Security Control Bypass
-
-**Description:**  
-The `MockSandbox` class provides zero isolation:
-```python
-class MockSandbox:
-    def execute(self, **kwargs) -> ExecutionResult:
-        logger.warning("Using MockSandbox - NO SECURITY ISOLATION!")
-        return ExecutionResult(status=ExecutionStatus.SUCCESS, ...)
-```
-The `create_sandbox()` factory silently falls back to `MockSandbox` if Docker is unavailable. The `--no-sandbox` CLI flag explicitly enables this. In mock mode, untrusted code from the blockchain would execute without sandboxing.
-
-**Impact:** Arbitrary code execution on the worker node if sandbox falls back to mock mode.
-
-**Recommendation:**
-- In production, refuse to start if Docker sandbox is unavailable.
-- Log a CRITICAL-level warning if mock sandbox is used.
-- Add a configuration option to prevent fallback to mock sandbox.
-
----
-
-### FINDING-22: Rust Bridge u128-to-u64 Truncation
-
-- **File:** `core/bridge/rust-python/src/lib.rs`, lines 49, 64-65, 189, 209-211
-- **Severity:** Low
-- **Category:** Data Integrity / FFI Boundary
-
-**Description:**  
-The bridge stores values as `u128` internally but exposes them to Python as `u64`:
-```rust
-fn new(address: String, stake: u64) -> Self {
-    PyValidator { address, stake: stake as u128, ... }
-}
-fn stake(&self) -> PyResult<u64> {
-    Ok(self.stake as u64)
-}
-```
-Similarly for `PyTransaction::value`. If a stake or value exceeds `u64::MAX`, the conversion silently truncates.
-
-**Impact:** Values above ~18.4 quintillion (u64 max) would be silently truncated, potentially causing incorrect stake calculations or transaction values.
-
-**Recommendation:** Use Python's arbitrary-precision integers. Return the `u128` as a string or use `num-bigint` with PyO3's BigInt support.
-
----
-
-### FINDING-23: VRF Seed Truncation to 4 Bytes in ASR
-
-- **File:** `core/deai/asr.py`, line 235
-- **Severity:** Low
+- **File:** `core/core/asr/src/lib.rs:465-473`
 - **Category:** Cryptographic Weakness
+- **Note:** Use the actual VRF module from `core/core/vrf/`.
 
-**Description:**  
-The VRF-based selection uses only the first 4 bytes of the seed:
-```python
-np.random.seed(int.from_bytes(vrf_seed[:4], 'big'))
-```
-This provides only 2^32 (~4 billion) possible selections, making the VRF output predictable if the seed is partially known.
+### I-3: RPC Example Uses Wrong Function Signature
 
-**Impact:** Reduced randomness in worker selection. An attacker who can predict or influence 4 bytes of the VRF seed could manipulate worker assignment.
+- **File:** `core/core/rpc/examples/state_rpc_integration.rs:113`
+- **Category:** API Inconsistency
+- **Note:** Example won't compile; needs updating.
 
-**Recommendation:** Use all bytes of the VRF seed. Consider using `numpy.random.Generator` with `SeedSequence` which accepts arbitrarily large seeds, or use the full seed with a CSPRNG.
+### I-4: Sync Task Creates Disconnected Channel
 
----
+- **File:** `core/core/node/src/lib.rs:182`
+- **Category:** Dead Code
+- **Note:** Sync loop never receives messages. Integrate with `NetworkManager`.
 
-### FINDING-24: No CSRF Protection in Faucet Endpoints
+### I-5: `Relaxed` Ordering for All Atomics in Metrics
 
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/faucet/index.js`, lines 67-95
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/faucet/server.js`, lines 33-51
-- **Severity:** Low
-- **Category:** CSRF
-
-**Description:**  
-Both faucet implementations use `GET` requests for state-changing operations (sending tokens). The `index.js` variant enables CORS with `app.use(cors())`, allowing any origin. Combined with GET requests, this means any website can trigger faucet requests via `<img>` tags or `fetch()`.
-
-**Impact:** A malicious website could drain the faucet by triggering requests from a victim's browser, bypassing rate limits tied to the faucet server's perspective.
-
-**Recommendation:**
-- Use `POST` for state-changing operations.
-- Restrict CORS to known frontend origins.
-- Add CSRF tokens for authenticated endpoints.
+- **File:** `core/core/metrics/src/lib.rs:13`
+- **Category:** Correctness
+- **Note:** Acceptable for metrics; document the design choice.
 
 ---
 
-### FINDING-25: No Request ID Validation in SDK RPC Clients
-
-- **File:** `core/docs/sdk-types/staking-client.ts`, line 39
-- **File:** `core/docs/sdk-types/governance-client.ts`, line 39
-- **Severity:** Low
-- **Category:** Response Validation
-
-**Description:**  
-The RPC clients use `Date.now()` as the request ID:
-```typescript
-id: Date.now(),
-```
-But never validate that the response ID matches the request ID. In a multiplexed or proxied environment, responses could be correlated incorrectly.
-
-**Impact:** In edge cases with concurrent requests, a response for one request could be incorrectly attributed to another.
-
-**Recommendation:** Use a monotonically incrementing counter and validate the response `id` field matches.
-
----
-
-### FINDING-26: SDK RPC Error Message Directly Exposed to Users
-
-- **File:** `core/docs/sdk-types/staking-client.ts`, line 45
-- **File:** `core/docs/sdk-types/governance-client.ts`, line 45
-- **Severity:** Low
-- **Category:** Information Disclosure
-
-**Description:**  
-RPC error messages are thrown directly:
-```typescript
-throw new Error(`RPC Error: ${data.error.message}`);
-```
-
-**Impact:** Internal RPC error details (potentially including stack traces, internal state, or node configuration) could be exposed to end users.
-
-**Recommendation:** Log the full error server-side and return a sanitized error message to the client.
-
----
-
-### FINDING-27: TypeScript SDK Does Not Validate Address Format
-
-- **File:** `core/docs/sdk-types/staking-client.ts`, lines 59, 106, 115, 125-129
-- **File:** `core/docs/sdk-types/governance-client.ts`, lines 116-120, 139-142
-- **Severity:** Low
-- **Category:** Input Validation
-
-**Description:**  
-The SDK client methods accept `address` parameters as plain `string` without validating they are valid Ethereum addresses (checksum, length, format).
-
-**Impact:** Invalid addresses would result in wasted gas on failed transactions, or could trigger unexpected contract behavior.
-
-**Recommendation:** Validate addresses using `ethers.utils.isAddress()` or `viem.isAddress()` before making RPC calls.
-
----
-
-### FINDING-28: UI Stores Faucet Auth Credentials in localStorage
-
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/ui/index.html`, lines 293-298
-- **Severity:** Low
-- **Category:** Credential Storage
-
-**Description:**  
-Basic auth credentials are stored in `localStorage`:
-```javascript
-localStorage.setItem('faucetAuthUser', u);
-localStorage.setItem('faucetAuthPass', p);
-```
-
-**Impact:** Any XSS vulnerability in the UI would allow an attacker to steal faucet credentials. `localStorage` is accessible to all scripts on the same origin.
-
-**Recommendation:** Use `sessionStorage` at minimum (cleared on tab close), or preferably use HTTP-only cookies set by the server.
-
----
-
-### FINDING-29: Solidity Contract Missing Zero-Address Checks
-
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/deployer/contracts/AXX.sol`, lines 32, 53-56
-- **Severity:** Low
-- **Category:** Smart Contract Safety
-
-**Description:**  
-The `transfer` and `_transfer` functions do not check for `address(0)`:
-```solidity
-function _transfer(address from, address to, uint256 amount) internal {
-    require(balanceOf[from] >= amount, "balance");
-    unchecked { balanceOf[from] -= amount; balanceOf[to] += amount; }
-}
-```
-
-**Impact:** Tokens can be accidentally burned by transferring to `address(0)`, or balances could be artificially inflated.
-
-**Recommendation:** Add `require(to != address(0), "transfer to zero")` and `require(from != address(0), "transfer from zero")`.
-
----
-
-### FINDING-30: Dependency Version Ranges Allow Vulnerable Versions
-
-- **File:** `core/deai/requirements.txt`
-- **Severity:** Informational
-- **Category:** Dependency Management
-
-**Description:**  
-Dependencies use minimum version pins with `>=` which allows any future version:
-```
-requests>=2.28.0
-web3>=6.0.0
-```
-Known CVEs exist in older versions of some of these packages.
-
-**Impact:** Depending on the resolved version, known vulnerabilities could be present.
-
-**Recommendation:** Pin exact versions or use upper-bound ranges (e.g., `requests>=2.31.0,<3.0`). Run `pip audit` or `safety check` regularly. Consider using a lockfile.
-
----
-
-### FINDING-31: Missing eth_account Dependency in requirements.txt
-
-- **File:** `core/deai/requirements.txt`
-- **Severity:** Informational
-- **Category:** Dependency Management
-
-**Description:**  
-The `wallet_manager.py` imports `from eth_account import Account`, but `eth_account` is not listed in `requirements.txt`. It's likely installed as a transitive dependency of `web3`, but this is fragile.
-
-**Impact:** If `web3` changes its dependency tree, `eth_account` may not be installed, causing an import error at runtime.
-
-**Recommendation:** Explicitly add `eth-account` to `requirements.txt`.
-
----
-
-### FINDING-32: generate-genesis.py Uses subprocess.run Without Shell=False Verification
-
-- **File:** `ops/deploy/scripts/generate-genesis.py`, line 17
-- **Severity:** Informational
-- **Category:** Command Injection (Low Risk)
-
-**Description:**  
-```python
-sys.exit(subprocess.run([sys.executable, str(CANONICAL)] + sys.argv[1:]).returncode)
-```
-While `sys.argv` is passed as a list (not through shell), and `CANONICAL` is derived from a known path, the script forwards all command-line arguments to the subprocess. If a user passes specially crafted arguments, they could be interpreted by the target script.
-
-**Impact:** Low risk since no shell is involved and the target is a known Python script. However, argument injection into the downstream script is possible.
-
-**Recommendation:** Validate or sanitize `sys.argv` arguments before forwarding.
-
----
-
-### FINDING-33: Docker Sandbox Image Not Pinned to Digest
-
-- **File:** `core/deai/sandbox.py`, line 70
-- **Severity:** Informational
-- **Category:** Supply Chain Security
-
-**Description:**  
-The sandbox uses a tag-based image reference:
-```python
-DEFAULT_IMAGE = "python:3.11-slim"
-```
-Docker tags are mutable — a compromised Docker Hub account could push a malicious image under this tag.
-
-**Impact:** A supply chain attack could replace the sandbox base image with a malicious one, compromising all job executions.
-
-**Recommendation:** Pin the image to a specific digest:
-```python
-DEFAULT_IMAGE = "python:3.11-slim@sha256:<known-digest>"
-```
-
----
-
-### FINDING-34: sys.path Manipulation in Multiple Python Files
-
-- **File:** `core/deai/worker_node.py`, line 20
-- **File:** `core/deai/find_peers.py`, line 3
-- **File:** `core/deai/test_worker_connection.py`, line 3
-- **File:** `core/deai/test_job_execution.py`, line 7
-- **Severity:** Informational
-- **Category:** Code Quality / Import Safety
-
-**Description:**  
-Multiple files modify `sys.path` at runtime:
-```python
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-```
-
-**Impact:** In a malicious environment, this could allow local directory Python files to shadow standard library modules (module hijacking). Low practical risk in this context.
-
-**Recommendation:** Use proper Python packaging with `setup.py` or `pyproject.toml` and install the package in development mode (`pip install -e .`).
-
----
-
-## Summary of Recommendations (Priority Order)
-
-1. **Immediate (Critical):**
-   - Remove the hardcoded Hardhat private key fallback from `deploy_token.js`
-   - Remove the hardcoded password from `setup_validator.sh`; use SSH key auth
-   - Switch all RPC connections to HTTPS/TLS
-   - Refactor `ContractManager` to avoid passing raw private keys as strings
-
-2. **Short-term (High):**
-   - Move all secrets out of docker-compose files into environment variables or Docker secrets
-   - Remove `VPS_CONNECTION.txt` from version control
-   - Add rate limiting to the `server.js` faucet variant
-   - Remove user-controlled `amount` parameter from the ERC-20 faucet endpoint
-   - Implement proper keccak256 in mock RPC's `web3_sha3`
-
-3. **Medium-term (Medium):**
-   - Restrict CORS to known domains
-   - Enforce sandbox mode — refuse to start without Docker in production
-   - Fix mutable default arguments
-   - Improve keystore file permissions handling
-   - Securely delete plaintext keys after migration
-
-4. **Long-term (Low/Informational):**
-   - Pin Docker images to digests
-   - Pin dependency versions
-   - Validate Ethereum addresses in SDK
-   - Use proper Python packaging instead of `sys.path` manipulation
-   - Implement full VRF seed usage in ASR
-
----
-
-*End of Security Audit Report*
+## Summary
+
+| Severity       | Count |
+|----------------|-------|
+| Critical       | 4     |
+| High           | 6     |
+| Medium         | 8     |
+| Low            | 7     |
+| Informational  | 5     |
+| **Total**      | **30** |
+
+The most pressing issues are the **complete absence of authentication and authorization on all state-mutating RPC endpoints** (C-1 through C-4, H-1). These Critical findings must be addressed before any testnet or mainnet deployment.
