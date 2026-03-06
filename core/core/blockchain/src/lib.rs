@@ -216,11 +216,12 @@ impl PersistentBlockchain {
     }
 
     /// Initialize blockchain with genesis block
-    pub async fn init_with_genesis(&self) {
+    pub async fn init_with_genesis(&self) -> Result<()> {
         if !self.store.block_exists(0).unwrap_or(false) {
-            let genesis = Blockchain::create_genesis();
-            let _ = self.store.put_block(&genesis);
+            let genesis = Blockchain::create_genesis()?;
+            self.store.put_block(&genesis)?;
         }
+        Ok(())
     }
 
     /// Flush all pending writes to disk
@@ -290,22 +291,23 @@ impl Blockchain {
     }
 
     /// Initialize blockchain with genesis block
-    pub async fn init_with_genesis(&self) {
+    pub async fn init_with_genesis(&self) -> Result<()> {
         let mut blocks = self.blocks.write().await;
         if blocks.is_empty() {
-            let genesis = Self::create_genesis();
+            let genesis = Self::create_genesis()?;
             blocks.insert(0, genesis);
         }
+        Ok(())
     }
 
     /// Creates genesis block from canonical mainnet config (1T AXX, axionaxius, validators).
     /// Uses the genesis crate so block hash, state_root, and timestamp match genesis.json.
-    pub fn create_genesis() -> Block {
+    pub fn create_genesis() -> Result<Block> {
         let g = GenesisGenerator::mainnet();
-        Block {
+        Ok(Block {
             number: g.number,
-            hash: parse_hex_hash(&g.hash).expect("genesis crate must produce valid 64-char hex hashes"),
-            parent_hash: parse_hex_hash(&g.parent_hash).expect("genesis crate must produce valid 64-char hex hashes"),
+            hash: parse_hex_hash(&g.hash).map_err(|e| BlockchainError::TransactionValidation(e))?,
+            parent_hash: parse_hex_hash(&g.parent_hash).map_err(|e| BlockchainError::TransactionValidation(e))?,
             timestamp: g.timestamp,
             proposer: g
                 .config
@@ -314,10 +316,10 @@ impl Blockchain {
                 .map(|v| v.address.clone())
                 .unwrap_or_else(|| "axionaxius".to_string()),
             transactions: vec![],
-            state_root: parse_hex_hash(&g.state_root).expect("genesis crate must produce valid 64-char hex hashes"),
+            state_root: parse_hex_hash(&g.state_root).map_err(|e| BlockchainError::TransactionValidation(e))?,
             gas_used: 0,
             gas_limit: 30_000_000,
-        }
+        })
     }
 }
 
@@ -369,7 +371,7 @@ mod tests {
     async fn test_add_block() {
         let blockchain = Blockchain::new(BlockchainConfig::default());
 
-        let genesis = Blockchain::create_genesis();
+        let genesis = Blockchain::create_genesis().unwrap();
         let result = blockchain.add_block(genesis).await;
 
         // Genesis block number is 0, so after adding it, latest should be 0
@@ -396,7 +398,7 @@ mod tests {
 
     #[test]
     fn test_create_genesis() {
-        let genesis = Blockchain::create_genesis();
+        let genesis = Blockchain::create_genesis().unwrap();
         assert_eq!(genesis.number, 0);
         assert_eq!(genesis.transactions.len(), 0);
     }
@@ -434,14 +436,14 @@ mod tests {
     #[tokio::test]
     async fn test_init_with_genesis() {
         let blockchain = Blockchain::new(BlockchainConfig::default());
-        blockchain.init_with_genesis().await;
+        blockchain.init_with_genesis().await.unwrap();
 
         let genesis = blockchain.get_block(0).await;
         assert!(genesis.is_some());
         assert_eq!(genesis.unwrap().number, 0);
 
         // Calling again should not change anything
-        blockchain.init_with_genesis().await;
+        blockchain.init_with_genesis().await.unwrap();
         let genesis2 = blockchain.get_block(0).await;
         assert!(genesis2.is_some());
     }

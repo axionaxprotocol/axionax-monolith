@@ -48,6 +48,12 @@ pub enum GovernanceError {
 
     #[error("Quorum not reached: required {required}%, got {actual}%")]
     QuorumNotReached { required: u64, actual: u64 },
+
+    #[error("Title too long: {len} chars (max: {max})")]
+    TitleTooLong { len: usize, max: usize },
+
+    #[error("Description too long: {len} chars (max: {max})")]
+    DescriptionTooLong { len: usize, max: usize },
 }
 
 pub type Result<T> = std::result::Result<T, GovernanceError>;
@@ -232,6 +238,14 @@ impl Governance {
         description: String,
         proposal_type: ProposalType,
     ) -> Result<u64> {
+        if title.len() > 256 {
+            return Err(GovernanceError::TitleTooLong { len: title.len(), max: 256 });
+        }
+
+        if description.len() > 10_000 {
+            return Err(GovernanceError::DescriptionTooLong { len: description.len(), max: 10_000 });
+        }
+
         if proposer_stake < self.config.min_proposal_stake {
             return Err(GovernanceError::InsufficientStake {
                 required: self.config.min_proposal_stake,

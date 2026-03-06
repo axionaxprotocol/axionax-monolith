@@ -179,7 +179,12 @@ impl TransactionPool {
         }
 
         // Check nonce
-        let expected_nonce = queue.current_nonce + queue.pending.len() as u64;
+        let expected_nonce = queue.current_nonce
+            .checked_add(queue.pending.len() as u64)
+            .ok_or(PoolError::NonceTooHigh {
+                expected: queue.current_nonce,
+                actual: tx.nonce,
+            })?;
 
         if tx.nonce < queue.current_nonce {
             stats.total_rejected += 1;

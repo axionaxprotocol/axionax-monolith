@@ -271,8 +271,9 @@ impl PyBlockchain {
         let chain_clone = chain.clone();
         runtime.block_on(async move {
             let bc = chain_clone.read().await;
-            bc.init_with_genesis().await;
-        });
+            bc.init_with_genesis().await
+                .map_err(|e| PyValueError::new_err(format!("Genesis init failed: {}", e)))
+        })?;
 
         Ok(PyBlockchain { runtime, chain })
     }

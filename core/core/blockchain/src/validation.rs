@@ -172,10 +172,12 @@ impl BlockValidator {
 
     /// Validate block size
     fn validate_block_size(&self, block: &Block) -> Result<()> {
-        // Rough estimate of block size
-        let size = 32 + 32 + 8 + 32 + 8 + 8 + // Basic block fields
-                   block.proposer.len() +
-                   block.transactions.len() * 150; // Approximate tx size
+        let header_size = 32 + 32 + 8 + 32 + 8 + 8 + block.proposer.len();
+        let tx_size: usize = block.transactions.iter().map(|tx| {
+            32 + tx.from.len() + tx.to.len() + 16 + 16 + 8 + 8 + tx.data.len()
+                + tx.signature.len() + tx.signer_public_key.len()
+        }).sum();
+        let size = header_size + tx_size;
 
         if size > self.config.max_block_size {
             return Err(ValidationError::BlockTooLarge {
@@ -243,6 +245,13 @@ impl TransactionValidator {
     pub fn validate_transaction(&self, tx: &Transaction) -> Result<()> {
         debug!("Validating transaction {:?}", &tx.hash[..8]);
 
+        if tx.data.len() > 131_072 {
+            return Err(ValidationError::BlockTooLarge {
+                size: tx.data.len(),
+                max: 131_072,
+            });
+        }
+
         self.validate_address(&tx.from)?;
         self.validate_address(&tx.to)?;
 
@@ -260,9 +269,12 @@ impl TransactionValidator {
             });
         }
 
-        if tx.value == u128::MAX {
-            return Err(ValidationError::ValueOverflow);
-        }
+        let gas_cost = tx.gas_price
+            .checked_mul(tx.gas_limit as u128)
+            .ok_or(ValidationError::ValueOverflow)?;
+        tx.value
+            .checked_add(gas_cost)
+            .ok_or(ValidationError::ValueOverflow)?;
 
         if tx.hash == [0u8; 32] {
             return Err(ValidationError::InvalidSignature);

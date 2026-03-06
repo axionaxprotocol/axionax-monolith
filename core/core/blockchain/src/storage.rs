@@ -128,7 +128,11 @@ impl BlockStore for SledBlockStore {
     fn get_latest_block_number(&self) -> StorageResult<u64> {
         match self.meta_tree.get(b"latest_block")? {
             Some(data) => {
-                let bytes: [u8; 8] = data.as_ref().try_into().unwrap_or([0; 8]);
+                let bytes: [u8; 8] = data.as_ref().try_into().map_err(|_| {
+                    StorageError::Database(sled::Error::ReportableBug(
+                        "corrupt latest_block metadata: expected 8 bytes".to_string(),
+                    ))
+                })?;
                 Ok(u64::from_be_bytes(bytes))
             }
             None => Ok(0),

@@ -133,7 +133,7 @@ impl ConsensusEngine {
 
     /// Calculates fraud detection probability
     pub fn fraud_detection_probability(fraud_rate: f64, sample_size: usize) -> f64 {
-        1.0 - (1.0 - fraud_rate).powi(sample_size as i32)
+        1.0 - (1.0 - fraud_rate).powf(sample_size as f64)
     }
 
     fn generate_samples(

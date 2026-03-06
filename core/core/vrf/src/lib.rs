@@ -140,7 +140,7 @@ impl VRFKeyPair {
     }
 
     /// Get secret key bytes
-    pub fn secret_key_bytes(&self) -> [u8; 32] {
+    pub(crate) fn secret_key_bytes(&self) -> [u8; 32] {
         self.signing_key.to_bytes()
     }
 }

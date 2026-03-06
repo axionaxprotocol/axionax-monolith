@@ -21,8 +21,8 @@ pub struct NetworkManager {
     swarm: Swarm<AxionaxBehaviour>,
     config: NetworkConfig,
     local_peer_id: PeerId,
-    _message_tx: mpsc::UnboundedSender<NetworkMessage>,
-    message_rx: mpsc::UnboundedReceiver<NetworkMessage>,
+    _message_tx: mpsc::Sender<NetworkMessage>,
+    message_rx: mpsc::Receiver<NetworkMessage>,
 }
 
 /// Network events
@@ -104,8 +104,8 @@ impl NetworkManager {
             .with_swarm_config(|cfg| cfg.with_idle_connection_timeout(config.idle_timeout))
             .build();
 
-        // Create message channels
-        let (message_tx, message_rx) = mpsc::unbounded_channel();
+        // Create message channels (bounded to apply backpressure)
+        let (message_tx, message_rx) = mpsc::channel(1000);
 
         Ok(Self {
             swarm,

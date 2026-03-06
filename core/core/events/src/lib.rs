@@ -8,7 +8,7 @@
 //! - Peer events (connect, disconnect)
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use tokio::sync::{broadcast, RwLock};
@@ -148,7 +148,7 @@ pub struct EventBus {
     subscriptions: Arc<RwLock<HashMap<u64, Vec<EventType>>>>,
 
     /// Event history (recent events)
-    history: Arc<RwLock<Vec<Event>>>,
+    history: Arc<RwLock<VecDeque<Event>>>,
 
     /// Max history size
     max_history: usize,
@@ -163,7 +163,7 @@ impl EventBus {
             next_id: AtomicU64::new(1),
             next_sub_id: AtomicU64::new(1),
             subscriptions: Arc::new(RwLock::new(HashMap::new())),
-            history: Arc::new(RwLock::new(Vec::new())),
+            history: Arc::new(RwLock::new(VecDeque::new())),
             max_history: 1000,
         }
     }
@@ -175,7 +175,7 @@ impl EventBus {
             event_type: event_type.clone(),
             timestamp: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
-                .unwrap()
+                .unwrap_or_default()
                 .as_millis() as u64,
             block_number: None,
             tx_hash: None,
@@ -188,9 +188,9 @@ impl EventBus {
         // Add to history
         {
             let mut history = self.history.write().await;
-            history.push(event.clone());
+            history.push_back(event.clone());
             if history.len() > self.max_history {
-                history.remove(0);
+                history.pop_front();
             }
         }
 
@@ -206,7 +206,7 @@ impl EventBus {
         event.id = self.next_id.fetch_add(1, Ordering::SeqCst);
         event.timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or_default()
             .as_millis() as u64;
 
         let event_id = event.id;
@@ -215,9 +215,9 @@ impl EventBus {
         // Add to history
         {
             let mut history = self.history.write().await;
-            history.push(event.clone());
+            history.push_back(event.clone());
             if history.len() > self.max_history {
-                history.remove(0);
+                history.pop_front();
             }
         }
 
@@ -294,7 +294,7 @@ impl EventBus {
         tx_count: usize,
         proposer: String,
     ) -> u64 {
-        let mut event = Event {
+        let event = Event {
             id: 0,
             event_type: EventType::NewBlock,
             timestamp: 0,

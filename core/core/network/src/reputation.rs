@@ -292,7 +292,7 @@ pub struct ReputationStats {
 fn current_timestamp() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .unwrap()
+        .unwrap_or_default()
         .as_secs()
 }
 
