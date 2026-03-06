@@ -49,11 +49,11 @@ impl ECVRF {
         Self { keypair }
     }
 
-    /// Creates ECVRF from existing secret key bytes
+    /// Creates ECVRF from a 32-byte seed (MiniSecretKey).
     pub fn from_secret_bytes(secret: &[u8; 32]) -> Result<Self, String> {
-        let secret_key = SecretKey::from_bytes(secret)
-            .map_err(|e| format!("Invalid secret key: {}", e))?;
-        let keypair = Keypair::from(secret_key);
+        let mini = schnorrkel::MiniSecretKey::from_bytes(secret)
+            .map_err(|e| format!("Invalid secret seed: {}", e))?;
+        let keypair = mini.expand_to_keypair(schnorrkel::ExpansionMode::Ed25519);
         Ok(Self { keypair })
     }
 
