@@ -90,6 +90,13 @@ class WalletManager:
                 private_key = keystore["private_key"]
                 account = Account.from_key(private_key)
                 
+                # Securely overwrite the original file before saving encrypted version
+                file_size = os.path.getsize(self.key_file)
+                with open(self.key_file, "wb") as f:
+                    f.write(os.urandom(file_size))
+                    f.flush()
+                    os.fsync(f.fileno())
+                
                 # Encrypt and save
                 self._save_encrypted_keystore(private_key)
                 print("✅ Migrated to encrypted keystore!")
@@ -122,20 +129,19 @@ class WalletManager:
         # Encrypt using eth_account (produces Web3 Secret Storage compatible format)
         encrypted = Account.encrypt(private_key, password)
         
-        with open(self.key_file, "w") as f:
-            json.dump(encrypted, f, indent=2)
-        
-        # Secure file permissions (Unix only)
         try:
-            os.chmod(self.key_file, 0o600)
-        except (OSError, AttributeError):
-            pass  # Windows doesn't support chmod the same way
+            fd = os.open(self.key_file, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, "w") as f:
+                json.dump(encrypted, f, indent=2)
+        except OSError:
+            with open(self.key_file, "w") as f:
+                json.dump(encrypted, f, indent=2)
     
     def get_address(self) -> str:
         """Get the wallet address"""
         return self.account.address
     
-    def get_private_key(self) -> str:
+    def _get_private_key(self) -> str:
         """
         Get private key (use with caution!)
         Only use this for signing operations, never log or transmit.

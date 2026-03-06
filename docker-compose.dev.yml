@@ -1,8 +1,6 @@
 # Axionax Core Universe - Full Stack Development
 # Runs blockchain core + web services together
 
-version: '3.8'
-
 services:
   # ============================================
   # 🦀 Blockchain Node (Primary)

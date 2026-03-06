@@ -20,7 +20,9 @@ class AxionaxRpcClient:
                 stacklevel=2,
             )
 
-    def _call(self, method: str, params: List[Any] = []) -> Any:
+    def _call(self, method: str, params: Optional[List[Any]] = None) -> Any:
+        if params is None:
+            params = []
         self.id_counter += 1
         payload = {
             "jsonrpc": "2.0",
@@ -56,7 +58,9 @@ class AxionaxRpcClient:
         result = self._call("eth_getBalance", [address, "latest"])
         return int(result, 16) if result else 0
 
-    def get_logs(self, from_block: str, address: Optional[str] = None, topics: List[str] = []) -> List[Dict]:
+    def get_logs(self, from_block: str, address: Optional[str] = None, topics: Optional[List[str]] = None) -> List[Dict]:
+        if topics is None:
+            topics = []
         params = [{
             "fromBlock": from_block,
             "toBlock": "latest",

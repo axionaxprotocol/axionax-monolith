@@ -49,7 +49,7 @@ RUN apt-get update && \
 RUN cargo build --release --example full_node -p node
 
 # Stage 2: Final image
-FROM debian:bullseye-slim
+FROM debian:bookworm-slim
 
 # Install OpenSSL, which is dynamically linked
 RUN apt-get update && apt-get install -y libssl-dev ca-certificates && rm -rf /var/lib/apt/lists/*
@@ -57,8 +57,15 @@ RUN apt-get update && apt-get install -y libssl-dev ca-certificates && rm -rf /v
 # Copy the built binary from the builder stage
 COPY --from=builder /axionax-node/target/release/examples/full_node /usr/local/bin/axionax-node
 
+RUN useradd --system --uid 1000 --no-create-home axionax
+USER axionax
+
 # Expose the RPC port
 EXPOSE 8545
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -sf http://localhost:8545 -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' || exit 1
 
 # Set the entrypoint
 CMD ["/usr/local/bin/axionax-node"]
