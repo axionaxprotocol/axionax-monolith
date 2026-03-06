@@ -606,7 +606,7 @@ wss.on('connection', (ws) => {
       console.log('[WebSocket]', data.method);
 
       if (data.method === 'eth_subscribe') {
-        const subId = '0x' + Math.random().toString(16).substr(2, 16);
+        const subId = '0x' + Math.random().toString(16).slice(2, 18);
         const subs = subscriptions.get(ws) || [];
         subs.push({ id: subId, type: data.params[0] });
         subscriptions.set(ws, subs);
