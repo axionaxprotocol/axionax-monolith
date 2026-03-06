@@ -542,4 +542,28 @@ mod tests {
         let validator = staking.get_validator("validator1").await.unwrap();
         assert_eq!(validator.unclaimed_rewards, 0);
     }
+
+    #[tokio::test]
+    async fn test_partial_unstake() {
+        let staking = Staking::new(default_config());
+        staking.stake("validator1".to_string(), 5000).await.unwrap();
+
+        // Partial unstake of 2000
+        staking.unstake("validator1".to_string(), 2000).await.unwrap();
+
+        let validator = staking.get_validator("validator1").await.unwrap();
+        // Stake should be reduced by the unstaked amount
+        assert_eq!(validator.stake, 3000);
+        assert_eq!(validator.pending_unstake, 2000);
+
+        // Advance past lock period and withdraw
+        staking.set_current_block(200).await;
+        let withdrawn = staking.withdraw("validator1".to_string()).await.unwrap();
+        assert_eq!(withdrawn, 2000);
+
+        // Remaining stake should still be there
+        let validator = staking.get_validator("validator1").await.unwrap();
+        assert_eq!(validator.stake, 3000);
+        assert_eq!(validator.pending_unstake, 0);
+    }
 }

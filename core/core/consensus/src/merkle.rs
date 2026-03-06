@@ -348,4 +348,11 @@ mod tests {
         
         assert!(verify_sample_proofs(&proofs, &tree.root()));
     }
+
+    #[test]
+    fn test_deserialize_proofs_rejects_huge_num_proofs() {
+        let mut data = Vec::new();
+        data.extend_from_slice(&u32::MAX.to_le_bytes());
+        assert!(deserialize_proofs(&data).is_none());
+    }
 }

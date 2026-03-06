@@ -539,4 +539,87 @@ mod tests {
             assert!(result.is_some());
         }
     }
+
+    #[test]
+    fn test_transaction_signing_and_verification() {
+        let signing_key = crypto::signature::generate_keypair();
+        let verifying_key = signing_key.verifying_key();
+        let address = crypto::signature::address_from_public_key(&verifying_key);
+
+        let mut tx = Transaction {
+            hash: [0u8; 32],
+            from: address.clone(),
+            to: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef".to_string(),
+            value: 1000,
+            gas_price: 20_000_000_000,
+            gas_limit: 21_000,
+            nonce: 0,
+            data: vec![],
+            signature: vec![],
+            signer_public_key: vec![],
+        };
+
+        // Unsigned tx should not verify
+        assert!(!tx.is_signed());
+        assert!(!tx.verify_signature());
+
+        // Sign the transaction
+        let payload = tx.signing_payload();
+        tx.signature = crypto::signature::sign(&signing_key, &payload);
+        tx.signer_public_key = verifying_key.to_bytes().to_vec();
+
+        // Now it should verify
+        assert!(tx.is_signed());
+        assert!(tx.verify_signature());
+
+        // Tamper with from address — should fail verification
+        let mut tampered = tx.clone();
+        tampered.from = "0x0000000000000000000000000000000000000000".to_string();
+        assert!(!tampered.verify_signature());
+
+        // Tamper with signature — should fail
+        let mut bad_sig = tx.clone();
+        bad_sig.signature[0] ^= 0xFF;
+        assert!(!bad_sig.verify_signature());
+    }
+
+    #[tokio::test]
+    async fn test_parent_hash_validation() {
+        let blockchain = Blockchain::new(BlockchainConfig::default());
+
+        // Init with genesis first
+        blockchain.init_with_genesis().await.unwrap();
+
+        // Get genesis hash
+        let genesis = blockchain.get_block(0).await.unwrap();
+        let genesis_hash = genesis.hash;
+
+        // Block with correct parent hash should succeed
+        let good_block = Block {
+            number: 1,
+            hash: [1u8; 32],
+            parent_hash: genesis_hash,
+            timestamp: 100,
+            proposer: "v1".to_string(),
+            transactions: vec![],
+            state_root: [1u8; 32],
+            gas_used: 0,
+            gas_limit: 30_000_000,
+        };
+        assert!(blockchain.add_block(good_block).await.is_ok());
+
+        // Block with wrong parent hash should fail
+        let bad_block = Block {
+            number: 2,
+            hash: [2u8; 32],
+            parent_hash: [99u8; 32],
+            timestamp: 200,
+            proposer: "v1".to_string(),
+            transactions: vec![],
+            state_root: [2u8; 32],
+            gas_used: 0,
+            gas_limit: 30_000_000,
+        };
+        assert!(blockchain.add_block(bad_block).await.is_err());
+    }
 }
