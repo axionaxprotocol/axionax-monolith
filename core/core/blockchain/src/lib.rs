@@ -216,11 +216,12 @@ impl PersistentBlockchain {
     }
 
     /// Initialize blockchain with genesis block
-    pub async fn init_with_genesis(&self) {
+    pub async fn init_with_genesis(&self) -> Result<()> {
         if !self.store.block_exists(0).unwrap_or(false) {
-            let genesis = Blockchain::create_genesis();
-            let _ = self.store.put_block(&genesis);
+            let genesis = Blockchain::create_genesis()?;
+            self.store.put_block(&genesis)?;
         }
+        Ok(())
     }
 
     /// Flush all pending writes to disk
@@ -261,6 +262,17 @@ impl Blockchain {
             });
         }
 
+        // Enforce parent hash linkage for all blocks after genesis
+        if block.number > 0 {
+            if let Some(prev_block) = blocks.get(&(*latest)) {
+                if block.parent_hash != prev_block.hash {
+                    return Err(BlockchainError::InvalidParentHash {
+                        block_number: block.number,
+                    });
+                }
+            }
+        }
+
         blocks.insert(block.number, block);
         *latest += 1;
         Ok(())
@@ -279,22 +291,23 @@ impl Blockchain {
     }
 
     /// Initialize blockchain with genesis block
-    pub async fn init_with_genesis(&self) {
+    pub async fn init_with_genesis(&self) -> Result<()> {
         let mut blocks = self.blocks.write().await;
         if blocks.is_empty() {
-            let genesis = Self::create_genesis();
+            let genesis = Self::create_genesis()?;
             blocks.insert(0, genesis);
         }
+        Ok(())
     }
 
     /// Creates genesis block from canonical mainnet config (1T AXX, axionaxius, validators).
     /// Uses the genesis crate so block hash, state_root, and timestamp match genesis.json.
-    pub fn create_genesis() -> Block {
+    pub fn create_genesis() -> Result<Block> {
         let g = GenesisGenerator::mainnet();
-        Block {
+        Ok(Block {
             number: g.number,
-            hash: parse_hex_hash(&g.hash).expect("genesis crate must produce valid 64-char hex hashes"),
-            parent_hash: parse_hex_hash(&g.parent_hash).expect("genesis crate must produce valid 64-char hex hashes"),
+            hash: parse_hex_hash(&g.hash).map_err(|e| BlockchainError::TransactionValidation(e))?,
+            parent_hash: parse_hex_hash(&g.parent_hash).map_err(|e| BlockchainError::TransactionValidation(e))?,
             timestamp: g.timestamp,
             proposer: g
                 .config
@@ -303,10 +316,10 @@ impl Blockchain {
                 .map(|v| v.address.clone())
                 .unwrap_or_else(|| "axionaxius".to_string()),
             transactions: vec![],
-            state_root: parse_hex_hash(&g.state_root).expect("genesis crate must produce valid 64-char hex hashes"),
+            state_root: parse_hex_hash(&g.state_root).map_err(|e| BlockchainError::TransactionValidation(e))?,
             gas_used: 0,
             gas_limit: 30_000_000,
-        }
+        })
     }
 }
 
@@ -358,7 +371,7 @@ mod tests {
     async fn test_add_block() {
         let blockchain = Blockchain::new(BlockchainConfig::default());
 
-        let genesis = Blockchain::create_genesis();
+        let genesis = Blockchain::create_genesis().unwrap();
         let result = blockchain.add_block(genesis).await;
 
         // Genesis block number is 0, so after adding it, latest should be 0
@@ -385,7 +398,7 @@ mod tests {
 
     #[test]
     fn test_create_genesis() {
-        let genesis = Blockchain::create_genesis();
+        let genesis = Blockchain::create_genesis().unwrap();
         assert_eq!(genesis.number, 0);
         assert_eq!(genesis.transactions.len(), 0);
     }
@@ -423,14 +436,14 @@ mod tests {
     #[tokio::test]
     async fn test_init_with_genesis() {
         let blockchain = Blockchain::new(BlockchainConfig::default());
-        blockchain.init_with_genesis().await;
+        blockchain.init_with_genesis().await.unwrap();
 
         let genesis = blockchain.get_block(0).await;
         assert!(genesis.is_some());
         assert_eq!(genesis.unwrap().number, 0);
 
         // Calling again should not change anything
-        blockchain.init_with_genesis().await;
+        blockchain.init_with_genesis().await.unwrap();
         let genesis2 = blockchain.get_block(0).await;
         assert!(genesis2.is_some());
     }
@@ -525,5 +538,88 @@ mod tests {
             let result = handle.await.unwrap();
             assert!(result.is_some());
         }
+    }
+
+    #[test]
+    fn test_transaction_signing_and_verification() {
+        let signing_key = crypto::signature::generate_keypair();
+        let verifying_key = signing_key.verifying_key();
+        let address = crypto::signature::address_from_public_key(&verifying_key);
+
+        let mut tx = Transaction {
+            hash: [0u8; 32],
+            from: address.clone(),
+            to: "0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef".to_string(),
+            value: 1000,
+            gas_price: 20_000_000_000,
+            gas_limit: 21_000,
+            nonce: 0,
+            data: vec![],
+            signature: vec![],
+            signer_public_key: vec![],
+        };
+
+        // Unsigned tx should not verify
+        assert!(!tx.is_signed());
+        assert!(!tx.verify_signature());
+
+        // Sign the transaction
+        let payload = tx.signing_payload();
+        tx.signature = crypto::signature::sign(&signing_key, &payload);
+        tx.signer_public_key = verifying_key.to_bytes().to_vec();
+
+        // Now it should verify
+        assert!(tx.is_signed());
+        assert!(tx.verify_signature());
+
+        // Tamper with from address — should fail verification
+        let mut tampered = tx.clone();
+        tampered.from = "0x0000000000000000000000000000000000000000".to_string();
+        assert!(!tampered.verify_signature());
+
+        // Tamper with signature — should fail
+        let mut bad_sig = tx.clone();
+        bad_sig.signature[0] ^= 0xFF;
+        assert!(!bad_sig.verify_signature());
+    }
+
+    #[tokio::test]
+    async fn test_parent_hash_validation() {
+        let blockchain = Blockchain::new(BlockchainConfig::default());
+
+        // Init with genesis first
+        blockchain.init_with_genesis().await.unwrap();
+
+        // Get genesis hash
+        let genesis = blockchain.get_block(0).await.unwrap();
+        let genesis_hash = genesis.hash;
+
+        // Block with correct parent hash should succeed
+        let good_block = Block {
+            number: 1,
+            hash: [1u8; 32],
+            parent_hash: genesis_hash,
+            timestamp: 100,
+            proposer: "v1".to_string(),
+            transactions: vec![],
+            state_root: [1u8; 32],
+            gas_used: 0,
+            gas_limit: 30_000_000,
+        };
+        assert!(blockchain.add_block(good_block).await.is_ok());
+
+        // Block with wrong parent hash should fail
+        let bad_block = Block {
+            number: 2,
+            hash: [2u8; 32],
+            parent_hash: [99u8; 32],
+            timestamp: 200,
+            proposer: "v1".to_string(),
+            transactions: vec![],
+            state_root: [2u8; 32],
+            gas_used: 0,
+            gas_limit: 30_000_000,
+        };
+        assert!(blockchain.add_block(bad_block).await.is_err());
     }
 }

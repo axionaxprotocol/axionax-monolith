@@ -17,68 +17,12 @@ pub use vrf::{ECVRF, VrfResult, VrfOutput, VrfProofBytes};
 // Re-export commonly used KDF functions
 pub use kdf::{derive_key, hash_password, verify_password};
 
-/// Legacy VRF (Verifiable Random Function) implementation
-/// 
-/// **DEPRECATED**: Use `ECVRF` instead for production use.
-/// This implementation uses a simplified hash-based approach that is
-/// not cryptographically secure as a true VRF.
-#[deprecated(since = "2.0.0", note = "Use ECVRF instead for production-grade VRF")]
-pub struct VRF {
-    signing_key: SigningKey,
-}
-
-impl VRF {
-    /// Creates a new VRF instance
-    pub fn new() -> Self {
-        let signing_key = SigningKey::from_bytes(&rand::random());
-        Self { signing_key }
-    }
-
-    /// Creates VRF from existing signing key
-    pub fn from_signing_key(signing_key: SigningKey) -> Self {
-        Self { signing_key }
-    }
-
-    /// Generates VRF proof and output
-    pub fn prove(&self, input: &[u8]) -> (Vec<u8>, [u8; 32]) {
-        // Simplified VRF: hash input with secret key
-        let mut hasher = Sha3_256::new();
-        hasher.update(self.signing_key.to_bytes());
-        hasher.update(input);
-        let hash = hasher.finalize();
-
-        let signature = self.signing_key.sign(input);
-        let proof = signature.to_bytes().to_vec();
-
-        let mut output = [0u8; 32];
-        output.copy_from_slice(&hash);
-
-        (proof, output)
-    }
-
-    /// Verifies VRF proof
-    pub fn verify(
-        verifying_key: &VerifyingKey,
-        input: &[u8],
-        proof: &[u8],
-        _output: &[u8; 32],
-    ) -> bool {
-        if proof.len() != 64 {
-            return false;
-        }
-
-        let mut sig_bytes = [0u8; 64];
-        sig_bytes.copy_from_slice(proof);
-
-        let signature = Signature::from_bytes(&sig_bytes);
-        verifying_key.verify(input, &signature).is_ok()
-    }
-
-    /// Gets verifying key (public key)
-    pub fn verifying_key(&self) -> VerifyingKey {
-        self.signing_key.verifying_key()
-    }
-}
+// Legacy VRF has been REMOVED (was cryptographically broken — output was never
+// verified and the construction was a PRF, not a VRF).
+// All production code MUST use `ECVRF` from the `vrf` module.
+//
+// The legacy `VRF` struct existed here prior to v2.1.0 and was already
+// `#[deprecated]`. It has now been deleted entirely to prevent accidental use.
 
 /// Hash functions
 pub mod hash {
@@ -199,12 +143,6 @@ pub mod signature {
     }
 }
 
-impl Default for VRF {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 /// Key Derivation Functions (KDF) module
 pub mod kdf {
     use argon2::{
@@ -264,18 +202,6 @@ pub mod kdf {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[allow(deprecated)]
-    #[test]
-    fn test_legacy_vrf_prove_verify() {
-        let vrf = VRF::new();
-        let input = b"test input";
-
-        let (proof, output) = vrf.prove(input);
-        let verifying_key = vrf.verifying_key();
-
-        assert!(VRF::verify(&verifying_key, input, &proof, &output));
-    }
 
     #[test]
     fn test_hash_sha3() {

@@ -11,6 +11,7 @@ Features:
 
 import docker
 import json
+import os
 import time
 import logging
 from typing import Dict, Any, Optional
@@ -299,8 +300,12 @@ def create_sandbox(use_docker: bool = True) -> DockerSandbox:
             return DockerSandbox()
         except SandboxError:
             logger.warning("Docker unavailable, falling back to MockSandbox")
+            if os.environ.get("AXIONAX_ENV") == "production":
+                raise SandboxError("Docker sandbox required in production - cannot fall back to MockSandbox")
             return MockSandbox()
     else:
+        if os.environ.get("AXIONAX_ENV") == "production":
+            raise SandboxError("Docker sandbox required in production - cannot fall back to MockSandbox")
         return MockSandbox()
 
 

@@ -51,6 +51,7 @@ contract AXX {
     }
 
     function _transfer(address from, address to, uint256 amount) internal {
+        require(to != address(0), "transfer to zero");
         require(balanceOf[from] >= amount, "balance");
         unchecked { balanceOf[from] -= amount; balanceOf[to] += amount; }
         emit Transfer(from, to, amount);

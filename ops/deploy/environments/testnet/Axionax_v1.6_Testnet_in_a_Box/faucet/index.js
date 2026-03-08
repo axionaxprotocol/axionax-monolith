@@ -83,7 +83,7 @@ app.get("/request-erc20", async (req, res) => {
   try {
     if (!erc20 || !wallet) throw new Error("ERC20 faucet not configured");
     const address = req.query.address;
-    const rawAmt = req.query.amount ?? FAUCET_AMOUNT_ERC20;
+    const rawAmt = FAUCET_AMOUNT_ERC20;
     if (!ethers.utils.isAddress(address)) return res.json({ ok: false, error: "invalid address" });
     const amount = ethers.utils.parseUnits(String(rawAmt), ERC20_DECIMALS);
     const tx = await erc20.connect(wallet).transfer(address, amount);

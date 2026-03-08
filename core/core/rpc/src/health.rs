@@ -84,7 +84,7 @@ impl HealthChecker {
     pub async fn check_health(&self) -> HealthStatus {
         let timestamp = SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or_default()
             .as_secs();
 
         let db_health = self.check_database().await;

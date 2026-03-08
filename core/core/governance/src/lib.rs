@@ -48,6 +48,12 @@ pub enum GovernanceError {
 
     #[error("Quorum not reached: required {required}%, got {actual}%")]
     QuorumNotReached { required: u64, actual: u64 },
+
+    #[error("Title too long: {len} chars (max: {max})")]
+    TitleTooLong { len: usize, max: usize },
+
+    #[error("Description too long: {len} chars (max: {max})")]
+    DescriptionTooLong { len: usize, max: usize },
 }
 
 pub type Result<T> = std::result::Result<T, GovernanceError>;
@@ -232,6 +238,14 @@ impl Governance {
         description: String,
         proposal_type: ProposalType,
     ) -> Result<u64> {
+        if title.len() > 256 {
+            return Err(GovernanceError::TitleTooLong { len: title.len(), max: 256 });
+        }
+
+        if description.len() > 10_000 {
+            return Err(GovernanceError::DescriptionTooLong { len: description.len(), max: 10_000 });
+        }
+
         if proposer_stake < self.config.min_proposal_stake {
             return Err(GovernanceError::InsufficientStake {
                 required: self.config.min_proposal_stake,
@@ -611,5 +625,69 @@ mod tests {
 
         let proposal = gov.get_proposal(1).await.unwrap();
         assert_eq!(proposal.status, ProposalStatus::Cancelled);
+    }
+
+    #[tokio::test]
+    async fn test_title_too_long_rejected() {
+        let gov = Governance::new(test_config());
+        let long_title = "A".repeat(257);
+
+        let result = gov.create_proposal(
+            "proposer1".to_string(),
+            1000,
+            long_title,
+            "Valid description".to_string(),
+            ProposalType::Text,
+        ).await;
+
+        assert!(matches!(result, Err(GovernanceError::TitleTooLong { len: 257, max: 256 })));
+    }
+
+    #[tokio::test]
+    async fn test_title_at_max_length_accepted() {
+        let gov = Governance::new(test_config());
+        let title = "A".repeat(256);
+
+        let result = gov.create_proposal(
+            "proposer1".to_string(),
+            1000,
+            title,
+            "Valid description".to_string(),
+            ProposalType::Text,
+        ).await;
+
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_description_too_long_rejected() {
+        let gov = Governance::new(test_config());
+        let long_desc = "B".repeat(10_001);
+
+        let result = gov.create_proposal(
+            "proposer1".to_string(),
+            1000,
+            "Valid title".to_string(),
+            long_desc,
+            ProposalType::Text,
+        ).await;
+
+        assert!(matches!(result, Err(GovernanceError::DescriptionTooLong { len: 10_001, max: 10_000 })));
+    }
+
+    #[tokio::test]
+    async fn test_description_at_max_length_accepted() {
+        let gov = Governance::new(test_config());
+        let desc = "B".repeat(10_000);
+
+        let result = gov.create_proposal(
+            "proposer1".to_string(),
+            1000,
+            "Valid title".to_string(),
+            desc,
+            ProposalType::Text,
+        ).await;
+
+        assert!(result.is_ok());
     }
 }

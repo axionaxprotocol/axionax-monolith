@@ -388,7 +388,7 @@ impl GenesisGenerator {
 
     /// Export genesis to JSON file
     pub fn export_json(genesis: &GenesisBlock) -> String {
-        serde_json::to_string_pretty(genesis).unwrap()
+        serde_json::to_string_pretty(genesis).unwrap_or_default()
     }
 }
 

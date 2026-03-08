@@ -110,6 +110,10 @@ pub struct ValidatorInfo {
     
     /// Total slashed amount
     pub total_slashed: u128,
+
+    /// Amount pending withdrawal after unstaking
+    #[serde(default)]
+    pub pending_unstake: u128,
 }
 
 impl ValidatorInfo {
@@ -122,9 +126,10 @@ impl ValidatorInfo {
             total_rewards: 0,
             unclaimed_rewards: 0,
             is_active: true,
-            commission_bps: 500, // 5% default commission
+            commission_bps: 500,
             blocks_produced: 0,
             total_slashed: 0,
+            pending_unstake: 0,
         }
     }
     
@@ -207,7 +212,7 @@ impl Staking {
         Ok(())
     }
 
-    /// Initiate unstaking (starts lock period)
+    /// Initiate unstaking (starts lock period). Actually subtracts the amount from stake.
     pub async fn unstake(&self, address: String, amount: u128) -> Result<()> {
         let mut validators = self.validators.write().await;
         let current_block = *self.current_block.read().await;
@@ -228,9 +233,15 @@ impl Staking {
             return Err(StakingError::HasActiveDelegations);
         }
 
-        // Set unlock block
+        // Subtract the requested amount from stake and record as pending
+        validator.stake = validator.stake.saturating_sub(amount);
+        validator.pending_unstake = validator.pending_unstake.saturating_add(amount);
         validator.unlock_block = current_block + self.config.unstaking_lock_blocks;
-        validator.is_active = false;
+
+        // Deactivate if remaining stake is below minimum
+        if validator.stake < self.config.min_validator_stake {
+            validator.is_active = false;
+        }
 
         info!(
             "Initiated unstaking {} for validator {}, unlocks at block {}",
@@ -248,7 +259,7 @@ impl Staking {
         let validator = validators.get_mut(&address)
             .ok_or_else(|| StakingError::ValidatorNotFound(address.clone()))?;
 
-        if validator.unlock_block == 0 {
+        if validator.pending_unstake == 0 {
             return Err(StakingError::InvalidAmount("No pending unstake".to_string()));
         }
 
@@ -258,8 +269,8 @@ impl Staking {
             });
         }
 
-        let amount = validator.stake;
-        validator.stake = 0;
+        let amount = validator.pending_unstake;
+        validator.pending_unstake = 0;
         validator.unlock_block = 0;
         *total = total.saturating_sub(amount);
 
@@ -345,7 +356,7 @@ impl Staking {
         let validator = validators.get_mut(&address)
             .ok_or_else(|| StakingError::ValidatorNotFound(address.clone()))?;
 
-        let slash_amount = validator.voting_power()
+        let slash_amount = validator.stake
             .saturating_mul(penalty_bps as u128)
             .saturating_div(10_000);
 
@@ -530,5 +541,29 @@ mod tests {
 
         let validator = staking.get_validator("validator1").await.unwrap();
         assert_eq!(validator.unclaimed_rewards, 0);
+    }
+
+    #[tokio::test]
+    async fn test_partial_unstake() {
+        let staking = Staking::new(default_config());
+        staking.stake("validator1".to_string(), 5000).await.unwrap();
+
+        // Partial unstake of 2000
+        staking.unstake("validator1".to_string(), 2000).await.unwrap();
+
+        let validator = staking.get_validator("validator1").await.unwrap();
+        // Stake should be reduced by the unstaked amount
+        assert_eq!(validator.stake, 3000);
+        assert_eq!(validator.pending_unstake, 2000);
+
+        // Advance past lock period and withdraw
+        staking.set_current_block(200).await;
+        let withdrawn = staking.withdraw("validator1".to_string()).await.unwrap();
+        assert_eq!(withdrawn, 2000);
+
+        // Remaining stake should still be there
+        let validator = staking.get_validator("validator1").await.unwrap();
+        assert_eq!(validator.stake, 3000);
+        assert_eq!(validator.pending_unstake, 0);
     }
 }

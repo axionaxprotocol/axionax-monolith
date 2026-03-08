@@ -9,28 +9,33 @@ use tokio::sync::RwLock;
 // Import axionax core modules
 use blockchain::{Block, Blockchain};
 use consensus::{Challenge, ConsensusEngine, Validator};
-use crypto::VRF;
+use crypto::{ECVRF, VrfResult};
 
 mod simple_wrapper;
 use simple_wrapper::{default_blockchain_config, default_consensus_config};
 
-/// Python wrapper for VRF operations
+/// Python wrapper for ECVRF (production-grade schnorrkel VRF)
 #[pyclass]
 struct PyVRF {
-    vrf: VRF,
+    vrf: ECVRF,
 }
 
 #[pymethods]
 impl PyVRF {
     #[new]
     fn new() -> Self {
-        PyVRF { vrf: VRF::new() }
+        PyVRF { vrf: ECVRF::new() }
     }
 
-    /// Generate VRF proof and hash
+    /// Generate VRF proof and output
     fn prove(&self, input: Vec<u8>) -> PyResult<(Vec<u8>, Vec<u8>)> {
-        let (proof, hash) = self.vrf.prove(&input);
-        Ok((proof, hash.to_vec()))
+        let result: VrfResult = self.vrf.prove(&input);
+        Ok((result.proof.to_vec(), result.output.to_vec()))
+    }
+
+    /// Get the public key
+    fn public_key(&self) -> PyResult<Vec<u8>> {
+        Ok(self.vrf.public_key().to_vec())
     }
 }
 
@@ -60,8 +65,8 @@ impl PyValidator {
     }
 
     #[getter]
-    fn stake(&self) -> PyResult<u64> {
-        Ok(self.stake as u64)
+    fn stake(&self) -> PyResult<String> {
+        Ok(self.stake.to_string())
     }
 
     #[getter]
@@ -206,8 +211,8 @@ impl PyTransaction {
     }
 
     #[getter]
-    fn value(&self) -> PyResult<u64> {
-        Ok(self.value as u64)
+    fn value(&self) -> PyResult<String> {
+        Ok(self.value.to_string())
     }
 }
 
@@ -266,8 +271,9 @@ impl PyBlockchain {
         let chain_clone = chain.clone();
         runtime.block_on(async move {
             let bc = chain_clone.read().await;
-            bc.init_with_genesis().await;
-        });
+            bc.init_with_genesis().await
+                .map_err(|e| PyValueError::new_err(format!("Genesis init failed: {}", e)))
+        })?;
 
         Ok(PyBlockchain { runtime, chain })
     }

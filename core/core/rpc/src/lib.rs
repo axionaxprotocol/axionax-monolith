@@ -261,6 +261,19 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
         let mut tx: Transaction = serde_json::from_slice(&bytes)
             .map_err(|e| RpcError::InvalidParams(format!("Invalid transaction format: {}", e)))?;
 
+        // Require a valid Ed25519 signature
+        if !tx.is_signed() {
+            return Err(RpcError::InvalidParams(
+                "Transaction must include signature and signer_public_key".to_string(),
+            ).into());
+        }
+
+        if !tx.verify_signature() {
+            return Err(RpcError::InvalidParams(
+                "Invalid transaction signature or signer address mismatch".to_string(),
+            ).into());
+        }
+
         if tx.hash == [0u8; 32] {
             tx.compute_hash();
         }
@@ -285,7 +298,12 @@ pub async fn start_rpc_server(
 ) -> anyhow::Result<ServerHandle> {
     info!("Starting RPC server on {}", addr);
 
-    let server = Server::builder().build(addr).await?;
+    let server = Server::builder()
+        .max_request_body_size(1_048_576)    // 1 MB max request
+        .max_response_body_size(10_485_760)  // 10 MB max response
+        .max_connections(1_000)
+        .build(addr)
+        .await?;
 
     let mut rpc_impl = AxionaxRpcServerImpl::new(state.clone(), chain_id);
     if let Some(pool) = mempool {

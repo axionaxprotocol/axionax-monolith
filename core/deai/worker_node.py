@@ -363,7 +363,7 @@ class AxionaxWorker:
                 pass
         self.contract = ContractManager(
             rpc_url=self.network.active_node_url,
-            private_key=self.wallet.account.key.hex(),
+            account=self.wallet.account,
             contract_address=contract_address,
         )
         
