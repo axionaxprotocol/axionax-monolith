@@ -2,14 +2,17 @@
 
 # Axionax Core Universe
 
-### High-Performance Blockchain Protocol · DeAI · DePIN
+### Blockchain Core Only — High-Performance Protocol · DeAI · DePIN
 
-[![License](https://img.shields.io/badge/License-AGPLv3%2FMIT-orange?style=flat-square)](#license)
-[![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange?style=flat-square&logo=rust)](https://www.rust-lang.org/)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
-[![EVM](https://img.shields.io/badge/EVM-Compatible-627EEA?style=flat-square&logo=ethereum)](https://ethereum.org)
+> \\\*\\\*Scope:\\\*\\\* This repository is the \\\*\\\*blockchain core\\\*\\\* of Axionax Protocol only. Frontend, website, marketplace, and SDK live in separate repositories (e.g. \\\[axionax-web-universe](https://github.com/axionaxprotocol/axionax-web-universe)).
 
-**PoPC Consensus** · **45,000+ TPS** · **&lt;0.5s Finality** · **DeAI at the Edge**
+[!\[CI](https://github.com/axionaxprotocol/axionax-core-universe/actions/workflows/ci.yml/badge.svg)](https://github.com/axionaxprotocol/axionax-core-universe/actions)
+[!\[License](https://img.shields.io/badge/License-AGPLv3%2FMIT-orange?style=flat-square)](#license)
+[!\[Rust](https://img.shields.io/badge/Rust-1.70%2B-orange?style=flat-square&logo=rust)](https://www.rust-lang.org/)
+[!\[Python](https://img.shields.io/badge/Python-3.10%2B-blue?style=flat-square&logo=python)](https://www.python.org/)
+[!\[EVM](https://img.shields.io/badge/EVM-Compatible-627EEA?style=flat-square&logo=ethereum)](https://ethereum.org)
+
+**PoPC Consensus** · **45,000+ TPS** · **<0.5s Finality** · **DeAI at the Edge**
 
 [Website](https://axionax.org) · [Documentation](https://axionaxprotocol.github.io/axionax-docs/) · [Web Universe](https://github.com/axionaxprotocol/axionax-web-universe)
 
@@ -19,15 +22,15 @@
 
 ## Table of Contents
 
-- [About](#about)
-- [Quick Start](#quick-start--join-the-network)
-- [Network (Testnet)](#current-network-testnet)
-- [Configuration](#configuration)
-- [Monolith Hardware](#monolith-mk-i-scout--production)
-- [Repository Structure](#repository-overview)
-- [Development](#development)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
+* [About](#about)
+* [Quick Start](#quick-start--join-the-network)
+* [Network (Testnet)](#current-network-testnet)
+* [Configuration](#configuration)
+* [Monolith Hardware](#monolith-mk-i-scout--production)
+* [Repository Structure](#repository-overview)
+* [Development](#development)
+* [Documentation](#documentation)
+* [Contributing](#contributing)
 
 ---
 
@@ -35,22 +38,24 @@
 
 **Axionax Protocol** is a **DePIN (Decentralized Physical Infrastructure Network)** building a "Civilization OS" — turning Edge devices (Raspberry Pi, PC, Mac) into AI compute nodes on a high-performance blockchain.
 
-| Feature | Description |
-|---------|-------------|
-| **PoPC** | Proof of Probabilistic Checking — statistical verification instead of full re-execution |
-| **DeAI** | Python-based decentralized AI workloads via PyO3 bridge |
-| **Smart Contracts** | WASM + EVM compatible |
-| **Geo-Hierarchy** | 5-tier network topology scaling toward 11M+ nodes |
+|Feature|Description|
+|-|-|
+|**PoPC**|Proof of Probabilistic Checking — statistical verification instead of full re-execution|
+|**DeAI**|Python-based decentralized AI workloads via PyO3 bridge|
+|**Smart Contracts**|WASM + EVM compatible|
+|**Geo-Hierarchy**|5-tier network topology scaling toward 11M+ nodes|
+
+**This repo contains:** Node (Rust), RPC, consensus, staking, governance, DeAI worker (Python), configs, ops/deploy, and dev tools. It does **not** include the public website, dApp frontend, or marketplace UI — those are hosted and developed elsewhere.
 
 ---
 
 ## Quick Start — Join the Network
 
-> **End users** → [axionax.org](https://axionax.org)
+> \\\*\\\*End users\\\*\\\* → \\\[axionax.org](https://axionax.org)
 >
-> **Node Operators** — follow the steps below to run your own node.
+> \\\*\\\*Node Operators\\\*\\\* — follow the steps below to run your own node.
 
-### 1. Clone & Update
+### 1\. Clone \& Update
 
 ```bash
 git clone https://github.com/axionaxprotocol/axionax-core-universe.git
@@ -59,36 +64,37 @@ python3 scripts/update-node.py
 ```
 
 The script will:
-- Create `.venv` automatically (handles Ubuntu 24.04 PEP 668)
-- Install dependencies
-- Run system suitability check (Python, deps, RPC)
 
-### 2. Choose Node Type & Run
+* Create `.venv` automatically (handles Ubuntu 24.04 PEP 668)
+* Install dependencies
+* Run system suitability check (Python, deps, RPC)
+
+### 2\. Choose Node Type \& Run
 
 ```bash
 python3 scripts/join-axionax.py
 ```
 
-| Option | Type | Config |
-|--------|------|--------|
-| 1 | Worker (PC/Server) | `core/deai/worker_config.toml` |
-| 2 | Monolith Scout (single Hailo) | `configs/monolith_scout_single.toml` |
-| 3 | HYDRA (Sentinel + Worker) | `configs/monolith_worker.toml` |
+|Option|Type|Config|
+|-|-|-|
+|1|Worker (PC/Server)|`core/deai/worker\\\_config.toml`|
+|2|Monolith Scout (single Hailo)|`configs/monolith\\\_scout\\\_single.toml`|
+|3|HYDRA (Sentinel + Worker)|`configs/monolith\\\_worker.toml`|
 
 **Or run directly:**
 
 ```bash
 # Worker
-python3 core/deai/worker_node.py
+python3 core/deai/worker\\\_node.py
 
 # Monolith Scout
-python3 core/deai/worker_node.py --config configs/monolith_scout_single.toml
+python3 core/deai/worker\\\_node.py --config configs/monolith\\\_scout\\\_single.toml
 
 # HYDRA (Sentinel + Worker dual-core)
-python3 hydra_manager.py
+python3 hydra\\\_manager.py
 ```
 
-### 3. Update Node
+### 3\. Update Node
 
 Run on any machine that runs a node:
 
@@ -108,20 +114,20 @@ python3 scripts/update-node.py --full-deps
 
 ## Current Network (Testnet)
 
-| Validator | IP | RPC | Region |
-|-----------|-----|-----|--------|
-| #1 | 217.76.61.116 | `http://217.76.61.116:8545` | EU |
-| #2 | 46.250.244.4 | `http://46.250.244.4:8545` | AU |
+|Validator|IP|RPC|Region|
+|-|-|-|-|
+|#1|217.76.61.116|`http://217.76.61.116:8545`|EU|
+|#2|46.250.244.4|`http://46.250.244.4:8545`|AU|
 
-- **Chain ID:** `86137`
-- **Phase:** Pre-Testnet (Phase 2)
-- Configs already point to these bootnodes
+* **Chain ID:** `86137`
+* **Phase:** Pre-Testnet (Phase 2)
+* Configs already point to these bootnodes
 
 **Verify RPC:**
 
 ```bash
-curl -s -X POST -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+curl -s -X POST -H "Content-Type: application/json" \\\\
+  -d '{"jsonrpc":"2.0","method":"eth\\\_blockNumber","params":\\\[],"id":1}' \\\\
   http://217.76.61.116:8545
 ```
 
@@ -131,12 +137,12 @@ curl -s -X POST -H "Content-Type: application/json" \
 
 ### Config Files
 
-| File | Use Case |
-|------|----------|
-| `core/deai/worker_config.toml` | General Worker (PC/Server) |
-| `configs/monolith_scout_single.toml` | Monolith Scout (single Hailo) |
-| `configs/monolith_sentinel.toml` | HYDRA — Sentinel (Hailo #0) |
-| `configs/monolith_worker.toml` | HYDRA — Worker (Hailo #1) |
+|File|Use Case|
+|-|-|
+|`core/deai/worker\\\_config.toml`|General Worker (PC/Server)|
+|`configs/monolith\\\_scout\\\_single.toml`|Monolith Scout (single Hailo)|
+|`configs/monolith\\\_sentinel.toml`|HYDRA — Sentinel (Hailo #0)|
+|`configs/monolith\\\_worker.toml`|HYDRA — Worker (Hailo #1)|
 
 ### Environment Variables
 
@@ -145,21 +151,21 @@ cp core/deai/.env.example core/deai/.env
 # Edit as needed
 ```
 
-| Variable | Description |
-|----------|-------------|
-| `AXIONAX_RPC_URL` | RPC URL (overrides bootnodes) |
-| `AXIONAX_BOOTNODES` | Comma-separated RPC URLs |
-| `AXIONAX_CHAIN_ID` | Chain ID |
-| `AXIONAX_WALLET_PATH` | Path to wallet file |
-| `WORKER_KEY_PASSWORD` | Wallet password (avoids prompt) |
-| `WORKER_PRIVATE_KEY` | Private key (instead of file) |
+|Variable|Description|
+|-|-|
+|`AXIONAX\\\_RPC\\\_URL`|RPC URL (overrides bootnodes)|
+|`AXIONAX\\\_BOOTNODES`|Comma-separated RPC URLs|
+|`AXIONAX\\\_CHAIN\\\_ID`|Chain ID|
+|`AXIONAX\\\_WALLET\\\_PATH`|Path to wallet file|
+|`WORKER\\\_KEY\\\_PASSWORD`|Wallet password (avoids prompt)|
+|`WORKER\\\_PRIVATE\\\_KEY`|Private key (instead of file)|
 
 ### Security
 
-- **Never commit** `.env`, `worker_key.json`, or private keys (in `.gitignore`)
-- **Backup wallet** after first run: `worker_key.json` + password
-- **Firewall:** only open necessary ports (Workers don't need 8545)
-- **Production:** use `WORKER_PRIVATE_KEY` from env instead of file
+* **Never commit** `.env`, `worker\\\_key.json`, or private keys (in `.gitignore`)
+* **Backup wallet** after first run: `worker\\\_key.json` + password
+* **Firewall:** only open necessary ports (Workers don't need 8545)
+* **Production:** use `WORKER\\\_PRIVATE\\\_KEY` from env instead of file
 
 ---
 
@@ -167,27 +173,27 @@ cp core/deai/.env.example core/deai/.env
 
 ### Hardware
 
-| Item | Notes |
-|------|-------|
-| Raspberry Pi 5 (8GB) | Base unit |
-| Raspberry Pi AI HAT+ 2 (Hailo-10H) | NPU for inference |
-| Cooling | Heatsink/fan for Hailo thermal limits |
-| SD card / SSD | Sufficient capacity + fast class |
-| Power supply | 5V 5A (USB-C PD) |
+|Item|Notes|
+|-|-|
+|Raspberry Pi 5 (8GB)|Base unit|
+|Raspberry Pi AI HAT+ 2 (Hailo-10H)|NPU for inference|
+|Cooling|Heatsink/fan for Hailo thermal limits|
+|SD card / SSD|Sufficient capacity + fast class|
+|Power supply|5V 5A (USB-C PD)|
 
-### Setup & Run
+### Setup \& Run
 
 ```bash
-sudo apt update && sudo apt upgrade -y
+sudo apt update \\\&\\\& sudo apt upgrade -y
 git clone https://github.com/axionaxprotocol/axionax-core-universe.git
 cd axionax-core-universe
 python3 scripts/update-node.py --full-deps
 
 # Single Core (one Hailo)
-python3 core/deai/worker_node.py --config configs/monolith_scout_single.toml
+python3 core/deai/worker\\\_node.py --config configs/monolith\\\_scout\\\_single.toml
 
 # HYDRA (Sentinel + Worker — dual Hailo)
-python3 hydra_manager.py
+python3 hydra\\\_manager.py
 ```
 
 ### Run as systemd Service
@@ -201,11 +207,11 @@ sudo systemctl enable --now axionax-hydra
 
 ### Known Limitations
 
-| Item | Status |
-|------|--------|
-| Worker registration / result submission | Mock — until smart contract deployed |
-| Validator RPC | Live |
-| Wallet / Keys | Live — creation and encryption work |
+|Item|Status|
+|-|-|
+|Worker registration / result submission|Mock — until smart contract deployed|
+|Validator RPC|Live|
+|Wallet / Keys|Live — creation and encryption work|
 
 ---
 
@@ -230,19 +236,19 @@ axionax-core-universe/
 │
 ├── configs/                    # Monolith / Scout TOML configs
 ├── scripts/                    # Helper scripts (join, update, health-check)
-├── ops/deploy/                 # Deployment & Operations (Docker, monitoring)
+├── ops/deploy/                 # Deployment \\\& Operations (Docker, monitoring)
 └── tools/                      # Development utilities (faucet, devtools)
 ```
 
 ### Key Features
 
-- **High Performance:** 45,000+ TPS, &lt;0.5s finality
-- **PoPC Consensus:** Proof of Probabilistic Checking
-- **Smart Contracts:** WASM + EVM compatible
-- **DeAI Integration:** Python-based decentralized AI workloads
-- **Native Staking:** Stake, delegate, slash, rewards
-- **On-chain Governance:** Proposals, vote, execute
-- **PPC / DA / ASR / VRF:** Dynamic pricing, data availability, worker selection
+* **High Performance:** 45,000+ TPS, <0.5s finality
+* **PoPC Consensus:** Proof of Probabilistic Checking
+* **Smart Contracts:** WASM + EVM compatible
+* **DeAI Integration:** Python-based decentralized AI workloads
+* **Native Staking:** Stake, delegate, slash, rewards
+* **On-chain Governance:** Proposals, vote, execute
+* **PPC / DA / ASR / VRF:** Dynamic pricing, data availability, worker selection
 
 ---
 
@@ -250,11 +256,11 @@ axionax-core-universe/
 
 ### Prerequisites
 
-- Rust 1.70+
-- Python 3.10+
-- Docker & Docker Compose
+* Rust 1.70+
+* Python 3.10+
+* Docker \& Docker Compose
 
-### Build & Test (Rust)
+### Build \& Test (Rust)
 
 ```bash
 cd core
@@ -268,7 +274,7 @@ cargo bench
 ### Run Local Node
 
 ```bash
-cd core && cargo run --bin axionax-node
+cd core \\\&\\\& cargo run --bin axionax-node
 ```
 
 ### Deploy with Docker
@@ -292,56 +298,59 @@ python3 -m pytest . -v --tb=short --ignore=tests
 
 ## Scripts Reference
 
-| Script | Description |
-|--------|-------------|
-| `scripts/join-axionax.py` | System check + node type selection + run |
-| `scripts/update-node.py` | Update node (git pull + deps + check) |
-| `scripts/update-node.py --full-deps` | Update + AI/ML deps (torch, numpy) |
-| `scripts/health-check.py` | Check RPC + config + wallet |
-| `scripts/join-network.py` | Check config + RPC only |
-| `scripts/verify-production-ready.py` | Full production readiness check |
-| `scripts/make-node-package.py` | Create ZIP package for distribution |
+|Script|Description|
+|-|-|
+|`scripts/join-axionax.py`|System check + node type selection + run|
+|`scripts/update-node.py`|Update node (git pull + deps + check)|
+|`scripts/update-node.py --full-deps`|Update + AI/ML deps (torch, numpy)|
+|`scripts/health-check.py`|Check RPC + config + wallet|
+|`scripts/join-network.py`|Check config + RPC only|
+|`scripts/verify-production-ready.py`|Full production readiness check|
+|`scripts/make-node-package.py`|Create ZIP package for distribution|
 
 ---
 
 ## Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| `pip` missing / PEP 668 | `update-node.py` creates `.venv` automatically |
-| Config file not found | Run from repo root or use `--config` with full path |
-| No bootnodes | Set `[network] bootnodes` in TOML or `AXIONAX_RPC_URL` in `.env` |
-| Connection refused | Check RPC URL + firewall; verify chain is running |
-| Wallet password | First run prompts; use strong password and store safely |
-| `python` not found | Use `python3` (Ubuntu 24.04+) |
+|Issue|Solution|
+|-|-|
+|`pip` missing / PEP 668|`update-node.py` creates `.venv` automatically|
+|Config file not found|Run from repo root or use `--config` with full path|
+|No bootnodes|Set `\\\[network] bootnodes` in TOML or `AXIONAX\\\_RPC\\\_URL` in `.env`|
+|Connection refused|Check RPC URL + firewall; verify chain is running|
+|Wallet password|First run prompts; use strong password and store safely|
+|`python` not found|Use `python3` (Ubuntu 24.04+)|
 
 ---
 
 ## Pre-launch Checklist
 
-| Area | Added | Location |
-|------|-------|----------|
-| **Security** | Audit scope + tooling (cargo audit, bandit) | [docs/SECURITY_AUDIT_SCOPE.md](docs/SECURITY_AUDIT_SCOPE.md), [scripts/security/](scripts/security/) |
-| **Performance** | TPS & finality load test (45k TPS, &lt;0.5s) | [scripts/load_test/](scripts/load_test/) |
-| **Infra** | RPC multi-region, Explorer, Faucet, Monitoring | [ops/deploy/environments/testnet/public/README_INFRA.md](ops/deploy/environments/testnet/public/README_INFRA.md) |
-| **Worker** | LIVE contract integration, mock fallback | [core/deai/CONTRACT_INTEGRATION.md](core/deai/CONTRACT_INTEGRATION.md) |
+|Area|Added|Location|
+|-|-|-|
+|**Security**|Audit scope + tooling (cargo audit, bandit)|[docs/SECURITY\_AUDIT\_SCOPE.md](docs/SECURITY_AUDIT_SCOPE.md), [scripts/security/](scripts/security/)|
+|**Performance**|TPS \& finality load test (45k TPS, <0.5s)|[scripts/load\_test/](scripts/load_test/)|
+|**Infra**|RPC multi-region, Explorer, Faucet, Monitoring|[ops/deploy/environments/testnet/public/README\_INFRA.md](ops/deploy/environments/testnet/public/README_INFRA.md)|
+|**Worker**|LIVE contract integration, mock fallback|[core/deai/CONTRACT\_INTEGRATION.md](core/deai/CONTRACT_INTEGRATION.md)|
 
 ---
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
-| [**Master Summary**](MASTER_SUMMARY.md) | Vision, architecture, hardware, tokenomics, roadmap |
-| [**Self-Sufficiency**](docs/SELF_SUFFICIENCY.md) | โปรโตคอลทำงานได้ด้วยตัวเอง ไม่พึ่ง external API ตอนรัน |
-| [**Cyber Defense (DeAI)**](docs/CYBER_DEFENSE.md) | ป้องกันภัยคุกคามทางไซเบอร์ผ่าน DeAI (7 Sentinels) |
-| [Architecture Overview](core/docs/ARCHITECTURE_OVERVIEW.md) | System architecture |
-| [API Reference](core/docs/API_REFERENCE.md) | RPC API |
-| [Deployment Guide](core/DEPLOYMENT_GUIDE.md) | Deployment instructions |
-| [Project Ascension](core/docs/PROJECT_ASCENSION.md) | Monolith & 9 Pillars |
-| [Monolith Roadmap](core/docs/MONOLITH_ROADMAP.md) | MK-I to MK-IV hardware |
-| [Network Nodes](core/docs/NETWORK_NODES.md) | All node types |
-| [Core docs index](core/docs/README.md) | All docs in `core/docs/` |
+|Document|Description|
+|-|-|
+|[**Axionax Bible**](docs/AXIONAX_BIBLE.md)|เอกสารรวมหลัก — จุดเดียวสำหรับ Vision, Protocol, Run, Deploy, Launch|
+|[**Genesis Public Testnet Plan**](docs/GENESIS_PUBLIC_TESTNET_PLAN.md)|แผน launch testnet + จัดสรร VPS 3 ตัว|
+|[**Add Network \& Token (MetaMask)**](docs/ADD_NETWORK_AND_TOKEN.md)|เพิ่ม Axionax Testnet และ AXX ใน MetaMask / รับจาก Faucet|
+|[**Connectivity Overview**](docs/CONNECTIVITY_OVERVIEW.md)|การเชื่อมต่อ Local node, Validator, Frontend|
+|[**GitHub Readiness**](docs/GITHUB_READINESS.md)|สถานะความพร้อม repo สำหรับ launch|
+|[**Master Summary**](MASTER_SUMMARY.md)|Vision, architecture, hardware, tokenomics, roadmap|
+|[**Self-Sufficiency**](docs/SELF_SUFFICIENCY.md)|โปรโตคอลทำงานได้ด้วยตัวเอง ไม่พึ่ง external API ตอนรัน|
+|[**Cyber Defense (DeAI)**](docs/CYBER_DEFENSE.md)|ป้องกันภัยคุกคามทางไซเบอร์ผ่าน DeAI (7 Sentinels)|
+|[Architecture Overview](core/docs/ARCHITECTURE_OVERVIEW.md)|System architecture|
+|[API Reference](core/docs/API_REFERENCE.md)|RPC API|
+|[Deployment Guide](core/DEPLOYMENT_GUIDE.md)|Deployment instructions|
+|[Network Nodes](core/docs/NETWORK_NODES.md)|All node types|
+|[Core docs index](core/docs/README.md)|All docs in `core/docs/`|
 
 ---
 
@@ -349,7 +358,7 @@ python3 -m pytest . -v --tb=short --ignore=tests
 
 1. **Fork** this repository
 2. **Create** a feature branch (`git checkout -b feature/amazing`)
-3. **Test** (`cargo test --workspace && cargo clippy`)
+3. **Test** (`cargo test --workspace \\\&\\\& cargo clippy`)
 4. **Push** and open a Pull Request
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
@@ -358,17 +367,17 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 ## License
 
-| Component | License |
-|-----------|---------|
-| **core/** | AGPLv3 |
-| **ops/** | MIT |
-| **tools/** | MIT |
+|Component|License|
+|-|-|
+|**core/**|AGPLv3|
+|**ops/**|MIT|
+|**tools/**|MIT|
 
 ---
 
-## Related Projects
+## Related Projects (separate repositories)
 
-- [**axionax Web Universe**](https://github.com/axionaxprotocol/axionax-web-universe) — Frontend, SDK, Docs & Marketplace
+* [**axionax Web Universe**](https://github.com/axionaxprotocol/axionax-web-universe) — Frontend, SDK, Docs \& Marketplace (website hosting and UI are done there; this repo is core only)
 
 ## Support
 
@@ -380,6 +389,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for details.
 
 **Built by the Axionax Protocol Team**
 
-*Part of the [Axionax Universe](https://github.com/axionaxprotocol)*
+*Part of the* [*Axionax Universe*](https://github.com/axionaxprotocol)
 
 </div>
+

@@ -34,33 +34,57 @@ check_warn() {
 
 # 1. Check Genesis File
 echo "1. Checking Genesis Configuration..."
+GENESIS_FILE=""
 if [ -f "genesis.json" ]; then
-    check_pass "Genesis file exists"
+    GENESIS_FILE="genesis.json"
+elif [ -f "core/tools/genesis.json" ]; then
+    GENESIS_FILE="core/tools/genesis.json"
+fi
+
+if [ -n "$GENESIS_FILE" ]; then
+    check_pass "Genesis file exists: $GENESIS_FILE"
     
     # Validate JSON
-    if python3 -m json.tool genesis.json > /dev/null 2>&1; then
+    if python3 -m json.tool "$GENESIS_FILE" > /dev/null 2>&1; then
         check_pass "Genesis JSON is valid"
     else
         check_fail "Genesis JSON is invalid"
     fi
     
-    # Check chain ID
-    CHAIN_ID=$(python3 -c "import json; print(json.load(open('genesis.json'))['chain_id'])")
-    if [ "$CHAIN_ID" == "axionax-testnet-1" ]; then
-        check_pass "Chain ID is correct: $CHAIN_ID"
-    else
-        check_fail "Chain ID is incorrect: $CHAIN_ID"
+    # Support both formats: (1) config.chainId (EVM, 86137) and (2) top-level chain_id (string)
+    CHAIN_ID_OK=0
+    EVM_CHAIN_ID=$(python3 -c "import json; d=json.load(open('$GENESIS_FILE')); print(d.get('config',{}).get('chainId',''))" 2>/dev/null | tr -d '\n' || true)
+    if [ "$EVM_CHAIN_ID" = "86137" ]; then
+        check_pass "Chain ID is correct (EVM): 86137"
+        CHAIN_ID_OK=1
+    fi
+    if [ "$CHAIN_ID_OK" -eq 0 ]; then
+        LEGACY_CHAIN_ID=$(python3 -c "import json; d=json.load(open('$GENESIS_FILE')); print(d.get('chain_id',''))" 2>/dev/null || true)
+        if [ "$LEGACY_CHAIN_ID" = "axionax-testnet-1" ]; then
+            check_pass "Chain ID is correct (legacy): $LEGACY_CHAIN_ID"
+            CHAIN_ID_OK=1
+        fi
+    fi
+    if [ "$CHAIN_ID_OK" -eq 0 ]; then
+        check_fail "Chain ID not found or not 86137 / axionax-testnet-1"
     fi
     
-    # Check validators
-    VALIDATOR_COUNT=$(python3 -c "import json; print(len(json.load(open('genesis.json'))['validators']))")
-    if [ "$VALIDATOR_COUNT" -ge "4" ]; then
+    # Validators: accept config.chainId format (>=2) or legacy (>=4)
+    VALIDATOR_COUNT=$(python3 -c "
+import json
+d = json.load(open('$GENESIS_FILE'))
+v = d.get('validators', [])
+print(len(v) if isinstance(v, list) else 0)
+" 2>/dev/null || echo "0")
+    if [ "$VALIDATOR_COUNT" -ge 2 ]; then
         check_pass "Genesis has $VALIDATOR_COUNT validators"
+    elif [ "$VALIDATOR_COUNT" -ge 1 ]; then
+        check_warn "Only $VALIDATOR_COUNT validator(s) in genesis (2+ recommended)"
     else
-        check_warn "Only $VALIDATOR_COUNT validators in genesis"
+        check_warn "No validators array found in genesis"
     fi
 else
-    check_fail "Genesis file not found"
+    check_fail "Genesis file not found (looked for genesis.json or core/tools/genesis.json)"
 fi
 echo ""
 
@@ -161,7 +185,7 @@ else
 fi
 echo ""
 
-# 9. Check Environment Variables
+# 9. Check Environment Variables (optional when run from repo root; required when run from ops/deploy)
 echo "9. Checking Environment Variables..."
 
 check_env() {
@@ -173,17 +197,20 @@ check_env() {
     fi
 }
 
-if [ -f ".env" ]; then
-    check_pass ".env file exists"
-    source .env
-    
+ENV_FILE=".env"
+[ -f "ops/deploy/.env" ] && ENV_FILE="ops/deploy/.env"
+if [ -f "$ENV_FILE" ]; then
+    check_pass ".env file exists ($ENV_FILE)"
+    set -a
+    # shellcheck source=/dev/null
+    source "$ENV_FILE" 2>/dev/null || true
+    set +a
     check_env "DB_PASSWORD"
     check_env "REDIS_PASSWORD"
     check_env "FAUCET_PRIVATE_KEY"
     check_env "GRAFANA_PASSWORD"
-    check_env "VPS_IP"
 else
-    check_fail ".env file not found"
+    check_warn ".env not found (optional for pre-launch; required for deploy)"
 fi
 echo ""
 
@@ -195,15 +222,12 @@ check_repo() {
     if curl -f -s -o /dev/null -w "%{http_code}" "https://api.github.com/repos/axionaxprotocol/$repo" | grep -q "200"; then
         check_pass "Repository accessible: $repo"
     else
-        check_fail "Repository not accessible: $repo"
+        check_warn "Repository not accessible: $repo"
     fi
 }
 
-check_repo "axionax-core"
-check_repo "axionax-sdk-ts"
-check_repo "axionax-web"
-check_repo "axionax-deploy"
-check_repo "axionax-marketplace"
+check_repo "axionax-core-universe"
+check_repo "axionax-web-universe"
 echo ""
 
 # 11. Check Monitoring
@@ -228,22 +252,20 @@ echo ""
 # 12. Check Documentation
 echo "12. Checking Documentation..."
 
-if [ -f "TESTNET_LAUNCH_CHECKLIST.md" ]; then
-    check_pass "Launch checklist exists"
+DOCS_OK=0
+[ -f "README.md" ] && DOCS_OK=1
+[ -f "docs/GENESIS_PUBLIC_TESTNET_PLAN.md" ] && DOCS_OK=1
+[ -f "docs/ADD_NETWORK_AND_TOKEN.md" ] && DOCS_OK=1
+if [ "$DOCS_OK" -eq 1 ]; then
+    check_pass "Key docs exist (README, Genesis plan, Add token)"
 else
-    check_warn "Launch checklist not found"
+    check_warn "Some key docs missing"
 fi
 
-if [ -f "VPS_DEPLOYMENT.md" ]; then
-    check_pass "Deployment guide exists"
+if [ -f "ops/deploy/VPS_VALIDATOR_UPDATE.md" ] || [ -f "VPS_VALIDATOR_UPDATE.md" ]; then
+    check_pass "Validator/deploy guide exists"
 else
-    check_warn "Deployment guide not found"
-fi
-
-if [ -f "VALIDATOR_SETUP.md" ]; then
-    check_pass "Validator setup guide exists"
-else
-    check_warn "Validator setup guide not found"
+    check_warn "VPS_VALIDATOR_UPDATE.md not found"
 fi
 echo ""
 

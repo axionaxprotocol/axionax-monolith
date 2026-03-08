@@ -11,6 +11,8 @@ worker_key.json
 .env
 .env.local
 .env.production
+**/identity.key
+# Keep .env.example committed; do not commit .env or .env.faucet
 
 # Python
 *.py[cod]
@@ -31,3 +33,7 @@ logs/
 
 # Built node package (optional; run scripts/make-node-package.py to create)
 axionax-node-package.zip
+
+# Local node state and test artifacts
+.local-node-state/
+.rpc-test.json
