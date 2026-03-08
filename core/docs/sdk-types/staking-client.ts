@@ -13,7 +13,7 @@ import {
     parseValidatorInfo,
     parseStakingStats,
     toHex,
-} from '../types/staking';
+} from './staking';
 
 /**
  * Staking Client for RPC calls

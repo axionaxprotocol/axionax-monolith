@@ -15,8 +15,8 @@ import {
     parseProposal,
     parseGovernanceStats,
     buildProposalTypeString,
-} from '../types/governance';
-import { toHex } from '../types/staking';
+} from './governance';
+import { toHex } from './staking';
 
 /**
  * Governance Client for RPC calls
