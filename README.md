@@ -27,7 +27,7 @@
 
 **axionax Web Universe** เป็น monorepo ที่รวมทุกอย่างที่เกี่ยวข้องกับ frontend, documentation, SDK และ marketplace ของ **Axionax Protocol** ไว้ในที่เดียว ใช้ pnpm workspaces สำหรับการจัดการ dependencies ที่มีประสิทธิภาพ
 
-📄 **เอกสารสรุปโครงการฉบับสมบูรณ์:** [MASTER_SUMMARY.md](MASTER_SUMMARY.md) · **เตรียมโฮสต์เว็บ:** [docs/HOSTING.md](docs/HOSTING.md)
+📄 **เอกสารสรุปโครงการ:** [MASTER_SUMMARY.md](MASTER_SUMMARY.md) · **White Paper:** [WHITEPAPER.md](WHITEPAPER.md) · **เตรียมโฮสต์เว็บ:** [docs/HOSTING.md](docs/HOSTING.md)
 
 ### 🎯 What's Inside?
 

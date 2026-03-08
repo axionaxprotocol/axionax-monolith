@@ -52,7 +52,7 @@ Sample Size Calculation:
   - Line 26: Validation Layer description
   - Line 223: Roadmap Phase 1
 
-### 2. White Paper (WHITEPAPER_TESTNET.md)
+### 2. White Paper (WHITEPAPER.md)
 - ✅ **Executive Summary** (Line 12)
 - ✅ **Table of Contents** (Line 27)
 - ✅ **Introduction** (Line 55)

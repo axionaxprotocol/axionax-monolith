@@ -5,7 +5,7 @@ You are responsible for taking the **Axionax Protocol** from a local development
 Before starting any task, you must analyze these files in `apps/docs/` to align with the roadmap:
 1.  `TESTNET_LAUNCH.md` (Launch checklist)
 2.  `TESTNET_DEPLOYMENT_PLAN.md` (Infrastructure setup)
-3.  `WHITEPAPER_TESTNET.md` (Features & Specs)
+3.  `WHITEPAPER.md` (Features & Specs)
 4.  `MONITORING.md` (Metrics & Alerts)
 
 ## 📊 KPI TARGETS (Success Metrics)

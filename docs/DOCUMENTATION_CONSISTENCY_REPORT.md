@@ -102,7 +102,7 @@
 | เอกสาร | DePIN | Geo-Hierarchy | 7 Sentinels | AXX/AXXt |
 |--------|-------|---------------|-------------|----------|
 | MASTER_SUMMARY.md | ✅ | ✅ | ✅ | ✅ |
-| WHITEPAPER_TESTNET.md | ✅ | ✅ | ✅ | ✅ |
+| WHITEPAPER.md | ✅ | ✅ | ✅ | ✅ |
 | TOKENOMICS.md | - | - | - | ✅ |
 | TOKENOMICS_TESTNET.md | - | - | - | ✅ |
 | README.md | - | - | - | ✅ |
