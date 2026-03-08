@@ -163,6 +163,14 @@ pub trait AxionaxRpc {
     #[method(name = "net_version")]
     async fn net_version(&self) -> RpcResult<String>;
 
+    /// Get account balance (hex wei)
+    #[method(name = "eth_getBalance")]
+    async fn get_balance(&self, address: String, block: String) -> RpcResult<String>;
+
+    /// Get account nonce
+    #[method(name = "eth_getTransactionCount")]
+    async fn get_transaction_count(&self, address: String, block: String) -> RpcResult<String>;
+
     /// Send raw transaction
     #[method(name = "eth_sendRawTransaction")]
     async fn send_raw_transaction(&self, tx_hex: String) -> RpcResult<String>;
@@ -250,6 +258,16 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
         Ok(self.chain_id.to_string())
     }
 
+    async fn get_balance(&self, address: String, _block: String) -> RpcResult<String> {
+        let balance = self.state.get_balance(address.as_str()).map_err(RpcError::from)?;
+        Ok(format!("0x{:x}", balance))
+    }
+
+    async fn get_transaction_count(&self, address: String, _block: String) -> RpcResult<String> {
+        let nonce = self.state.get_nonce(address.as_str()).map_err(RpcError::from)?;
+        Ok(format!("0x{:x}", nonce))
+    }
+
     async fn send_raw_transaction(&self, tx_hex: String) -> RpcResult<String> {
         let mempool = self.mempool.as_ref().ok_or_else(|| {
             RpcError::InternalError("Mempool not available".to_string())
@@ -280,9 +298,14 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
 
         let tx_hash = format!("0x{}", hex::encode(tx.hash));
 
-        mempool.add_transaction(tx)
+        mempool.add_transaction(tx.clone())
             .await
             .map_err(|e| RpcError::InternalError(e.to_string()))?;
+
+        // Apply transfer to state so balance/nonce update immediately (single-node / testnet).
+        if let Err(e) = self.state.apply_transaction(&tx) {
+            tracing::warn!("apply_transaction after mempool add failed (tx may still be in pool): {}", e);
+        }
 
         Ok(tx_hash)
     }

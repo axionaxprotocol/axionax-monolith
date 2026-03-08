@@ -20,13 +20,13 @@ Wants=network-online.target
 Type=simple
 User=axionax
 Group=axionax
-WorkingDirectory=/home/axionax/axionax-core
+WorkingDirectory=/home/axionax/axionax-core-universe
 
 # Environment
 Environment="AXIONAX_HOME=/home/axionax/.axionax"
 Environment="RUST_LOG=info"
 Environment="RUST_BACKTRACE=1"
-Environment="PYTHONPATH=/home/axionax/axionax-core/deai"
+Environment="PYTHONPATH=/home/axionax/axionax-core-universe/core/deai"
 
 # Start command
 ExecStart=/usr/local/bin/axionax-core start \

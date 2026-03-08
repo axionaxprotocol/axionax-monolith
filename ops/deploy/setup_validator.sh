@@ -14,7 +14,8 @@ NC='\033[0m' # No Color
 # Configuration
 AXIONAX_USER="axionax"
 AXIONAX_HOME="/home/$AXIONAX_USER/.axionax"
-REPO_URL="https://github.com/axionaxprotocol/axionax-core.git"
+REPO_URL="https://github.com/axionaxprotocol/axionax-core-universe.git"
+REPO_DIR="axionax-core-universe"
 BRANCH="main"
 
 echo -e "${GREEN}================================================${NC}"
@@ -84,13 +85,13 @@ fi
 # Step 6: Clone Repository
 echo -e "\n${YELLOW}[6/9] Cloning axionax repository...${NC}"
 su - $AXIONAX_USER << EOF
-if [ -d "axionax-core" ]; then
+if [ -d "$REPO_DIR" ]; then
     echo "Repository already cloned, pulling latest changes..."
-    cd axionax-core
+    cd $REPO_DIR
     git pull origin $BRANCH
 else
     git clone $REPO_URL
-    cd axionax-core
+    cd $REPO_DIR
     git checkout $BRANCH
     echo "Repository cloned successfully"
 fi
@@ -99,23 +100,23 @@ EOF
 # Step 7: Build Node
 echo -e "\n${YELLOW}[7/9] Building axionax node (this may take 10-15 minutes)...${NC}"
 su - $AXIONAX_USER << 'EOF'
-cd ~/axionax-core
+cd ~/axionax-core-universe/core
 source $HOME/.cargo/env
 cargo build --release
 echo "Build completed successfully"
 EOF
 
 # Install binary to system path
-cp /home/$AXIONAX_USER/axionax-core/target/release/axionax-core /usr/local/bin/
+cp /home/$AXIONAX_USER/axionax-core-universe/core/target/release/axionax-core /usr/local/bin/
 chmod +x /usr/local/bin/axionax-core
 echo "Binary installed to /usr/local/bin/axionax-core"
 
 # Step 8: Setup Python Environment
 echo -e "\n${YELLOW}[8/9] Setting up Python DeAI environment...${NC}"
 su - $AXIONAX_USER << 'EOF'
-cd ~/axionax-core/deai
-python3 -m venv venv
-source venv/bin/activate
+cd ~/axionax-core-universe/core/deai
+python3 -m venv .venv
+source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 deactivate
@@ -129,8 +130,13 @@ mkdir -p ~/.axionax/{keystore,config,data,logs}
 chmod 700 ~/.axionax
 chmod 700 ~/.axionax/keystore
 
-# Copy example config
-cp ~/axionax-core/environments/config.example.yaml ~/.axionax/config/config.yaml
+# Copy example config if present (else user creates manually)
+if [ -f "$HOME/axionax-core-universe/ops/deploy/configs/rpc-config.toml" ]; then
+    cp "$HOME/axionax-core-universe/ops/deploy/configs/rpc-config.toml" ~/.axionax/config/
+fi
+if [ ! -f ~/.axionax/config/config.yaml ]; then
+    echo "Create ~/.axionax/config/config.yaml (validator mode, bootstrap nodes). See docs."
+fi
 
 # Add environment variables to .bashrc
 cat >> ~/.bashrc << 'ENVEOF'
@@ -141,7 +147,7 @@ export AXIONAX_CONFIG="$AXIONAX_HOME/config/config.yaml"
 export AXIONAX_KEYSTORE="$AXIONAX_HOME/keystore"
 export RUST_LOG=info
 export RUST_BACKTRACE=1
-export PYTHONPATH="$HOME/axionax-core/deai:$PYTHONPATH"
+export PYTHONPATH="$HOME/axionax-core-universe/core/deai:$PYTHONPATH"
 ENVEOF
 
 source ~/.bashrc
@@ -172,7 +178,7 @@ echo -e "5. Initialize node:"
 echo -e "   ${YELLOW}axionax-core init --config ~/.axionax/config/config.yaml --genesis ~/.axionax/config/genesis.json${NC}"
 echo ""
 echo -e "6. Setup systemd service (as root):"
-echo -e "   ${YELLOW}sudo bash ~/axionax-core/scripts/setup_systemd.sh${NC}"
+echo -e "   ${YELLOW}sudo bash ~/axionax-core-universe/ops/deploy/scripts/setup_systemd.sh${NC}"
 echo ""
 echo -e "7. Start validator:"
 echo -e "   ${YELLOW}sudo systemctl start axionax-validator${NC}"

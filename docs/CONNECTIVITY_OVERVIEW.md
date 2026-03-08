@@ -1,108 +1,106 @@
-# การเชื่อมต่อระหว่าง Local Full Node, VPS Validator และ Frontend
+# Connectivity: Local Full Node, VPS Validator, and Frontend
 
-สรุปว่า **Local full node**, **VPS Validator node** และ **Frontend (เว็บ/เว็บไซต์)** เชื่อมต่อกันอย่างไร และต้องตั้งค่าอะไรบ้าง
+How **Local full node**, **VPS Validator node**, and **Frontend (hosted website)** connect, and what must be configured.
 
 ---
 
-## ภาพรวม
+## Overview
 
-| ส่วน | ที่อยู่ / URL | เชื่อมกับ |
-|------|----------------|----------|
-| **VPS Validator #1** | 217.76.61.116 (EU), RPC :8545, P2P :30303 | Validator #2 (P2P), Client (RPC) |
-| **VPS Validator #2** | 46.250.244.4 (AU), RPC :8545, P2P :30303 | Validator #1 (P2P), Client (RPC) |
-| **DNS (ถ้าเปิด)** | rpc.axionax.org, faucet.axionax.org, explorer.axionax.org | ชี้ไป VPS ที่รัน service นั้น |
-| **Frontend (axionax-web-universe)** | เว็บโฮสต์ที่ axionax.org / Vercel / VPS | ใช้ RPC ผ่าน URL ที่ตั้งใน env |
-| **Local full node** | เครื่องคุณ (รัน node เอง) | เลือกได้: ชี้ไป Public Testnet หรือรัน chain เอง |
+| Component | Location / URL | Connects to |
+|-----------|----------------|-------------|
+| **VPS Validator #1** | 217.76.61.116 (EU), RPC :8545, P2P :30303 | Validator #2 (P2P), clients (RPC) |
+| **VPS Validator #2** | 46.250.244.4 (AU), RPC :8545, P2P :30303 | Validator #1 (P2P), clients (RPC) |
+| **DNS (if used)** | rpc.axionax.org, faucet.axionax.org, explorer.axionax.org | Points to VPS hosting that service |
+| **Frontend (axionax-web-universe)** | Hosted at axionax.org / Vercel / VPS | Uses RPC via URL set in env |
+| **Local full node** | Your machine (node running locally) | Choice: point to Public Testnet or run own chain |
 
 ---
 
 ## 1. Public Testnet (VPS Validators + Frontend)
 
-### การเชื่อมต่อที่ออกแบบไว้
+### Intended connectivity
 
 ```
-[ผู้ใช้] → [axionax.org / เว็บ] → RPC (rpc.axionax.org หรือ IP:8545)
+[User] → [axionax.org / website] → RPC (rpc.axionax.org or IP:8545)
                     ↓
-            [VPS Validator #1 หรือ #2]
+            [VPS Validator #1 or #2]
                     ↓
-            Chain ID 86137, state เดียวกัน
+            Chain ID 86137, same state
 ```
 
-- **Validator ทั้งสองตัว** รัน chain เดียวกัน (Genesis เดียว, Chain ID 86137) และ sync กันผ่าน P2P (พอร์ต 30303).
-- **Frontend (เว็บ)** ต้องใช้ **RPC URL** ที่ชี้ไปที่ node ของ chain นี้ จึงจะ “เชื่อมต่อ” กับ testnet จริง:
-  - ถ้ามี DNS: `NEXT_PUBLIC_RPC_URL=https://rpc.axionax.org` (หรือ `https://testnet-rpc.axionax.org`)
-  - หรือชี้ตรงไปที่ IP: `http://217.76.61.116:8545` / `http://46.250.244.4:8545`
-- **Faucet** ต้องใช้ `RPC_URL` ชี้ไปที่ RPC ของ chain เดียวกัน (Validator หรือ RPC node ที่ sync กับ Validator) ถึงจะแจก AXX บน chain ที่เว็บใช้
+- **Both validators** run the same chain (same genesis, Chain ID 86137) and sync via P2P (port 30303).
+- **Frontend (website)** must use an **RPC URL** that points to a node of this chain to be "connected" to the real testnet:
+  - With DNS: `NEXT_PUBLIC_RPC_URL=https://rpc.axionax.org` (or `https://testnet-rpc.axionax.org`)
+  - Or by IP: `http://217.76.61.116:8545` / `http://46.250.244.4:8545`
+- **Faucet** must have `RPC_URL` pointing to the RPC of this chain (validator or RPC node in sync with the validator) to distribute AXX on the same chain the frontend uses.
 
-### สิ่งที่ต้องทำถึงจะ “เชื่อมต่อครบ”
+### What must be in place for "fully connected"
 
-| รายการ | สถานะ | หมายเหตุ |
-|--------|--------|----------|
-| VPS Validator รัน node + เปิดพอร์ต 8545, 30303 | ตาม README / VPS_VALIDATOR_UPDATE | ต้องรันและ firewall เปิด |
-| DNS: rpc.axionax.org → IP ของ RPC | ต้องตั้งบน DNS | ถ้าไม่มี DNS ใช้ IP โดยตรงใน Frontend |
-| DNS: faucet.axionax.org → IP ของเครื่องที่รัน Faucet | ต้องตั้งบน DNS | Faucet ต้องตั้ง RPC_URL ชี้ไป chain 86137 |
-| Frontend (web-universe) env: NEXT_PUBLIC_RPC_URL | ต้องตั้งในเว็บที่โฮสต์ | ใช้ rpc.axionax.org หรือ http://217.76.61.116:8545 |
-| Faucet รันและ RPC_URL ชี้ไป Validator/RPC | ต้องตั้งบนเครื่องที่รัน Faucet | ดู ops/deploy, Dockerfile.faucet |
+| Item | Status | Notes |
+|------|--------|-------|
+| VPS Validator runs node and exposes 8545, 30303 | Per README / VPS_VALIDATOR_UPDATE | Must be running and firewall open |
+| DNS: rpc.axionax.org → RPC host IP | Set in DNS | If no DNS, use IP in frontend |
+| DNS: faucet.axionax.org → Faucet host | Set in DNS | Faucet must set RPC_URL to chain 86137 |
+| Frontend (web-universe) env: NEXT_PUBLIC_RPC_URL | Set on hosted site | Use rpc.axionax.org or http://217.76.61.116:8545 |
+| Faucet running and RPC_URL pointing to Validator/RPC | Set on Faucet host | See ops/deploy, Dockerfile.faucet |
 
-สรุป: **เชื่อมต่อกันได้ก็ต่อเมื่อ** (1) Validator รันและเปิด RPC (2) Frontend ใช้ RPC URL ของ chain นี้ (3) Faucet ใช้ RPC เดียวกัน และถ้าใช้โดเมน ต้องมี DNS ชี้ถูก
+**Summary:** Everything is connected only when (1) validators run and expose RPC, (2) frontend uses this chain’s RPC URL, (3) Faucet uses the same RPC, and (4) if using domains, DNS is set correctly.
 
 ---
 
 ## 2. Local Full Node
 
-### ตัวเลือก A: ต่อกับ Public Testnet (เชื่อมกับ Validator)
+### Option A: Connect to Public Testnet
 
-- รัน full node ในเครื่องคุณ โดยให้ **bootstrap / RPC ชี้ไป Validator** จะได้ sync กับ chain เดียวกับ VPS และ frontend:
-  - ใช้ env: `AXIONAX_BOOTSTRAP_NODES=/ip4/217.76.61.116/tcp/30303/p2p/<PEER_ID>` (ต้องมี Peer ID จริงจาก Validator)  
-  - หรือไม่ sync P2P แค่ใช้ RPC ของ Validator เป็น “remote RPC” จากแอป/สคริปต์ก็ได้
-- ถ้าใช้ RPC ของ Validator โดยตรง (เช่น `http://217.76.61.116:8545`) แปลว่า **Local full node ไม่จำเป็นต้องรัน** สำหรับแค่เชื่อม frontend/faucet; รันเมื่อต้องการ sync chain ไว้ในเครื่อง
+- Run a full node on your machine with **bootstrap / RPC** pointing at a validator to sync with the same chain as VPS and frontend:
+  - Env: `AXIONAX_BOOTSTRAP_NODES=/ip4/217.76.61.116/tcp/30303/p2p/<PEER_ID>` (requires actual Peer ID from validator)
+  - Or do not sync P2P and use the validator RPC as a "remote RPC" from apps/scripts.
+- If you use the validator RPC directly (e.g. `http://217.76.61.116:8545`), a **local full node is not required** just to use the frontend/faucet; run one when you want a local copy of the chain.
 
-### ตัวเลือก B: รัน Chain แยก (ไม่เชื่อม Public Testnet)
+### Option B: Run a separate chain (not connected to Public Testnet)
 
-- รัน node แบบ standalone (ไม่ใส่ bootstrap หรือใช้ genesis อื่น / chain_id อื่น) จะได้ **chain แยกในเครื่อง**:
-  - Frontend ถ้ารัน local และตั้ง `NEXT_PUBLIC_RPC_URL=http://localhost:8545` จะเชื่อมกับ chain นี้ ไม่ใช่กับ VPS Validator
-  - ใช้ได้สำหรับ dev เท่านั้น
-
----
-
-## 3. Frontend (เว็บโฮสต์ – axionax-web-universe)
-
-- เว็บที่โฮสต์ (axionax.org หรือที่อื่น) อ่าน **RPC URL จาก env** (เช่น `NEXT_PUBLIC_RPC_URL`, `VITE_RPC_URL`):
-  - ถ้าใส่ `https://rpc.axionax.org` หรือ `http://217.76.61.116:8545` → เชื่อมกับ **Public Testnet (Validator)**
-  - ถ้าใส่ `http://localhost:8545` → เชื่อมกับ **node ในเครื่อง (local chain หรือ local node ที่ sync testnet)**
-- ดังนั้น **frontend “เชื่อมต่อ” กับ chain ไหน ขึ้นกับค่า RPC URL ที่ใช้ตอน build/รัน** ไม่ได้ขึ้นกับว่า Validator อยู่ที่ไหน โดยตรง
+- Run the node in standalone mode (no bootstrap or different genesis/chain_id) to get a **local-only chain**:
+  - If the frontend runs locally with `NEXT_PUBLIC_RPC_URL=http://localhost:8545`, it connects to this chain, not the VPS validators.
+  - Suitable for development only.
 
 ---
 
-## 4. สรุปคำตอบ: “ทั้งหมดเชื่อมต่อกันหรือยัง”
+## 3. Frontend (hosted — axionax-web-universe)
 
-| คู่ที่ถาม | เชื่อมต่อกันหรือไม่ | เงื่อนไข |
-|-----------|----------------------|----------|
-| **VPS Validator #1 ↔ #2** | ได้ | เปิด P2P 30303 ระหว่างกัน, genesis + chain_id ตรงกัน |
-| **Frontend ↔ Public Testnet** | ได้ | ตั้ง NEXT_PUBLIC_RPC_URL (หรือเทียบเท่า) ให้ชี้ไป RPC ของ Validator (หรือ rpc.axionax.org ถ้า DNS ชี้ไปที่นั้น) |
-| **Faucet ↔ Public Testnet** | ได้ | รัน Faucet และตั้ง RPC_URL ไปที่ RPC ของ chain 86137 (Validator/RPC node) |
-| **Local full node ↔ Public Testnet** | ได้ | ตั้ง bootstrap/RPC ชี้ไป Validator และใช้ genesis/chain_id เดียวกัน |
-| **Frontend โฮสต์ ↔ Local full node** | ได้ | ตั้ง RPC URL ใน frontend เป็นที่อยู่ของ local node (เช่น http://localhost:8545 หรือ IP:8545) |
-
-**โดยรวม:**  
-- **ถ้า DNS (rpc.axionax.org, faucet.axionax.org) ชี้ไปที่ VPS ที่รัน service จริง และ Frontend ใช้ URL เหล่านั้น** → Local full node (ถ้ารันและ sync กับ Validator), VPS Validator และ Frontend โฮสต์ ใช้ **chain เดียวกัน** จึงถือว่า “เชื่อมต่อกัน” ในระดับข้อมูล chain  
-- **ถ้า DNS ยังไม่ตั้ง หรือ Frontend ยังชี้ RPC ไปที่อื่น** → ต้องไปตั้ง DNS และ env ตามตารางด้านบนถึงจะครบ
+- The hosted site (axionax.org or elsewhere) reads **RPC URL from env** (e.g. `NEXT_PUBLIC_RPC_URL`, `VITE_RPC_URL`):
+  - If set to `https://rpc.axionax.org` or `http://217.76.61.116:8545` → connected to **Public Testnet (validators)**.
+  - If set to `http://localhost:8545` → connected to **local node (local chain or local node synced to testnet)**.
+- So **which chain the frontend uses depends on the RPC URL** used at build/run time, not on where the validator is hosted.
 
 ---
 
-## 5. ตรวจสอบแบบเร็ว
+## 4. Summary: "Is everything connected?"
+
+| Pair | Connected? | Condition |
+|------|------------|-----------|
+| **VPS Validator #1 ↔ #2** | Yes | P2P 30303 open between them; same genesis and chain_id |
+| **Frontend ↔ Public Testnet** | Yes | Set NEXT_PUBLIC_RPC_URL (or equivalent) to the chain’s RPC (or rpc.axionax.org if DNS points there) |
+| **Faucet ↔ Public Testnet** | Yes | Run Faucet and set RPC_URL to the RPC of chain 86137 (validator/RPC node) |
+| **Local full node ↔ Public Testnet** | Yes | Set bootstrap/RPC to validator and use same genesis/chain_id |
+| **Hosted frontend ↔ Local full node** | Yes | Set frontend RPC URL to the local node (e.g. http://localhost:8545 or IP:8545) |
+
+**Overall:** If DNS (rpc.axionax.org, faucet.axionax.org) points to the VPS that actually run those services, and the frontend uses those URLs, then local full node (if running and synced to validators), VPS validators, and hosted frontend all use the **same chain** and are "connected" at the data level. If DNS is not set or the frontend points RPC elsewhere, configure DNS and env as in the table above.
+
+---
+
+## 5. Quick verification
 
 ```bash
-# RPC ของ Public Testnet ใช้ได้หรือไม่
+# Public Testnet RPC
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
   http://217.76.61.116:8545
-# คาดว่าได้ "0x15079" (86137)
+# Expect "0x15079" (86137)
 
-# ถ้ามี DNS
+# With DNS
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
   https://rpc.axionax.org
 ```
 
-สคริปต์ตรวจสอบแบบเต็ม: `ops/deploy/scripts/verify-launch-ready.sh` (เช็ค DNS, RPC, Explorer, Faucet)
+Full verification script: `ops/deploy/scripts/verify-launch-ready.sh` (checks DNS, RPC, Explorer, Faucet).

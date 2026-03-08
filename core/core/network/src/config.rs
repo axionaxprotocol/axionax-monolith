@@ -83,28 +83,22 @@ impl Default for NetworkConfig {
 }
 
 impl NetworkConfig {
-    /// Create config for testnet
+    /// Create config for testnet (bootstrap via AXIONAX_BOOTSTRAP_NODES env or add peers manually)
     pub fn testnet() -> Self {
         Self {
             chain_id: 86137,
-            bootstrap_nodes: vec![
-                // Will be updated with actual bootstrap nodes
-                "/dns4/testnet-node1.axionax.org/tcp/30303/p2p/12D3KooW...".to_string(),
-            ],
+            bootstrap_nodes: vec![], // Set AXIONAX_BOOTSTRAP_NODES=/ip4/<IP>/tcp/30303/p2p/<PEER_ID> on VPS
             ..Default::default()
         }
     }
 
-    /// Create config for mainnet
+    /// Create config for mainnet (bootstrap via AXIONAX_BOOTSTRAP_NODES env)
     pub fn mainnet() -> Self {
         Self {
             chain_id: 86150,
             validation_mode: ValidationMode::Strict,
             max_peers: 100,
-            bootstrap_nodes: vec![
-                // Will be updated with actual bootstrap nodes
-                "/dns4/mainnet-node1.axionax.org/tcp/30303/p2p/12D3KooW...".to_string(),
-            ],
+            bootstrap_nodes: vec![],
             ..Default::default()
         }
     }

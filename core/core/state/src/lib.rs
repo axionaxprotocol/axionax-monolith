@@ -6,6 +6,7 @@
 //! - Account balances and nonces
 
 use redb::{Database, ReadableTable, TableDefinition};
+use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 use thiserror::Error;
@@ -302,6 +303,122 @@ impl StateDB {
             }
         }
         Ok(blocks)
+    }
+
+    /// Normalize EVM address for storage key (lowercase 0x + 40 hex).
+    fn balance_key(address: &str) -> String {
+        let a = address.strip_prefix("0x").unwrap_or(address);
+        format!("bal_0x{}", a.to_lowercase())
+    }
+    fn nonce_key(address: &str) -> String {
+        let a = address.strip_prefix("0x").unwrap_or(address);
+        format!("nonce_0x{}", a.to_lowercase())
+    }
+
+    /// Get account balance (0 if never set).
+    pub fn get_balance(&self, address: &str) -> Result<u128> {
+        let key = Self::balance_key(address);
+        let read_txn = self.db.begin_read()?;
+        let t = read_txn.open_table(CHAIN_STATE)?;
+        Ok(match t.get(key.as_str())? {
+            Some(v) => {
+                let bytes: &[u8] = v.value();
+                if bytes.len() >= 16 {
+                    let mut arr = [0u8; 16];
+                    arr.copy_from_slice(&bytes[..16]);
+                    u128::from_be_bytes(arr)
+                } else {
+                    0
+                }
+            }
+            None => 0,
+        })
+    }
+
+    /// Set account balance.
+    pub fn set_balance(&self, address: &str, balance: u128) -> Result<()> {
+        let key = Self::balance_key(address);
+        let write_txn = self.db.begin_write()?;
+        {
+            let mut t = write_txn.open_table(CHAIN_STATE)?;
+            t.insert(key.as_str(), balance.to_be_bytes().as_slice())?;
+        }
+        write_txn.commit()?;
+        Ok(())
+    }
+
+    /// Get account nonce (0 if never set).
+    pub fn get_nonce(&self, address: &str) -> Result<u64> {
+        let key = Self::nonce_key(address);
+        let read_txn = self.db.begin_read()?;
+        let t = read_txn.open_table(CHAIN_STATE)?;
+        Ok(match t.get(key.as_str())? {
+            Some(v) => {
+                let bytes: &[u8] = v.value();
+                if bytes.len() >= 8 {
+                    let mut arr = [0u8; 8];
+                    arr.copy_from_slice(&bytes[..8]);
+                    u64::from_be_bytes(arr)
+                } else {
+                    0
+                }
+            }
+            None => 0,
+        })
+    }
+
+    /// Set account nonce.
+    pub fn set_nonce(&self, address: &str, nonce: u64) -> Result<()> {
+        let key = Self::nonce_key(address);
+        let write_txn = self.db.begin_write()?;
+        {
+            let mut t = write_txn.open_table(CHAIN_STATE)?;
+            t.insert(key.as_str(), nonce.to_be_bytes().as_slice())?;
+        }
+        write_txn.commit()?;
+        Ok(())
+    }
+
+    /// Seed genesis balances (call once when chain height is 0).
+    pub fn seed_genesis_balances(&self, balances: &HashMap<String, u128>) -> Result<()> {
+        let write_txn = self.db.begin_write()?;
+        {
+            let mut t = write_txn.open_table(CHAIN_STATE)?;
+            for (addr, balance) in balances {
+                let key = Self::balance_key(addr);
+                t.insert(key.as_str(), balance.to_be_bytes().as_slice())?;
+            }
+        }
+        write_txn.commit()?;
+        info!("Seeded {} genesis balances", balances.len());
+        Ok(())
+    }
+
+    /// Apply a transfer transaction: deduct from sender, add to recipient, increment sender nonce.
+    /// Returns error if insufficient balance or nonce mismatch.
+    pub fn apply_transaction(&self, tx: &Transaction) -> Result<()> {
+        let from_bal = self.get_balance(&tx.from)?;
+        let to_bal = self.get_balance(&tx.to)?;
+        let from_nonce = self.get_nonce(&tx.from)?;
+
+        if from_nonce != tx.nonce {
+            return Err(StateError::DatabaseError(format!(
+                "Invalid nonce: expected {}, got {}",
+                from_nonce, tx.nonce
+            )));
+        }
+        let cost = tx.value; // simplified: no gas deduction for now
+        if from_bal < cost {
+            return Err(StateError::DatabaseError(format!(
+                "Insufficient balance: have {}, need {}",
+                from_bal, cost
+            )));
+        }
+
+        self.set_balance(&tx.from, from_bal - cost)?;
+        self.set_balance(&tx.to, to_bal + cost)?;
+        self.set_nonce(&tx.from, tx.nonce + 1)?;
+        Ok(())
     }
 
     /// Close the database

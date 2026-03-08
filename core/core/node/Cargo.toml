@@ -17,6 +17,7 @@ network = { path = "../network" }
 state = { path = "../state" }
 rpc = { path = "../rpc" }
 blockchain = { path = "../blockchain" }
+genesis = { path = "../genesis" }
 crypto = { path = "../crypto" }
 consensus = { path = "../consensus" }
 metrics = { path = "../metrics" }

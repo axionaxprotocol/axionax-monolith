@@ -1,17 +1,17 @@
-# เพิ่มเครือข่าย Axionax และเหรียญ AXX ใน MetaMask และวอลเล็ตอื่นๆ
+# Add Axionax Network and AXX Token in MetaMask and Other Wallets
 
-คู่มือเพิ่ม **Axionax Testnet** และเหรียญ **AXX** ใน MetaMask, Rabby, Coinbase Wallet ฯลฯ
+How to add **Axionax Testnet** and the **AXX** token in MetaMask, Rabby, Coinbase Wallet, and similar wallets.
 
-**คู่มือฉบับเต็ม (ภาษาไทย + ปุ่ม Add Token จากเว็บ):** [axionax-web-universe → Add Token to MetaMask](https://github.com/axionaxprotocol/axionax-web-universe/blob/main/apps/docs/ADD_TOKEN_TO_METAMASK.md)
+**Web UI guide (with Add Token button):** [axionax-web-universe → Add Token to MetaMask](https://github.com/axionaxprotocol/axionax-web-universe/blob/main/apps/docs/ADD_TOKEN_TO_METAMASK.md)
 
 ---
 
-## ข้อมูลเครือข่าย (Testnet)
+## Network parameters (Testnet)
 
-| รายการ | ค่า |
-|--------|-----|
+| Item | Value |
+|------|-------|
 | **Network name** | Axionax Testnet |
-| **RPC URL** | `https://testnet-rpc.axionax.org` หรือ `http://217.76.61.116:8545` / `http://46.250.244.4:8545` |
+| **RPC URL** | `https://testnet-rpc.axionax.org` or `http://217.76.61.116:8545` / `http://46.250.244.4:8545` |
 | **Chain ID** | `86137` |
 | **Currency symbol** | AXX |
 | **Decimals** | 18 |
@@ -21,81 +21,81 @@
 
 ## 1. MetaMask
 
-### ขั้นตอนเพิ่มเครือข่าย (Custom Network)
+### Add network (Custom Network)
 
-1. เปิด **MetaMask** → คลิก dropdown เครือข่าย (ด้านบน) → **Add network** หรือ **Add a network manually**
-2. กรอกค่าดังนี้:
+1. Open **MetaMask** → click the network dropdown (top) → **Add network** or **Add a network manually**.
+2. Enter:
 
-   | ช่อง | กรอก |
-   |-----|------|
+   | Field | Value |
+   |-------|-------|
    | **Network name** | `Axionax Testnet` |
    | **RPC URL** | `http://217.76.61.116:8545` |
    | **Chain ID** | `86137` |
    | **Currency symbol** | `AXX` |
-   | **Block explorer URL** | ว่างไว้ได้ (หรือใส่เมื่อมี explorer) |
+   | **Block explorer URL** | Leave blank or set when available |
 
-3. กด **Save** แล้วสลับมาใช้เครือข่าย **Axionax Testnet**
+3. Click **Save** and switch to **Axionax Testnet**.
 
-เมื่อเพิ่มเครือข่ายแล้ว **เหรียญ AXX (native)** จะแสดงในกระเป๋าอัตโนมัติ ไม่ต้อง “Import token” แยก (เพราะเป็น native token ของ chain นี้)
+After adding the network, **native AXX** appears in the wallet automatically; no separate "Import token" is required for the native token.
 
-### ถ้าต้องการเพิ่มโทเคนแบบ ERC-20 (มี contract แยก)
+### Adding an ERC-20 token (separate contract)
 
-ถ้ามีสัญญา ERC-20 อื่น (เช่น โทเคนทดสอบ) ที่ต้องการให้ MetaMask แสดง:
+If you have another ERC-20 contract (e.g. a test token) to show in MetaMask:
 
-1. อยู่ที่เครือข่าย **Axionax Testnet**
-2. ด้านล่างกด **Import tokens** (หรือ **Add token**)
-3. ใส่ **Token contract address** ที่ได้จากทีม/เอกสาร
-4. MetaMask จะดึง **Token symbol** และ **Decimals** ให้อัตโนมัติ (ถ้า contract มาตรฐาน) — หรือใส่เอง: Symbol เช่น `TEST`, Decimals `18`
-5. กด **Add custom token**
+1. Ensure the network is **Axionax Testnet**.
+2. Click **Import tokens** (or **Add token**) at the bottom.
+3. Enter the **Token contract address** from the team or docs.
+4. MetaMask will fill **Token symbol** and **Decimals** if the contract is standard; otherwise set them (e.g. Symbol `TEST`, Decimals `18`).
+5. Click **Add custom token**.
 
 ---
 
-## 2. วอลเล็ตอื่นๆ (Rabby, Coinbase Wallet, Frame ฯลฯ)
+## 2. Other wallets (Rabby, Coinbase Wallet, Frame, etc.)
 
-แนวทางเหมือน MetaMask: เพิ่ม **Custom network / Custom RPC** ด้วยค่าข้างบน
+Same idea: add a **Custom network / Custom RPC** with the parameters above.
 
 - **Rabby:** Settings → Network → Add a custom network  
 - **Coinbase Wallet:** Settings → Networks → Add custom network  
 - **Frame:** Settings → Networks → Add network  
-- **WalletConnect-compatible:** ส่วนใหญ่มี “Add network” / “Custom RPC” — ใช้ค่าเดียวกัน
+- **WalletConnect-compatible:** Most have "Add network" / "Custom RPC" — use the same values.
 
-| ช่อง | ค่า |
-|-----|-----|
+| Field | Value |
+|-------|-------|
 | Network name | Axionax Testnet |
 | RPC URL | `http://217.76.61.116:8545` |
 | Chain ID | `86137` |
 | Symbol | AXX |
 
-เหรียญ **AXX (native)** จะแสดงเมื่อเลือกเครือข่ายนี้โดยไม่ต้อง import โทเคนเพิ่ม
+**Native AXX** is shown when this network is selected; no separate token import is needed.
 
 ---
 
-## 3. รับ AXX Testnet (Claim จาก Faucet)
+## 3. Receive AXX Testnet (Claim from Faucet)
 
-ยอด 0 AXX แก้ได้โดย **รับจาก Faucet** เท่านั้น (ปุ่ม "Add funds" ใน MetaMask ใช้สำหรับซื้อด้วย fiat ไม่ใช่รับ testnet)
+A zero balance is resolved by **receiving from the Faucet** only. The "Add funds" button in MetaMask is for buying with fiat, not for testnet tokens.
 
-### วิธีที่ 1: ใช้ Faucet เว็บ (แนะนำ)
+### Option 1: Web Faucet (recommended)
 
-1. เปิด **Faucet อย่างเป็นทางการ** (จาก [axionax-web-universe](https://github.com/axionaxprotocol/axionax-web-universe)):
+1. Open the **official Faucet** (from [axionax-web-universe](https://github.com/axionaxprotocol/axionax-web-universe)):
    - **https://faucet.axionax.org**
-   - หรือ [axionax.org](https://axionax.org) แล้วหาลิงก์ Faucet / Get testnet AXX
-   - (ทางเลือก) **https://testnet-faucet.axionax.org** ถ้ามีเปิดไว้
-2. **Copy ที่อยู่กระเป๋า** จาก MetaMask (คลิก "Account 1" หรือที่อยู่ด้านบน → Copy)
-3. วางที่อยู่ในช่องที่หน้า Faucet → กด Request / Claim
-4. รอสักครู่ (มักได้ 100 AXX ต่อครั้ง, cooldown 24 ชม. ต่อที่อยู่)
+   - Or [axionax.org](https://axionax.org) and find the Faucet / Get testnet AXX link
+   - Alternative: **https://testnet-faucet.axionax.org** if available
+2. **Copy your wallet address** from MetaMask (click "Account 1" or the address at the top → Copy).
+3. Paste the address into the Faucet page → click Request / Claim.
+4. Wait a moment (typically 100 AXX per request; 24h cooldown per address).
 
-### วิธีที่ 2: เรียก Faucet ผ่าน API (ถ้ามี Faucet รันอยู่)
+### Option 2: Faucet API (when a Faucet is running)
 
-ถ้ามี Faucet รันที่ URL เดียวกัน (เช่น `https://testnet-faucet.axionax.org` หรือ `http://YOUR_FAUCET_IP:3002`):
+If a Faucet is running at the given URL (e.g. `https://testnet-faucet.axionax.org` or `http://YOUR_FAUCET_IP:3002`):
 
 ```bash
-# แทน 0xYOUR_METAMASK_ADDRESS ด้วยที่อยู่จาก MetaMask
+# Replace 0xYOUR_METAMASK_ADDRESS with your address from MetaMask
 curl -X POST https://testnet-faucet.axionax.org/request \
   -H "Content-Type: application/json" \
   -d '{"address": "0xYOUR_METAMASK_ADDRESS"}'
 ```
 
-หรือถ้ารัน Faucet ในเครื่องเอง (พอร์ต 3002):
+For a local Faucet (port 3002):
 
 ```bash
 curl -X POST http://localhost:3002/request \
@@ -103,28 +103,28 @@ curl -X POST http://localhost:3002/request \
   -d '{"address": "0xYOUR_METAMASK_ADDRESS"}'
 ```
 
-ตอบสำเร็จจะได้ `"success": true` และ `tx_hash` — หลังจากนั้นยอด AXX ใน MetaMask จะอัปเดต (อาจต้องรอไม่กี่วินาที หรือ refresh)
+A successful response includes `"success": true` and `tx_hash`; the AXX balance in MetaMask should update shortly (refresh if needed).
 
-### ถ้า claim ไม่ได้ / ยังไม่ได้เหรียญ
+### If claim fails or no tokens appear
 
-| สาเหตุ | วิธีแก้ |
-|--------|--------|
-| **Faucet เว็บยังไม่เปิดหรือลิงก์เปลี่ยน** | ดูที่ [axionax.org](https://axionax.org) หรือ Discord/GitHub ว่าลิงก์ Faucet ปัจจุบันคืออะไร |
-| **ใส่ที่อยู่ผิด** | ต้องเป็นรูปแบบ EVM: `0x` + ตัว hex 40 ตัว (รวมแล้ว 42 ตัวอักษร) — copy จาก MetaMask โดยตรง |
-| **Cooldown 24 ชม.** | Faucet จำกัด 1 ครั้งต่อที่อยู่ต่อ 24 ชม. — รอหรือใช้ที่อยู่กระเป๋าอื่น |
-| **Faucet ยอดหมด** | ติดต่อทีม/ชุมชนให้เติม Faucet |
-| **RPC ไม่ตรงกับที่ Faucet ใช้** | MetaMask ต้องใช้เครือข่าย **Axionax Testnet** (Chain ID 86137) และ RPC ที่ทีมระบุ (เช่น `http://217.76.61.116:8545`) |
-
----
-
-## 4. สรุป
-
-| ต้องการ | วิธี |
-|--------|------|
-| **เห็นเหรียญ AXX ใน MetaMask/วอลเล็ต** | เพิ่มเครือข่าย Axionax Testnet (RPC + Chain ID 86137 + สัญลักษณ์ AXX) → native AXX จะแสดงเอง |
-| **เห็นโทเคน ERC-20 อื่น** | อยู่ที่เครือข่าย Axionax Testnet → Import token ด้วย contract address |
-| **Mainnet (อนาคต)** | Chain ID จะเป็น `86150` — วิธีเพิ่มเครือข่ายเหมือนกัน แค่เปลี่ยน Chain ID และ RPC ตามที่ประกาศ |
+| Cause | Action |
+|-------|--------|
+| **Faucet web not available or URL changed** | Check [axionax.org](https://axionax.org), Discord, or GitHub for the current Faucet URL |
+| **Invalid address** | Must be EVM format: `0x` + 40 hex characters (42 total) — copy directly from MetaMask |
+| **24h cooldown** | Faucet limits one request per address per 24h — wait or use another address |
+| **Faucet out of funds** | Contact the team/community to refill the Faucet |
+| **RPC mismatch** | MetaMask must use **Axionax Testnet** (Chain ID 86137) and the RPC specified by the team (e.g. `http://217.76.61.116:8545`) |
 
 ---
 
-*อัปเดตจาก README และ genesis: Chain ID 86137, สัญลักษณ์ AXX, decimals 18*
+## 4. Summary
+
+| Goal | Method |
+|------|--------|
+| **See AXX in MetaMask/wallet** | Add Axionax Testnet (RPC + Chain ID 86137 + symbol AXX) → native AXX appears automatically |
+| **See another ERC-20 token** | On Axionax Testnet → Import token with contract address |
+| **Mainnet (future)** | Chain ID will be `86150` — same add-network steps with the announced Chain ID and RPC |
+
+---
+
+*Updated from README and genesis: Chain ID 86137, symbol AXX, decimals 18.*

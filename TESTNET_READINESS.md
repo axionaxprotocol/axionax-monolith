@@ -2,15 +2,15 @@
 
 **Main documentation is in [README.md](README.md)** — see "Current Network (Testnet)".
 
-- **Genesis:** ครบ (chain_id 86137, Rust + Python genesis, validators, allocations). Node รันครั้งแรกจะ seed balance จาก genesis อัตโนมัติ.
-- **Balance & Faucet:** `eth_getBalance` / `eth_getTransactionCount` ทำงานกับ state จริง; `send_raw_transaction` apply tx ทันที → หน้าเว็บ UI พร้อมแสดง balance และรับ airdrop จาก faucet ได้. รายละเอียด: [docs/WALLET_AND_KEYS_READINESS.md](docs/WALLET_AND_KEYS_READINESS.md) § Balance & Faucet.
+- **Genesis:** Complete (chain_id 86137, Rust + Python genesis, validators, allocations). First run of the node seeds balance from genesis automatically.
+- **Balance & Faucet:** `eth_getBalance` / `eth_getTransactionCount` work against real state; `send_raw_transaction` applies tx immediately → web UI can show balance and receive airdrop from faucet. Details: [docs/WALLET_AND_KEYS_READINESS.md](docs/WALLET_AND_KEYS_READINESS.md) § Balance & Faucet.
 
 ## Launch & Operations
 
-| Doc | คำอธิบาย |
-|-----|----------|
-| [docs/GENESIS_PUBLIC_TESTNET_PLAN.md](docs/GENESIS_PUBLIC_TESTNET_PLAN.md) | แผน launch testnet + จัดสรร VPS 3 ตัว |
-| [docs/ADD_NETWORK_AND_TOKEN.md](docs/ADD_NETWORK_AND_TOKEN.md) | เพิ่มเครือข่าย Axionax และเหรียญ AXX ใน MetaMask / รับจาก Faucet |
-| [docs/CONNECTIVITY_OVERVIEW.md](docs/CONNECTIVITY_OVERVIEW.md) | การเชื่อมต่อ Local node, Validator, Frontend |
-| [docs/GITHUB_READINESS.md](docs/GITHUB_READINESS.md) | ความพร้อม repository บน GitHub |
-| [ops/deploy/scripts/verify-launch-ready.sh](ops/deploy/scripts/verify-launch-ready.sh) | สคริปต์ตรวจสอบก่อน launch (Genesis, DNS, RPC, Faucet, docs) |
+| Doc | Description |
+|-----|-------------|
+| [docs/GENESIS_PUBLIC_TESTNET_PLAN.md](docs/GENESIS_PUBLIC_TESTNET_PLAN.md) | Testnet launch plan + allocation of 3 VPS |
+| [docs/ADD_NETWORK_AND_TOKEN.md](docs/ADD_NETWORK_AND_TOKEN.md) | Add Axionax network and AXX token in MetaMask / receive from Faucet |
+| [docs/CONNECTIVITY_OVERVIEW.md](docs/CONNECTIVITY_OVERVIEW.md) | Connectivity: Local node, Validator, Frontend |
+| [docs/GITHUB_READINESS.md](docs/GITHUB_READINESS.md) | GitHub repository readiness |
+| [ops/deploy/scripts/verify-launch-ready.sh](ops/deploy/scripts/verify-launch-ready.sh) | Pre-launch verification script (Genesis, DNS, RPC, Faucet, docs) |

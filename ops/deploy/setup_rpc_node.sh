@@ -129,25 +129,25 @@ chown -R axionax:axionax "$DATA_DIR"
 chmod 755 "$DATA_DIR"
 
 # Clone and build axionax (if not already built)
-AXIONAX_HOME="/home/axionax/axionax-core"
+AXIONAX_HOME="/home/axionax/axionax-core-universe"
 if [ ! -d "$AXIONAX_HOME" ]; then
   echo -e "${BLUE}[6/8]${NC} Cloning axionax repository..."
-  sudo -u axionax git clone https://github.com/axionaxprotocol/axionax-core.git "$AXIONAX_HOME"
+  sudo -u axionax git clone https://github.com/axionaxprotocol/axionax-core-universe.git "$AXIONAX_HOME"
 else
   echo -e "${BLUE}[6/8]${NC} Updating axionax repository..."
   cd "$AXIONAX_HOME"
   sudo -u axionax git pull
 fi
 
-cd "$AXIONAX_HOME"
+cd "$AXIONAX_HOME/core"
 
 # Build in release mode
 echo -e "${BLUE}[7/8]${NC} Building axionax (this may take 10-15 minutes)..."
-sudo -u axionax cargo build --release --bin axionax
+sudo -u axionax cargo build --release
 
 # Copy binary to /usr/local/bin
-cp target/release/axionax /usr/local/bin/
-chmod +x /usr/local/bin/axionax
+cp target/release/axionax-core /usr/local/bin/
+chmod +x /usr/local/bin/axionax-core
 
 # Create configuration file
 echo -e "${BLUE}[8/8]${NC} Creating configuration..."
@@ -203,7 +203,7 @@ Type=simple
 User=axionax
 Group=axionax
 WorkingDirectory=$DATA_DIR
-ExecStart=/usr/local/bin/axionax --config $DATA_DIR/config.toml
+ExecStart=/usr/local/bin/axionax-core --config $DATA_DIR/config.toml
 Restart=always
 RestartSec=10
 StandardOutput=journal

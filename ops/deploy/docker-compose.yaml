@@ -1,33 +1,31 @@
+# Run from repo root: docker compose -f ops/deploy/docker-compose.yaml up
+# Or from ops/deploy: docker compose -f docker-compose.yaml --project-directory ../.. up
 services:
-  # axionax protocol Node
+  # axionax protocol Node (context = repo core/ directory)
   node:
     build:
-      context: ../axionax-core
+      context: ../../core
       dockerfile: Dockerfile
     container_name: axionax-node
     ports:
-      - "26656:26656"  # P2P
-      - "26657:26657"  # RPC
-      - "9090:9090"    # gRPC
+      - "8545:8545"   # JSON-RPC
+      - "8546:8546"   # WebSocket
+      - "30303:30303" # P2P
     volumes:
       - node-data:/data
     environment:
       - RUST_LOG=info
+      - CHAIN_ID=86137
     restart: unless-stopped
-
-  # Explorer (optional)
-  explorer:
-    build:
-      context: ../axionax-web
-      dockerfile: Dockerfile
-    container_name: axionax-explorer
-    ports:
-      - "3000:3000"
-    environment:
-      - NEXT_PUBLIC_RPC_URL=http://node:26657
-    depends_on:
-      - node
-    restart: unless-stopped
+  # Explorer: use image from GHCR or build from axionax-web-universe repo
+  # explorer:
+  #   image: ghcr.io/axionaxprotocol/axionax-explorer:latest
+  #   container_name: axionax-explorer
+  #   ports: ["3000:3000"]
+  #   environment:
+  #     - NEXT_PUBLIC_RPC_URL=http://node:8545
+  #   depends_on: [node]
+  #   restart: unless-stopped
 
 volumes:
   node-data:

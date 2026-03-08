@@ -1,100 +1,100 @@
-# แผน Genesis Public Testnet — ภายในเดือนนี้
+# Genesis Public Testnet Plan — Within This Month
 
-ใช้ VPS 3 ตัว (spec: 4 vCPU, 8 GB RAM, 75 GB NVMe / 150 GB SSD, 200 Mbit/s) ให้ครบวงจร: Validators + RPC + Faucet + (optional Explorer) + Frontend ชี้มาที่ chain เดียวกัน
-
----
-
-## 1. จัดสรร VPS 3 ตัว
-
-| VPS | IP | บทบาท | Services | หมายเหตุ |
-|-----|-----|--------|----------|----------|
-| **VPS 1 (EU)** | **217.76.61.116** | Validator #1 + RPC | axionax-node (validator + RPC 8545, P2P 30303) | Genesis validator, เปิด 8545, 30303 |
-| **VPS 2 (AU)** | **46.250.244.4** | Validator #2 + RPC | axionax-node (validator + RPC 8545, P2P 30303) | Genesis validator, sync P2P กับ VPS1 |
-| **VPS 3 (Infra)** | **217.216.109.5** | RPC proxy + Faucet + (optional Explorer) | Nginx, Faucet, Postgres, Redis; optional Explorer | ไม่รัน node — ชี้ RPC ไป VPS1/VPS2 |
-
-### เหตุผลจัดแบบนี้
-
-- **Validator ต้อง 2 ตัวขึ้นไป** สำหรับ consensus (repo ใช้ 217.76 / 46.250 อยู่ใน genesis แล้ว) — ใส่ spec 4c/8GB/75GB ตรงกับ NODE_SPECS ขั้นต่ำของ Validator สำหรับ testnet
-- **RPC อยู่บน Validator เลย** — ลดความซับซ้อน, ไม่ต้อง sync node เพิ่มบน VPS3; ผู้ใช้/เว็บเรียก `http://217.76.61.116:8545` หรือ `http://46.250.244.4:8545` ได้เลย
-- **VPS3 เป็นจุดรวม traffic** — ใช้ Nginx ทำ reverse proxy (เช่น rpc.axionax.org → VPS1 หรือ round-robin), รัน Faucet (RPC_URL ชี้ไป VPS1), ถ้า RAM พอค่อยรัน Explorer; ไม่รัน chain node จึงประหยัด RAM/CPU
-
-### Resource คร่าวๆ ต่อ VPS
-
-| VPS | CPU | RAM | Storage | โน้ต |
-|-----|-----|-----|---------|-----|
-| VPS1 | 4 vCPU ใช้เต็ม (node + RPC) | ~6–8 GB (node 3–4 GB + RPC + OS) | 75 GB พอสำหรับ testnet (แนะนำ 100 GB ระยะยาว) | อยู่ที่ขีดขั้นต่ำ NODE_SPECS; monitor disk |
-| VPS2 | เหมือน VPS1 | เหมือน VPS1 | เหมือน VPS1 | เหมือน VPS1 |
-| VPS3 | Nginx + Faucet + DB (+ Explorer ถ้าเปิด) | Nginx ~100 MB, Faucet ~512 MB, Postgres 2–4 GB, Redis ~100 MB, Explorer 2–4 GB ถ้าเปิด → รวม ~6–8 GB | 75 GB (ส่วนใหญ่เป็น Postgres ถ้ารัน Explorer) | ถ้า 8 GB แคบ ให้รันแค่ Nginx + Faucet ก่อน แล้วค่อยเพิ่ม Explorer |
+Use three VPS (spec: 4 vCPU, 8 GB RAM, 75 GB NVMe / 150 GB SSD, 200 Mbit/s) to complete the loop: Validators + RPC + Faucet + (optional Explorer) + Frontend all pointing at the same chain.
 
 ---
 
-## 2. สิ่งที่ต้องมีก่อน Genesis
+## 1. Allocation of Three VPS
 
-- [ ] **Genesis file** — chain_id 86137, validators 2 ตัว (ที่อยู่ + enode ของ VPS1, VPS2)
-- [ ] **Validator keys** — แต่ละ VPS มี key สำหรับ block production (และถ้ามี identity key สำหรับ P2P ให้ตรงกัน)
-- [ ] **Faucet key** — ใส่ใน genesis เป็น allocation; ตั้ง `FAUCET_PRIVATE_KEY` บน VPS3
-- [ ] **Firewall** — VPS1 & VPS2: เปิด 22, 8545, 30303 (และ 8546 ถ้าใช้ WS); VPS3: 22, 80, 443, 3002 (ถ้า expose Faucet โดยตรงก่อนมี Nginx)
+| VPS | IP | Role | Services | Notes |
+|-----|-----|--------|----------|-------|
+| **VPS 1 (EU)** | **217.76.61.116** | Validator #1 + RPC | axionax-node (validator + RPC 8545, P2P 30303) | Genesis validator; open 8545, 30303 |
+| **VPS 2 (AU)** | **46.250.244.4** | Validator #2 + RPC | axionax-node (validator + RPC 8545, P2P 30303) | Genesis validator; sync P2P with VPS1 |
+| **VPS 3 (Infra)** | **217.216.109.5** | RPC proxy + Faucet + (optional Explorer) | Nginx, Faucet, Postgres, Redis; optional Explorer | Does not run node — RPC points to VPS1/VPS2 |
 
----
+### Rationale
 
-## 3. Timeline — ให้สำเร็จภายในเดือนนี้
+- **At least two validators** are required for consensus (repo already uses 217.76 / 46.250 in genesis); 4c/8GB/75GB matches NODE_SPECS minimum for testnet validators.
+- **RPC on validators** — Reduces complexity; no extra sync node on VPS3; users and the web call `http://217.76.61.116:8545` or `http://46.250.244.4:8545` directly.
+- **VPS3 as traffic hub** — Nginx reverse proxy (e.g. rpc.axionax.org → VPS1 or round-robin), run Faucet (RPC_URL pointing to VPS1), optionally Explorer if RAM allows; no chain node so RAM/CPU are saved.
 
-### สัปดาห์ที่ 1: เตรียม Validators + Genesis
+### Approximate resources per VPS
 
-| วัน | งาน | หมายเหตุ |
-|-----|-----|----------|
-| 1–2 | สร้าง/อัปเดต genesis (chain_id 86137, validators EU+AU), สร้าง validator keys | ใช้ `core/tools/create_genesis.py`, ใส่ IP 217.76.61.116, 46.250.244.4 |
-| 2–3 | Deploy node บน VPS1 และ VPS2 (binary หรือ Docker), ใช้ genesis เดียวกัน | ใช้ `ops/deploy/scripts/update-validator-vps.sh` หรือ setup ตาม VPS_VALIDATOR_UPDATE.md |
-| 3–4 | เปิดพอร์ต 8545, 30303 (และ 8546 ถ้าต้องการ) บนทั้งสอง VPS; ตรวจ RPC และ P2P | `curl` eth_chainId, eth_blockNumber; ตรวจว่า P2P เห็นกัน (log หรือ metrics) |
-| 4–5 | ยืนยันว่า block ถูก produce และ sync ระหว่างสอง validator | ดู block height จากทั้งสอง RPC ว่าเพิ่มใกล้เคียงกัน |
-
-### สัปดาห์ที่ 2: Infrastructure (VPS3) + Faucet
-
-| วัน | งาน | หมายเหตุ |
-|-----|-----|----------|
-| 1–2 | บน VPS3: ติดตั้ง Nginx, clone/copy config จาก `ops/deploy/nginx` | เตรียม reverse proxy สำหรับ rpc.axionax.org → VPS1 (หรือ load balance ไป VPS1,VPS2) |
-| 2–3 | รัน Faucet (Docker หรือ binary จาก core), ตั้ง `RPC_URL=http://217.76.61.116:8545`, `FAUCET_PRIVATE_KEY`, `CHAIN_ID=86137` | ใช้ image หรือ build จาก `ops/deploy/Dockerfile.faucet` |
-| 3–4 | ตั้ง DNS: rpc.axionax.org → VPS3 (หรือตรงไป VPS1 ถ้าไม่ใช้ proxy), faucet.axionax.org → VPS3 | ถ้าใช้ Nginx บน VPS3 ให้ rpc.axionax.org proxy ไป VPS1 (หรือทั้งคู่) |
-| 4–5 | ทดสอบ Faucet: รับ AXX ไปที่อยู่ทดสอบ, ตรวจ balance ผ่าน RPC | ใช้ curl POST /request หรือหน้าเว็บ Faucet |
-
-### สัปดาห์ที่ 3: SSL + Frontend ชี้ RPC
-
-| วัน | งาน | หมายเหตุ |
-|-----|-----|----------|
-| 1–2 | ติดตั้ง SSL บน VPS3 (Certbot), เปิด 443; อัปเดต Nginx ให้ใช้ HTTPS | ใช้ `ops/deploy` certbot + nginx conf |
-| 2–3 | Frontend (axionax-web-universe): ตั้ง `NEXT_PUBLIC_RPC_URL=https://rpc.axionax.org` (หรือ http://217.76.61.116:8545 ชั่วคราว) แล้ว build/deploy | โฮสต์ที่ Vercel/VPS ตามที่ใช้อยู่ |
-| 3–4 | ทดสอบ Connect Wallet + Add Network (Axionax Testnet, 86137) + รับ AXX จาก Faucet | ตาม docs/ADD_NETWORK_AND_TOKEN.md |
-| 4–5 | (Optional) รัน Explorer บน VPS3 ถ้า RAM พอ; ไม่พอให้เลื่อนไปหลัง launch | ใช้ image หรือ stack จาก ops/deploy |
-
-### สัปดาห์ที่ 4: Go Live + สื่อสาร
-
-| วัน | งาน | หมายเหตุ |
-|-----|-----|----------|
-| 1–2 | ตรวจสอบอีกครั้ง: RPC, Faucet, Frontend, MetaMask; รัน `ops/deploy/scripts/verify-launch-ready.sh` ถ้า path ตรง | แก้จุดที่ script เตือน |
-| 2–3 | ประกาศ Public Testnet: เอกสาร RPC URL, Chain ID 86137, Faucet link, วิธีเพิ่มเครือข่ายใน MetaMask | อัป README, docs, axionax.org |
-| 3–7 | ติดตาม uptime, disk, RPC errors; เติม Faucet ถ้ายอดหมด | ใช้ Grafana/Prometheus ถ้าติดตั้งบน VPS3 |
+| VPS | CPU | RAM | Storage | Notes |
+|-----|-----|-----|---------|-------|
+| VPS1 | 4 vCPU fully used (node + RPC) | ~6–8 GB (node 3–4 GB + RPC + OS) | 75 GB sufficient for testnet (100 GB recommended long-term) | At NODE_SPECS minimum; monitor disk |
+| VPS2 | Same as VPS1 | Same as VPS1 | Same as VPS1 | Same as VPS1 |
+| VPS3 | Nginx + Faucet + DB (+ Explorer if enabled) | Nginx ~100 MB, Faucet ~512 MB, Postgres 2–4 GB, Redis ~100 MB, Explorer 2–4 GB if enabled → ~6–8 GB total | 75 GB (mostly Postgres if running Explorer) | If 8 GB is tight, run only Nginx + Faucet first, then add Explorer |
 
 ---
 
-## 4. คำสั่ง / ไฟล์อ้างอิง
+## 2. Prerequisites Before Genesis
+
+- [ ] **Genesis file** — chain_id 86137, two validators (addresses + enode for VPS1, VPS2)
+- [ ] **Validator keys** — Each VPS has a key for block production (and identity key for P2P if applicable)
+- [ ] **Faucet key** — Included in genesis allocation; set `FAUCET_PRIVATE_KEY` on VPS3
+- [ ] **Firewall** — VPS1 & VPS2: open 22, 8545, 30303 (and 8546 if using WS); VPS3: 22, 80, 443, 3002 (if exposing Faucet directly before Nginx)
+
+---
+
+## 3. Timeline — Complete Within This Month
+
+### Week 1: Prepare Validators + Genesis
+
+| Day | Task | Notes |
+|-----|------|-------|
+| 1–2 | Create/update genesis (chain_id 86137, validators EU+AU), create validator keys | Use `core/tools/create_genesis.py`, add IPs 217.76.61.116, 46.250.244.4 |
+| 2–3 | Deploy node on VPS1 and VPS2 (binary or Docker), same genesis on both | Use `ops/deploy/scripts/update-validator-vps.sh` or setup per VPS_VALIDATOR_UPDATE.md |
+| 3–4 | Open ports 8545, 30303 (and 8546 if needed) on both VPS; verify RPC and P2P | `curl` eth_chainId, eth_blockNumber; confirm P2P peers (logs or metrics) |
+| 4–5 | Confirm blocks are produced and synced between the two validators | Compare block height from both RPCs |
+
+### Week 2: Infrastructure (VPS3) + Faucet
+
+| Day | Task | Notes |
+|-----|------|-------|
+| 1–2 | On VPS3: install Nginx, clone/copy config from `ops/deploy/nginx` | Prepare reverse proxy for rpc.axionax.org → VPS1 (or load-balance to VPS1, VPS2) |
+| 2–3 | Run Faucet (Docker or binary from core), set `RPC_URL=http://217.76.61.116:8545`, `FAUCET_PRIVATE_KEY`, `CHAIN_ID=86137` | Use image or build from `ops/deploy/Dockerfile.faucet` |
+| 3–4 | Set DNS: rpc.axionax.org → VPS3 (or directly to VPS1 if no proxy), faucet.axionax.org → VPS3 | If Nginx on VPS3, have rpc.axionax.org proxy to VPS1 (or both) |
+| 4–5 | Test Faucet: request AXX to a test address, verify balance via RPC | curl POST /request or Faucet web UI |
+
+### Week 3: SSL + Frontend RPC
+
+| Day | Task | Notes |
+|-----|------|-------|
+| 1–2 | Install SSL on VPS3 (Certbot), enable 443; update Nginx for HTTPS | Use `ops/deploy` certbot + nginx conf |
+| 2–3 | Frontend (axionax-web-universe): set `NEXT_PUBLIC_RPC_URL=https://rpc.axionax.org` (or http://217.76.61.116:8545 temporarily), then build/deploy | Host on Vercel/VPS as usual |
+| 3–4 | Test Connect Wallet + Add Network (Axionax Testnet, 86137) + receive AXX from Faucet | See docs/ADD_NETWORK_AND_TOKEN.md |
+| 4–5 | (Optional) Run Explorer on VPS3 if RAM allows; otherwise defer until after launch | Use image or stack from ops/deploy |
+
+### Week 4: Go Live + Communication
+
+| Day | Task | Notes |
+|-----|------|-------|
+| 1–2 | Final checks: RPC, Faucet, Frontend, MetaMask; run `ops/deploy/scripts/verify-launch-ready.sh` if paths match | Fix any script warnings |
+| 2–3 | Announce Public Testnet: document RPC URL, Chain ID 86137, Faucet link, how to add network in MetaMask | Update README, docs, axionax.org |
+| 3–7 | Monitor uptime, disk, RPC errors; refill Faucet if depleted | Use Grafana/Prometheus if installed on VPS3 |
+
+---
+
+## 4. Commands / Reference Files
 
 - Genesis: `core/tools/create_genesis.py`, `core/core/genesis/src/lib.rs`
 - Validator update: `ops/deploy/scripts/update-validator-vps.sh`, `ops/deploy/VPS_VALIDATOR_UPDATE.md`
-- RPC เช็ค: `curl -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.76.61.116:8545`
+- RPC check: `curl -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.76.61.116:8545`
 - Faucet: `ops/deploy/Dockerfile.faucet`, `tools/devtools/tools/faucet/`
 - Nginx: `ops/deploy/nginx/conf.d/` (rpc.conf, faucet.conf)
 - Launch verify: `ops/deploy/scripts/verify-launch-ready.sh`
-- การเชื่อมต่อภาพรวม: `docs/CONNECTIVITY_OVERVIEW.md`
-- เพิ่มเครือข่าย/รับ AXX: `docs/ADD_NETWORK_AND_TOKEN.md`
+- Connectivity overview: `docs/CONNECTIVITY_OVERVIEW.md`
+- Add network / receive AXX: `docs/ADD_NETWORK_AND_TOKEN.md`
 
 ---
 
-## 5. สรุปการจัดสรร
+## 5. Allocation Summary
 
-- **VPS 1 (217.76.61.116):** Validator + RPC — หัวใจของ chain (EU)
-- **VPS 2 (46.250.244.4):** Validator + RPC — consensus คู่กับ VPS1 (AU)
-- **VPS 3 (217.216.109.5):** Nginx + Faucet + (optional Explorer) — ไม่รัน node, ชี้ RPC ไป VPS1/VPS2; เป็นจุดรวมโดเมนและบริการสำหรับผู้ใช้
+- **VPS 1 (217.76.61.116):** Validator + RPC — core of the chain (EU)
+- **VPS 2 (46.250.244.4):** Validator + RPC — consensus pair with VPS1 (AU)
+- **VPS 3 (217.216.109.5):** Nginx + Faucet + (optional Explorer) — no node; RPC points to VPS1/VPS2; hub for domains and user-facing services
 
-ทำตาม timeline ด้านบนและเช็คจากรายการใน docs ที่อ้างอิง จะทำให้ Genesis public testnet ภายในเดือนนี้สำเร็จได้ตาม spec ที่มีครับ
+Following the timeline above and checking the referenced docs will allow the Genesis public testnet to be completed within this month per the given spec.
 
-**ดูเพิ่ม:** [TESTNET_READINESS.md](../TESTNET_READINESS.md) · [GITHUB_READINESS.md](GITHUB_READINESS.md)
+**See also:** [TESTNET_READINESS.md](../TESTNET_READINESS.md) · [GITHUB_READINESS.md](GITHUB_READINESS.md)

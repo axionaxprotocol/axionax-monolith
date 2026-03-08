@@ -60,6 +60,10 @@ struct Args {
     #[arg(long)]
     p2p: Option<SocketAddr>,
 
+    /// Path to node identity key file (libp2p keypair). If missing, creates one on first run. Omit for ephemeral key.
+    #[arg(long, alias = "key-file")]
+    identity_key: Option<PathBuf>,
+
     /// Telemetry endpoint URL (omit to run in self-sufficient mode)
     #[arg(long)]
     telemetry: Option<String>,
@@ -95,6 +99,23 @@ async fn main() -> anyhow::Result<()> {
     if let Some(p2p_addr) = args.p2p {
         config.network.listen_addr = p2p_addr.ip().to_string();
         config.network.port = p2p_addr.port();
+    }
+
+    if let Some(ref path) = args.identity_key {
+        config.network.key_file = Some(path.clone());
+    }
+
+    // Override bootstrap nodes from env (for VPS: comma-separated multiaddrs)
+    if let Ok(bootstrap) = std::env::var("AXIONAX_BOOTSTRAP_NODES") {
+        let nodes: Vec<String> = bootstrap
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect();
+        if !nodes.is_empty() {
+            config.network.bootstrap_nodes = nodes;
+            info!("Bootstrap nodes from env: {} node(s)", config.network.bootstrap_nodes.len());
+        }
     }
 
     match &args.telemetry {

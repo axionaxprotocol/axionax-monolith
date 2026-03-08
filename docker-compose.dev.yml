@@ -8,7 +8,7 @@ services:
   axionax-node:
     build:
       context: ./core
-      dockerfile: ../ops/deploy/Dockerfile
+      dockerfile: ops/deploy/Dockerfile
     container_name: axionax-node
     restart: unless-stopped
     ports:
@@ -18,7 +18,6 @@ services:
       - "9100:9100"     # Prometheus metrics
     volumes:
       - node_data:/data
-      - ./core/src:/app/src:ro
     environment:
       - RUST_LOG=info,axionax=debug
       - CHAIN_ID=86137
@@ -43,7 +42,7 @@ services:
   axionax-validator:
     build:
       context: ./core
-      dockerfile: ../ops/deploy/Dockerfile
+      dockerfile: ops/deploy/Dockerfile
     container_name: axionax-validator
     restart: unless-stopped
     ports:
@@ -146,7 +145,7 @@ services:
   faucet:
     build:
       context: ./core
-      dockerfile: ../ops/deploy/Dockerfile.faucet
+      dockerfile: ops/deploy/Dockerfile.faucet
     container_name: axionax-faucet
     restart: unless-stopped
     depends_on:

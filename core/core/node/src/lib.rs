@@ -109,6 +109,18 @@ impl AxionaxNode {
         let state = Arc::new(StateDB::open(state_path)?);
         info!("State database opened at: {}", config.state_path);
 
+        // If chain is empty, seed genesis block and genesis balances (testnet/mainnet).
+        if state.get_chain_height().unwrap_or(0) == 0
+            && (config.network.chain_id == 86137 || config.network.chain_id == 86150)
+        {
+            let genesis_block = blockchain::Blockchain::create_genesis()
+                .map_err(|e| anyhow::anyhow!("create_genesis: {}", e))?;
+            state.store_block(&genesis_block)?;
+            let g = genesis::GenesisGenerator::mainnet();
+            state.seed_genesis_balances(&g.config.balances)?;
+            info!("Genesis block and {} balances seeded", g.config.balances.len());
+        }
+
         // Initialize network manager
         let network = Arc::new(RwLock::new(
             NetworkManager::new(config.network.clone()).await?
