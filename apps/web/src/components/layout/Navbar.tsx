@@ -53,6 +53,7 @@ export default function Navbar(): React.JSX.Element {
     { name: 'Faucet', href: '/faucet' },
     { name: 'Validators', href: '/validators' },
     { name: 'Join Network', href: '/join' },
+    { name: 'Infrastructure', href: '/infrastructure' },
     { name: 'Airdrop', href: '/airdrop' },
   ];
 
