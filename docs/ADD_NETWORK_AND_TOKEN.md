@@ -11,7 +11,7 @@ How to add **Axionax Testnet** and the **AXX** token in MetaMask, Rabby, Coinbas
 | Item | Value |
 |------|-------|
 | **Network name** | Axionax Testnet |
-| **RPC URL** | `https://testnet-rpc.axionax.org` or `http://217.76.61.116:8545` / `http://46.250.244.4:8545` |
+| **RPC URL** | `https://rpc.axionax.org` (or `http://217.76.61.116:8545` / `http://46.250.244.4:8545`) |
 | **Chain ID** | `86137` |
 | **Currency symbol** | AXX |
 | **Decimals** | 18 |
@@ -29,7 +29,7 @@ How to add **Axionax Testnet** and the **AXX** token in MetaMask, Rabby, Coinbas
    | Field | Value |
    |-------|-------|
    | **Network name** | `Axionax Testnet` |
-   | **RPC URL** | `http://217.76.61.116:8545` |
+   | **RPC URL** | `https://rpc.axionax.org` |
    | **Chain ID** | `86137` |
    | **Currency symbol** | `AXX` |
    | **Block explorer URL** | Leave blank or set when available |
@@ -62,7 +62,7 @@ Same idea: add a **Custom network / Custom RPC** with the parameters above.
 | Field | Value |
 |-------|-------|
 | Network name | Axionax Testnet |
-| RPC URL | `http://217.76.61.116:8545` |
+| RPC URL | `https://rpc.axionax.org` |
 | Chain ID | `86137` |
 | Symbol | AXX |
 
@@ -78,27 +78,17 @@ A zero balance is resolved by **receiving from the Faucet** only. The "Add funds
 
 1. Open the **official Faucet** (from [axionax-web-universe](https://github.com/axionaxprotocol/axionax-web-universe)):
    - **https://faucet.axionax.org**
-   - Or [axionax.org](https://axionax.org) and find the Faucet / Get testnet AXX link
-   - Alternative: **https://testnet-faucet.axionax.org** if available
 2. **Copy your wallet address** from MetaMask (click "Account 1" or the address at the top → Copy).
 3. Paste the address into the Faucet page → click Request / Claim.
 4. Wait a moment (typically 100 AXX per request; 24h cooldown per address).
 
 ### Option 2: Faucet API (when a Faucet is running)
 
-If a Faucet is running at the given URL (e.g. `https://testnet-faucet.axionax.org` or `http://YOUR_FAUCET_IP:3002`):
+If a Faucet is running at the given URL (e.g. `https://faucet.axionax.org`):
 
 ```bash
 # Replace 0xYOUR_METAMASK_ADDRESS with your address from MetaMask
-curl -X POST https://testnet-faucet.axionax.org/request \
-  -H "Content-Type: application/json" \
-  -d '{"address": "0xYOUR_METAMASK_ADDRESS"}'
-```
-
-For a local Faucet (port 3002):
-
-```bash
-curl -X POST http://localhost:3002/request \
+curl -X POST https://faucet.axionax.org/request \
   -H "Content-Type: application/json" \
   -d '{"address": "0xYOUR_METAMASK_ADDRESS"}'
 ```

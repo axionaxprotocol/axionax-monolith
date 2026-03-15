@@ -132,8 +132,8 @@ find /opt /root -name "rpc-config.toml" -o -name "config.toml" 2>/dev/null | hea
 
 - [ ] ตรวจ block ถูก produce สม่ำเสมอ (block time 2s ตาม genesis)
 - [ ] ตรวจ P2P peer count = 1 ระหว่างสอง validator
-- [ ] เปิด RPC ผ่าน VPS3 (Nginx → VPS1/VPS2), ตั้ง DNS rpc.axionax.org
-- [ ] เปิด Faucet บน VPS3: ตาม [VPS3_FAUCET_DEPLOY.md](../ops/deploy/VPS3_FAUCET_DEPLOY.md) (compose: `docker-compose.vps3-faucet.yml`, ตั้ง `FAUCET_PRIVATE_KEY`), ตั้ง DNS faucet.axionax.org
+- [x] เปิด RPC ผ่าน VPS3 (Nginx → VPS1/VPS2), ตั้ง DNS rpc.axionax.org
+- [x] เปิด Faucet บน VPS3: ตาม [VPS3_FAUCET_DEPLOY.md](../ops/deploy/VPS3_FAUCET_DEPLOY.md) (compose: `docker-compose.vps3-faucet.yml`, ตั้ง `FAUCET_PRIVATE_KEY`), ตั้ง DNS faucet.axionax.org
 - [ ] Frontend ตั้ง `NEXT_PUBLIC_RPC_URL=https://rpc.axionax.org` และทดสอบ Add Network (86137) + รับ AXX จาก Faucet
 - [ ] รัน verify-launch-ready (หลัง RPC/DNS พร้อม): จาก repo root  
   `bash ops/deploy/scripts/verify-launch-ready.sh`

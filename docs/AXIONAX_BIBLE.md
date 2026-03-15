@@ -90,6 +90,9 @@ This repository contains many documents. This file is the central index: content
 
 | Document | Description |
 |----------|-------------|
+| [GENESIS_PUBLIC_TESTNET_PLAN.md](GENESIS_PUBLIC_TESTNET_PLAN.md) | Genesis public testnet plan, VPS allocation, weekly timeline |
+| [TESTNET_OPTIMIZATION_CHECKLIST.md](TESTNET_OPTIMIZATION_CHECKLIST.md) | Testnet optimization checklist (Stability, Consensus, RPC, Faucet, Monitoring, Security) |
+| [MAINNET_PRODUCTION_PLAN.md](MAINNET_PRODUCTION_PLAN.md) | Mainnet production plan — target mid-year 2026 (Chain ID 86150), pre-mainnet checklist, launch |
 | [TESTNET_READINESS.md](../TESTNET_READINESS.md) | Testnet readiness (Genesis, Balance, Faucet) and launch doc links |
 | [GITHUB_READINESS.md](GITHUB_READINESS.md) | Repository readiness on GitHub (CI, secrets, docs, verify script) |
 | [WALLET_AND_KEYS_READINESS.md](WALLET_AND_KEYS_READINESS.md) | Wallet, private key, Faucet key, node identity, Balance & Faucet flow |

@@ -19,7 +19,7 @@ Axionax Protocol is a **Decentralized Physical Infrastructure Network (DePIN)** 
 
 - Build a **Universal Grid** that turns Edge devices (Raspberry Pi, PC, Mac) into AI compute nodes.
 - Use **Geo-Hierarchy** architecture to scale toward **11 million nodes**.
-- Verify correctness with **PoPC (Proof of Processing Capability)**.
+- Verify correctness with **PoPC (Proof of Probabilistic Checking)**.
 
 ---
 
@@ -31,7 +31,7 @@ Axionax Protocol is a **Decentralized Physical Infrastructure Network (DePIN)** 
 |------|--------|
 | **Repository** | axionax-core-universe |
 | **Languages** | Rust (~80% core logic) + Python (~20% DeAI layer) |
-| **Consensus** | PoPC (Proof of Processing Capability) |
+| **Consensus** | PoPC (Proof of Probabilistic Checking) |
 | **Method** | Statistical probabilistic checking instead of full re-execution (\(O(s)\) vs \(O(n)\)). |
 | **Finality** | Sub-second (~0.5 s). |
 | **Validator selection** | VRF (Verifiable Random Function) for committee selection. |

@@ -2,7 +2,7 @@
 
 ## Overview
 
-AxionAx Core provides a modular blockchain infrastructure with Proof of Provable Computation (PoPC), Auto Selection Router (ASR), and Predictive Pricing Controller (PPC).
+AxionAx Core provides a modular blockchain infrastructure with Proof of Probabilistic Checking (PoPC), Auto Selection Router (ASR), and Predictive Pricing Controller (PPC).
 
 ---
 
