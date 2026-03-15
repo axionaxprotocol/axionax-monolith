@@ -1,62 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  AxionaxClient, 
-  createClient, 
-  EscrowStatus, 
+import {
+  EscrowStatus,
   EscrowTransaction,
-  AXIONAX_TESTNET_CONFIG 
+  escrowService,
 } from '@axionax/sdk';
-import { ethers } from 'ethers';
+
+type DepositState = 'idle' | 'loading' | 'success' | 'error';
 
 interface EscrowPanelProps {
   jobId: string;
-  client?: AxionaxClient;
   className?: string;
 }
 
-export const EscrowPanel: React.FC<EscrowPanelProps> = ({ 
-  jobId, 
-  client: propClient,
-  className = ''
+export const EscrowPanel: React.FC<EscrowPanelProps> = ({
+  jobId,
+  className = '',
 }) => {
-  const [client, setClient] = useState<AxionaxClient>(() => propClient || createClient({
-    ...AXIONAX_TESTNET_CONFIG,
-    rpcUrl: AXIONAX_TESTNET_CONFIG.rpcUrls[0],
-    rpcUrls: [...AXIONAX_TESTNET_CONFIG.rpcUrls],
-    chainId: AXIONAX_TESTNET_CONFIG.chainIdDecimal,
-  }));
   const [escrowState, setEscrowState] = useState<EscrowTransaction | null>(null);
-
-  useEffect(() => {
-    if (propClient) {
-      setClient(propClient);
-      return;
-    }
-
-    const initClient = async () => {
-      if (typeof window !== 'undefined' && (window as any).ethereum) {
-        try {
-          const provider = new ethers.BrowserProvider((window as any).ethereum);
-          const signer = await provider.getSigner();
-          const newClient = createClient({
-            ...AXIONAX_TESTNET_CONFIG,
-            rpcUrl: AXIONAX_TESTNET_CONFIG.rpcUrls[0],
-            rpcUrls: [...AXIONAX_TESTNET_CONFIG.rpcUrls],
-            chainId: AXIONAX_TESTNET_CONFIG.chainIdDecimal,
-            provider,
-            signer
-          });
-          setClient(newClient);
-        } catch (e) {
-          console.error("Failed to initialize wallet client", e);
-        }
-      }
-    };
-    initClient();
-  }, [propClient]);
+  const [depositState, setDepositState] = useState<DepositState>('idle');
+  const [amount, setAmount] = useState<string>('0');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [amount, setAmount] = useState<string>('0');
 
   useEffect(() => {
     fetchEscrowStatus();
@@ -65,31 +29,27 @@ export const EscrowPanel: React.FC<EscrowPanelProps> = ({
   const fetchEscrowStatus = async () => {
     try {
       setLoading(true);
-      const status = await client.getEscrowStatus(jobId);
+      const status = await escrowService.getEscrowStatus(jobId);
       setEscrowState(status);
       setError(null);
     } catch (err) {
       console.error('Failed to fetch escrow status:', err);
-      // In a real app we might show an error, but here we might just have no data
-      // setError('Failed to load escrow details');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeposit = async () => {
+    setDepositState('loading');
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-      // Convert string amount to bigint (assuming 18 decimals for simplicity in this demo)
-      // In production, use ethers.parseUnits or similar
-      const value = BigInt(parseFloat(amount) * 1e18); 
-      const tx = await client.depositEscrow(jobId, value);
+      const tx = await escrowService.createEscrow(jobId, amount);
       setEscrowState(tx);
-    } catch (err: any) {
-      setError(err.message || 'Deposit failed');
-    } finally {
-      setLoading(false);
+      setDepositState('success');
+      setTimeout(() => setDepositState('idle'), 2500);
+    } catch (err: unknown) {
+      setDepositState('error');
+      setError(err instanceof Error ? err.message : 'Deposit failed');
     }
   };
 
@@ -97,10 +57,10 @@ export const EscrowPanel: React.FC<EscrowPanelProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const tx = await client.releaseEscrow(jobId);
+      const tx = await escrowService.releaseEscrow(jobId);
       setEscrowState(tx);
-    } catch (err: any) {
-      setError(err.message || 'Release failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Release failed');
     } finally {
       setLoading(false);
     }
@@ -110,10 +70,10 @@ export const EscrowPanel: React.FC<EscrowPanelProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const tx = await client.refundEscrow(jobId);
+      const tx = await escrowService.refundEscrow(jobId);
       setEscrowState(tx);
-    } catch (err: any) {
-      setError(err.message || 'Refund failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Refund failed');
     } finally {
       setLoading(false);
     }
@@ -205,10 +165,37 @@ export const EscrowPanel: React.FC<EscrowPanelProps> = ({
               {(!escrowState || escrowState.status === EscrowStatus.Pending) && (
                 <button
                   onClick={handleDeposit}
-                  disabled={loading}
-                  className="col-span-2 w-full py-3 px-4 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg shadow-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={depositState === 'loading' || !amount || parseFloat(amount) <= 0}
+                  className={`col-span-2 w-full py-3 px-4 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 border ${
+                    depositState === 'success'
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50 shadow-emerald-500/20'
+                      : depositState === 'error'
+                        ? 'bg-rose-500/20 text-rose-400 border-rose-500/50 hover:bg-rose-500/30'
+                        : depositState === 'loading'
+                          ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/50 cursor-wait'
+                          : 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white border-cyan-400/30 shadow-lg shadow-cyan-900/30 hover:shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed'
+                  }`}
                 >
-                  {loading ? 'Processing...' : 'Deposit Funds'}
+                  {depositState === 'loading' && (
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  )}
+                  {depositState === 'success' && (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                  {depositState === 'error' && (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                  {depositState === 'loading' && 'Processing...'}
+                  {depositState === 'success' && 'Deposit Successful'}
+                  {depositState === 'error' && 'Retry Deposit'}
+                  {depositState === 'idle' && 'Deposit Funds'}
                 </button>
               )}
 

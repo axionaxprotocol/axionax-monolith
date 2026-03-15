@@ -50,6 +50,15 @@ export {
 } from './config.js';
 
 // ============================================
+// Services
+// ============================================
+export {
+  EscrowService,
+  escrowService,
+  type EscrowServiceResult,
+} from './services/escrow.js';
+
+// ============================================
 // Client
 // ============================================
 export { createClient, AxionaxClientImpl } from './client.js';
