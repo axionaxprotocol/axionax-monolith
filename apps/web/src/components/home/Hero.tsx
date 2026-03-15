@@ -209,7 +209,7 @@ export default function Hero(): React.JSX.Element {
               <div className="flex justify-between">
                 <span className="text-starlight/60">RPC URL:</span>
                 <span className="text-horizon-blue font-mono text-xs">
-                    https://testnet-rpc.axionax.org
+                    https://rpc.axionax.org
                 </span>
               </div>
               <div className="flex justify-between">

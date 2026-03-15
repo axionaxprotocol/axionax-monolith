@@ -429,11 +429,11 @@ sudo nginx -t && sudo systemctl reload nginx`,
               </label>
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-black/50 border border-white/5 rounded-lg px-4 py-3 font-mono text-content">
-                  https://testnet-rpc.axionax.org
+                  https://rpc.axionax.org
                 </code>
                 <button
                   onClick={() =>
-                    copyToClipboard('https://testnet-rpc.axionax.org', 'rpc')
+                    copyToClipboard('https://rpc.axionax.org', 'rpc')
                   }
                   className="px-3 py-3 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-muted hover:text-content"
                 >

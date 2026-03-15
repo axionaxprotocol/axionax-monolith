@@ -90,7 +90,7 @@ export default function Technology(): React.JSX.Element {
 import { axionax, Wallet } from '@axionax/sdk';
 
 const axion = new axionax({
-  rpcUrl: 'https://rpc.axionax.org',
+        rpcUrl: 'https://rpc.axionax.org',
   networkId: 'testnet-v1',
 });
 
