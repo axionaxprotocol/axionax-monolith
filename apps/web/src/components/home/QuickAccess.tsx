@@ -7,7 +7,7 @@ export default function QuickAccess(): React.JSX.Element {
     {
       title: 'RPC Endpoint',
       description: 'Connect your dApp to axionax testnet',
-      href: 'https://rpc.axionax.org',
+      href: 'https://testnet-rpc.axionax.org',
       icon: (
         <svg
           className="w-8 h-8"
@@ -24,7 +24,7 @@ export default function QuickAccess(): React.JSX.Element {
         </svg>
       ),
       badge: 'HTTPS',
-      code: 'https://rpc.axionax.org',
+      code: 'https://testnet-rpc.axionax.org',
     },
     {
       title: 'Block Explorer',
@@ -211,7 +211,7 @@ export default function QuickAccess(): React.JSX.Element {
             <div>
               <span className="text-muted block mb-1">RPC URL:</span>
               <p className="text-tech-cyan font-mono bg-white/5 px-2 py-1 rounded truncate">
-                https://rpc.axionax.org
+                https://testnet-rpc.axionax.org
               </p>
             </div>
             <div>

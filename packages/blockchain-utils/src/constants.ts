@@ -90,7 +90,7 @@ export const GOVERNANCE_CONSTANTS = {
 
 export const RPC_URLS = {
   TESTNET: [
-    'https://axionax.org/rpc/',
+    'https://testnet-rpc.axionax.org',
     'http://217.76.61.116:8545',
     'http://46.250.244.4:8545',
   ],

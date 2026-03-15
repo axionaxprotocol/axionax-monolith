@@ -263,11 +263,8 @@ export default function NodeDashboardPage() {
                     <div className="text-muted text-xs font-semibold uppercase tracking-wider mb-1">
                       Total Rewards
                     </div>
-                    <div className="text-xl font-bold font-mono tabular-nums text-tech-success">
-                      {formatAmount(myNode.totalRewards)}{' '}
-                      <span className="text-muted text-sm font-normal">
-                        AXX
-                      </span>
+                    <div className="text-lg font-mono tabular-nums text-muted">
+                      — <span className="text-muted text-sm font-normal">(Testnet)</span>
                     </div>
                   </div>
                   <div className="rounded-lg border border-white/10 bg-white/[0.02] p-4">

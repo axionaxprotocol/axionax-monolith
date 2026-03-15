@@ -11,6 +11,7 @@ interface ValidatorInfo {
   blockHeight: number | null;
   peerCount: number | null;
   status: 'online' | 'offline' | 'checking';
+  statusDetails?: string;
   latency: number | null;
 }
 
@@ -33,8 +34,39 @@ async function fetchValidatorInfo(rpcUrl: string): Promise<{
   blockHeight: number | null;
   peerCount: number | null;
   latency: number;
+  statusDetails?: string;
 }> {
   const startTime = Date.now();
+  try {
+    // Check if the node supports the new system_health RPC method
+    const response = await fetch(rpcUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'system_health',
+        params: [],
+        id: 1,
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.result && data.result.status) {
+        return {
+          blockHeight: data.result.block_height,
+          peerCount: data.result.peers,
+          statusDetails: data.result.status,
+          latency: Date.now() - startTime,
+        };
+      }
+    }
+  } catch (err) {
+    // Fall back to standard eth methods if system_health fails or timeout
+  }
+
+  // Fallback to legacy eth_blockNumber / net_peerCount
   try {
     const response = await fetch(rpcUrl, {
       method: 'POST',
@@ -45,9 +77,10 @@ async function fetchValidatorInfo(rpcUrl: string): Promise<{
         params: [],
         id: 1,
       }),
+      signal: AbortSignal.timeout(5000),
     });
     const data = await response.json();
-    const blockHeight = parseInt(data.result, 16);
+    const blockHeight = data.result ? parseInt(data.result, 16) : null;
 
     // Get peer count
     const peerResponse = await fetch(rpcUrl, {
@@ -59,9 +92,10 @@ async function fetchValidatorInfo(rpcUrl: string): Promise<{
         params: [],
         id: 2,
       }),
+      signal: AbortSignal.timeout(5000),
     });
     const peerData = await peerResponse.json();
-    const peerCount = peerData.result ? parseInt(peerData.result, 16) : 0;
+    const peerCount = peerData.result ? parseInt(peerData.result, 16) : null;
 
     return {
       blockHeight,
@@ -101,7 +135,8 @@ export default function ValidatorStatus(): React.JSX.Element {
             ip: v.ip,
             blockHeight: info.blockHeight,
             peerCount: info.peerCount,
-            status: info.blockHeight !== null ? 'online' : 'offline',
+            status: info.blockHeight !== null || info.statusDetails === 'healthy' ? 'online' : 'offline',
+            statusDetails: info.statusDetails,
             latency: info.latency,
           } as ValidatorInfo;
         })

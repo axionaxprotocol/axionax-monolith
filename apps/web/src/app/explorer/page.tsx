@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { RPC_URLS } from '@axionax/blockchain-utils';
-import MockBadge from '@/components/ui/MockBadge';
 
 interface Block {
   number: number;
@@ -156,7 +155,6 @@ export default function Explorer(): React.JSX.Element {
             <h1 className="text-3xl md:text-4xl font-bold text-content">
               Block Explorer
             </h1>
-            <MockBadge show={blocksData?.isMock ?? false} label="Blocks" />
           </div>
           <p className="text-muted text-lg">
             Explore blocks, transactions, and addresses on the{' '}

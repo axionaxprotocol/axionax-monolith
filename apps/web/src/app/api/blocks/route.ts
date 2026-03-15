@@ -91,13 +91,13 @@ export async function GET(request: NextRequest) {
     }
     if (latest === 0) {
       const res = NextResponse.json({
-      blocks: [],
-      total: 0,
-      page: safePage,
-      pageSize: safePageSize,
-      latestBlock: 0,
-      isMock: true,
-    });
+        blocks: [],
+        total: 0,
+        page: safePage,
+        pageSize: safePageSize,
+        latestBlock: 0,
+        isMock: false,
+      });
       res.headers.set('Access-Control-Allow-Origin', '*');
       return res;
     }
@@ -139,7 +139,7 @@ export async function GET(request: NextRequest) {
         page: safePage,
         pageSize: safePageSize,
         latestBlock: 0,
-        isMock: true,
+        isMock: false,
       },
       { status: 200 }
     );

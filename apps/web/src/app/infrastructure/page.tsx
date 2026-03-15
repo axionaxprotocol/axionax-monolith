@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 export default function InfrastructurePage(): React.JSX.Element {
   const services = [
@@ -314,9 +316,15 @@ export default function InfrastructurePage(): React.JSX.Element {
           {/* Links */}
           <div className="mt-12 p-6 rounded-xl bg-white/[0.02] border border-white/10 backdrop-blur-sm">
             <h3 className="text-lg font-semibold text-content mb-4">
-              Documentation
+              Diagnostic Tools & Documentation
             </h3>
             <div className="flex flex-wrap gap-4">
+              <Link
+                href="/infrastructure/nodes"
+                className="px-4 py-2 bg-tech-cyan/10 border border-tech-cyan/20 rounded-lg text-tech-cyan hover:bg-tech-cyan/20 transition-colors flex items-center gap-2"
+              >
+                Detailed Node Health Check <ArrowRight className="w-4 h-4" />
+              </Link>
               <a
                 href="https://github.com/axionaxprotocol/axionax-docs/blob/main/INFRASTRUCTURE_STATUS.md"
                 target="_blank"
