@@ -11,6 +11,8 @@ services:
   validator:
     image: ${CONTAINER_REGISTRY:-ghcr.io/axionaxprotocol}/core:${CORE_TAG:-latest}
     restart: unless-stopped
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
     command:
       - axionax-node
       - --role
@@ -37,6 +39,8 @@ services:
   rpc:
     image: ${CONTAINER_REGISTRY:-ghcr.io/axionaxprotocol}/core:${CORE_TAG:-latest}
     restart: unless-stopped
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
     command:
       - axionax-node
       - --role
@@ -57,6 +61,8 @@ services:
   bootnode:
     image: ${CONTAINER_REGISTRY:-ghcr.io/axionaxprotocol}/core:${CORE_TAG:-latest}
     restart: unless-stopped
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
     command:
       - axionax-node
       - --role

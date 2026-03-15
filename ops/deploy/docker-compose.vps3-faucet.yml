@@ -1,0 +1,30 @@
+# VPS3 only: Testnet Faucet pointing to RPC on VPS1 (217.76.61.116)
+# Usage: copy to VPS3, set FAUCET_PRIVATE_KEY in .env, then:
+#   docker compose -f docker-compose.vps3-faucet.yml up -d
+
+services:
+  faucet:
+    # Use pre-built if available, otherwise build from context
+    build:
+      context: ../../
+      dockerfile: ops/deploy/Dockerfile.faucet
+    image: ghcr.io/axionaxprotocol/axionax-faucet:latest
+    container_name: axionax-testnet-faucet
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=production
+      - RPC_URL=http://217.76.61.116:8545
+      - FAUCET_PRIVATE_KEY=${FAUCET_PRIVATE_KEY}
+      - FAUCET_AMOUNT=100
+      - RATE_LIMIT_MINUTES=1440
+      - PORT=3002
+      - CHAIN_ID=86137
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

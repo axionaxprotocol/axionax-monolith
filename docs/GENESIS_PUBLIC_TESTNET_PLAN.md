@@ -4,6 +4,20 @@ Use three VPS (spec: 4 vCPU, 8 GB RAM, 75 GB NVMe / 150 GB SSD, 200 Mbit/s) to c
 
 ---
 
+## เริ่มเลย — สิ่งที่รันได้ทันที
+
+| # | ขั้นตอน | คำสั่ง / ไฟล์ |
+|---|--------|----------------|
+| 1 | **Genesis พร้อมแล้ว** | `core/tools/genesis.json` (SHA-256: `0xed1bdac7...`), Chain ID 86137 |
+| 2 | **ส่ง genesis ไปทั้งสอง VPS** | จาก repo root: `.\ops\deploy\scripts\distribute-genesis.ps1` (หรือดู [GENESIS_LAUNCH_DAY_CHECKLIST.md](GENESIS_LAUNCH_DAY_CHECKLIST.md) §2) |
+| 3 | **อัปเดต/เริ่ม node บน VPS1 & VPS2** | `.\ops\deploy\scripts\run-update-both-vps.ps1` (ต้องมี SSH ไป root@217.76.61.116, root@46.250.244.4) |
+| 4 | **ตรวจ RPC** | `curl -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.76.61.116:8545` → คาดหวัง `"result":"0x15079"` |
+| 5 | **หลัง chain รัน** | ตั้ง VPS3 (Nginx, Faucet), DNS, Frontend ตาม Week 2–4 ด้านล่าง |
+
+**ก่อนรัน:** เปิด firewall VPS1 & VPS2 (22, 8545, 30303); แต่ละ VPS ต้องมี validator key ตรงกับ genesis และ (ถ้าใช้ Docker) มี repo หรือ config ที่อ้างใน [VPS_VALIDATOR_UPDATE.md](../ops/deploy/VPS_VALIDATOR_UPDATE.md)
+
+---
+
 ## 1. Allocation of Three VPS
 
 | VPS | IP | Role | Services | Notes |
