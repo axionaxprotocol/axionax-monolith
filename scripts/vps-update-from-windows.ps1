@@ -4,7 +4,12 @@
   Deploy / update web on VPS from Windows without CRLF breaking bash.
 .DESCRIPTION
   PowerShell Get-Content -Raw keeps CRLF; piping that to "ssh ... bash -s" breaks Linux bash.
-  This script normalizes the .sh to LF-only UTF-8 and pipes it to ssh.
+
+  IMPORTANT: Do NOT use Process + RedirectStandardOutput/Err + ReadToEnd() with interactive
+  ssh password auth — it breaks the password prompt and can exit immediately (exit 1).
+
+  This script writes LF-only UTF-8 to a temp file, then Start-Process ssh with
+  -RedirectStandardInput only so build logs and password prompt use your console.
 .EXAMPLE
   .\scripts\vps-update-from-windows.ps1
   .\scripts\vps-update-from-windows.ps1 -HostName root@217.216.109.5
@@ -29,28 +34,27 @@ if (-not $unix.EndsWith("`n")) {
 }
 
 $enc = New-Object System.Text.UTF8Encoding $false
-$bytes = $enc.GetBytes($unix)
+$tmp = Join-Path $env:TEMP ("vps-update-{0}.sh" -f [guid]::NewGuid().ToString('n'))
 
-Write-Host "Piping $ScriptName (LF-only) -> ssh $HostName bash -s" -ForegroundColor Cyan
+try {
+  [System.IO.File]::WriteAllText($tmp, $unix, $enc)
+  Write-Host "Running: ssh $HostName bash -s < $tmp (LF-only script)" -ForegroundColor Cyan
+  Write-Host "Enter SSH password when prompted. Build output will appear below.`n" -ForegroundColor DarkGray
 
-$psi = New-Object System.Diagnostics.ProcessStartInfo
-$psi.FileName = 'ssh'
-# PS 5.1: use Arguments (ArgumentList is .NET 5+ only)
-$psi.Arguments = "$($HostName.Trim()) bash -s"
-$psi.UseShellExecute = $false
-$psi.RedirectStandardInput = $true
-$psi.RedirectStandardOutput = $true
-$psi.RedirectStandardError = $true
-$psi.CreateNoWindow = $false
+  $proc = Start-Process -FilePath 'ssh' `
+    -ArgumentList @($HostName.Trim(), 'bash', '-s') `
+    -RedirectStandardInput $tmp `
+    -Wait `
+    -NoNewWindow `
+    -PassThru
 
-$p = [System.Diagnostics.Process]::Start($psi)
-$p.StandardInput.BaseStream.Write($bytes, 0, $bytes.Length)
-$p.StandardInput.Close()
-
-$out = $p.StandardOutput.ReadToEnd()
-$err = $p.StandardError.ReadToEnd()
-$p.WaitForExit()
-
-if ($out) { Write-Output $out }
-if ($err) { Write-Output $err }
-exit $p.ExitCode
+  if ($proc.ExitCode -ne 0) {
+    Write-Host "`nssh exited with code $($proc.ExitCode)" -ForegroundColor Yellow
+  }
+  exit $proc.ExitCode
+}
+finally {
+  if (Test-Path -LiteralPath $tmp) {
+    Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+  }
+}

@@ -76,6 +76,8 @@ cd D:\axionax-web-universe   # โฟลเดอร์ repo
 # หรือระบุ host: .\scripts\vps-update-from-windows.ps1 -HostName root@YOUR_VPS_IP
 ```
 
+สคริปต์นี้เขียน `.sh` เป็นไฟล์ชั่วคราว (LF) แล้วให้ `ssh … bash -s` อ่านจากไฟล์นั้น — **ไม่ redirect stdout ของ ssh** เพื่อให้ใส่รหัสผ่านและเห็น log build บนคอนโซลได้ (ถ้าใช้วิธีอื่นที่ดูด stdout เข้า `ReadToEnd()` มักจะ exit 1 ทันทีหลังใส่รหัส)
+
 **ทางเลือก:** `scp` ขึ้น VPS แล้ว `sed` ตัด `\r` ก่อนรัน:
 
 ```powershell
