@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import ConnectButton from '@/components/wallet/ConnectButton';
+import VisitorCounter from '@/components/layout/VisitorCounter';
 import { AXIONAX_TESTNET } from '@/lib/web3';
 
 const mainNav = [
@@ -223,6 +224,8 @@ export default function ExplorerLayout({
       <main className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
+
+      <VisitorCounter />
     </div>
   );
 }

@@ -33,7 +33,10 @@ const nextConfig = {
     outputFileTracingRoot: path.join(__dirname, '../../'),
   },
 
-  // Pitch Deck: same shell as other tabs (/pitch); old static URL still works
+  // Pitch: bookmarks to /pitch-deck.html → /pitch (shell + iframe).
+  // Deck HTML lives at /embed/pitch-deck.html — NOT redirected — because Next
+  // applies redirects before public/; iframe src /pitch-deck.html would load
+  // /pitch again and duplicate ExplorerLayout (double header).
   async redirects() {
     return [
       {

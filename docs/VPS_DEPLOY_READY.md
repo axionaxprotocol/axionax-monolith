@@ -34,6 +34,14 @@ FAUCET_API_URL=https://faucet-api.axionax.org
 
 ดูตัวอย่างเต็ม: `apps/web/.env.example`
 
+**ตัวนับผู้เข้าชม (footer):** ค่าเก็บใน `apps/web/data/site-visitors.json` (สร้างอัตโนมัติ) ถ้า standalone รันแล้ว `cwd` เขียนไฟล์ไม่ได้หรืออยากให้เลขไม่หายทุกครั้งที่ deploy ให้ตั้ง:
+
+```env
+VISITOR_DATA_DIR=/var/lib/axionax-web
+```
+
+แล้วบน VPS: `sudo mkdir -p /var/lib/axionax-web && sudo chown $(whoami) /var/lib/axionax-web` (หรือ user ที่รัน PM2)
+
 ## 4. ครั้งแรก (ติดตั้งจากศูนย์)
 
 จากเครื่อง local (มี repo แล้ว):

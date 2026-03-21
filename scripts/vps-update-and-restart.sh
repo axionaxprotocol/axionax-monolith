@@ -33,7 +33,7 @@ echo "=== 4. Prepare standalone ==="
 mkdir -p "$STANDALONE_DIR/apps/web/.next"
 mkdir -p "$STANDALONE_DIR/apps/web/public"
 cp -r "$WEB_DIR/.next/static" "$STANDALONE_DIR/apps/web/.next/"
-# Copy public assets (pitch-deck.html, favicon, etc.) for static file serving
+# Copy public assets (embed/pitch-deck.html, favicon, etc.) for static file serving
 cp -r "$WEB_DIR/public/"* "$STANDALONE_DIR/apps/web/public/" 2>/dev/null || true
 cp -r "$WEB_DIR/public" "$STANDALONE_DIR/" 2>/dev/null || true
 
