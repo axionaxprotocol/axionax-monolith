@@ -95,9 +95,9 @@ echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║           🔥 AXIONAX CHAOS ENGINEERING TEST 🔥              ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║  Test: Kill validator → verify network survives → restart   ║"
-echo "║  Monitor RPC: ${MONITOR_RPC}                  ║"
-echo "║  Kill duration: ${KILL_DURATION}s                                        ║"
+echo "║  Test: Kill validator → verify network survives → restart    ║"
+echo "║  Monitor RPC: ${MONITOR_RPC}                                 ║"
+echo "║  Kill duration: ${KILL_DURATION}s                            ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
 
@@ -252,7 +252,7 @@ fi
 # ── Summary ─────────────────────────────────────────────────────────────────
 echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                    📋 TEST SUMMARY                          ║"
+echo "║                    📋 TEST SUMMARY                           ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
 for r in "${RESULTS[@]}"; do
   printf "║  %-58s ║\n" "$r"
