@@ -1,7 +1,7 @@
 # Stage 1: Rust Builder
 # This stage compiles the Rust core application into a static binary.
 # Use stable (or 1.75+) — node crate builds binary axionax-node from src/main.rs.
-FROM rust:1.86-slim-bookworm as rust-builder
+FROM rust:latest as rust-builder
 
 WORKDIR /build
 
@@ -20,7 +20,7 @@ RUN cargo build --release -p node
 
 # Stage 2: Python Bridge Builder (Maturin)
 # This stage uses a Rust base image because it needs BOTH cargo and python.
-FROM rust:1.86-slim-bookworm as python-bridge-builder
+FROM rust:latest as python-bridge-builder
 
 WORKDIR /build
 
