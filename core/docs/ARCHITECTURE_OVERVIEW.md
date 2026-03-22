@@ -16,7 +16,8 @@ Single entry point for **how the protocol is structured** in this repository: la
 6. [DeAI & compute](#6-deai--compute)  
 7. [Hardware program (Monolith)](#7-hardware-program-monolith)  
 8. [Product vision (pointer)](#8-product-vision-pointer)  
-9. [Related documentation](#9-related-documentation)
+9. [Production code & deployment readiness](#9-production-code--deployment-readiness)  
+10. [Related documentation](#10-related-documentation)
 
 ---
 
@@ -27,6 +28,7 @@ Single entry point for **how the protocol is structured** in this repository: la
 | Logical layers and data flow | Every JSON-RPC method → [RPC_API.md](./RPC_API.md) |
 | Folder ↔ responsibility | VPS runbooks, genesis day → repo `docs/`, [RUNBOOK.md](./RUNBOOK.md) |
 | List of Rust workspace crates | Full API signatures → [API_REFERENCE.md](./API_REFERENCE.md) |
+| **Production readiness checklist** | [§9](#9-production-code--deployment-readiness) + linked runbooks / audit docs |
 
 Canonical doc index for the whole repo: [AXIONAX_BIBLE.md](../../docs/AXIONAX_BIBLE.md).
 
@@ -59,7 +61,7 @@ Traffic flows **down** from clients; trust and execution anchor in **Rust core**
                               │
                               ▼
                    ┌──────────────────────┐
-                   │ RPC (8545 / 8546)   │
+                   │ RPC (8545 / 8546)    │
                    └──────────┬───────────┘
          ┌────────────────────┼────────────────────┐
          ▼                    ▼                    ▼
@@ -73,11 +75,11 @@ Traffic flows **down** from clients; trust and execution anchor in **Rust core**
                               ▼
               ┌───────────────────────────────┐
               │ Rust core + Python DeAI       │
-              │ (state, consensus, rpc, …)   │
+              │ (state, consensus, rpc, …)    │
               └───────────────┬───────────────┘
                               ▼
               ┌───────────────────────────────┐
-              │ HAL: SILICON │ NPU │ PHOTONIC  │
+              │ HAL: SILICON │ NPU │ PHOTONIC │
               └───────────────────────────────┘
 ```
 
@@ -222,7 +224,66 @@ Security framing (Sentinels, self-sufficiency): [SENTINELS.md](./SENTINELS.md), 
 
 ---
 
-## 9. Related documentation
+## 9. Production code & deployment readiness
+
+This section maps **how “production-ready” is defined in this repo** and where to verify it. It is **not** a legal guarantee or mainnet go-live sign-off.
+
+### 9.1 Definitions
+
+| Term | Meaning here |
+|------|----------------|
+| **Production-grade testnet** | Chain + RPC + supporting services behave in a **stable, observable** way suitable for sustained testing (consensus alignment, RPC health, basic SLOs). Criteria: [TESTNET_PRODUCTION_READINESS.md](../../docs/TESTNET_PRODUCTION_READINESS.md). |
+| **Mainnet production** | Separate genesis (chain ID **86150**), keys, infra, and **audit / governance** gates — see [MAINNET_PRODUCTION_PLAN.md](../../docs/MAINNET_PRODUCTION_PLAN.md). Not implied by testnet readiness alone. |
+
+### 9.2 Build & quality gates (code)
+
+| Area | What to run / expect |
+|------|----------------------|
+| **Rust release binary** | From `core/`: `cargo build --release -p node` → `axionax-node` (used in Docker and VPS scripts). |
+| **CI** | Root [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml): fmt, clippy, tests, audit (paths under `core/`). |
+| **Python (DeAI)** | From `core/deai/`: `pytest`; use env-based secrets, not committed keys ([`core/deai/README.md`](../deai/README.md) patterns). |
+| **Docker image** | [`ops/deploy/Dockerfile`](../../ops/deploy/Dockerfile), build context **`core/`** — matches public testnet redeploy flow. |
+
+### 9.3 Automated checks (operators & integrators)
+
+| Script / artifact | Purpose |
+|-------------------|---------|
+| `scripts/check_testnet_production_readiness.py` | Validates chain ID, heights, optional multi-validator consensus, public RPC lag, faucet HTTP — writes `reports/TESTNET_PRODUCTION_READINESS_LAST.md`. |
+| `scripts/load_test/tps_finality_test.py` | Block-time / TPS-style probes against JSON-RPC (`--mode block-time` needs no funded key). |
+| `scripts/verify-production-ready.py` | Broader readiness sweep (see root [README.md](../../README.md) tooling table). |
+| `scripts/optimize_suite/` | Performance / tuning experiments (not a single PASS/FAIL for launch). |
+
+### 9.4 Deployment surface (runtime)
+
+| Path | Role |
+|------|------|
+| `ops/deploy/environments/testnet/public/` | **Canonical** public testnet Compose, env templates, `scripts/redeploy_testnet.sh`. |
+| `ops/deploy/monitoring/` | Prometheus / Grafana patterns for node and infra metrics. |
+| `core/docs/RUNBOOK.md` | Operational procedures (restarts, incidents). |
+
+Operational hardening (firewall, TLS, rate limits, backups) is **environment-specific** — see deploy docs under `ops/deploy/` and [NODE_SPECS.md](./NODE_SPECS.md).
+
+### 9.5 Security & audit (honest posture)
+
+| Resource | Note |
+|----------|------|
+| [SECURITY_AUDIT_REPORT.md](../../SECURITY_AUDIT_REPORT.md) | Historical / rolling findings; treat open items as **blockers for “fully audited mainnet”** until closed. |
+| [SECURITY_REMEDIATION_PLAN.md](../../SECURITY_REMEDIATION_PLAN.md) | Tracking remediation where applicable. |
+| [AUDIT_REPORT_PRELIMINARY.md](../../docs/AUDIT_REPORT_PRELIMINARY.md) | Supplementary audit notes. |
+
+**Code hygiene:** prefer no `unwrap()` / `expect()` on hot protocol paths; follow workspace [rust-core](../../.cursor/rules/rust-core.mdc) conventions in new changes.
+
+### 9.6 Summary status (high level)
+
+| Layer | Typical readiness |
+|-------|-------------------|
+| **Node + RPC (testnet)** | Deployable via documented Compose + redeploy script; measurable with readiness + block-time scripts. |
+| **DeAI worker** | Production paths expect correct env, optional Docker sandbox — see DeAI docs and `AXIONAX_ENV=production` behavior in worker code. |
+| **Mainnet** | Planned; requires dedicated genesis, key ceremony, infra, and **closed audit / ops checklist** per mainnet plan. |
+
+---
+
+## 10. Related documentation
 
 ### Protocol & nodes
 
@@ -239,6 +300,9 @@ Security framing (Sentinels, self-sufficiency): [SENTINELS.md](./SENTINELS.md), 
 |-----|--------|
 | [RUNBOOK.md](./RUNBOOK.md) | Incidents, restarts |
 | [SENTINELS.md](./SENTINELS.md) | DeAI sentinel roles |
+| [TESTNET_PRODUCTION_READINESS.md](../../docs/TESTNET_PRODUCTION_READINESS.md) | Production-grade **testnet** criteria |
+| [MAINNET_PRODUCTION_PLAN.md](../../docs/MAINNET_PRODUCTION_PLAN.md) | Mainnet timeline & checklist |
+| [SECURITY_AUDIT_REPORT.md](../../SECURITY_AUDIT_REPORT.md) | Audit findings |
 
 ### Vision & hardware
 
@@ -256,4 +320,4 @@ Security framing (Sentinels, self-sufficiency): [SENTINELS.md](./SENTINELS.md), 
 ---
 
 **Document:** `core/docs/ARCHITECTURE_OVERVIEW.md`  
-**Last updated:** 2026-03
+**Last updated:** 2026-03-22
