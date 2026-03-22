@@ -156,7 +156,7 @@ async fn main() -> anyhow::Result<()> {
     metrics::init();
 
     let mut node = AxionaxNode::new(config).await?;
-    node.start().await?;
+    node.start(&args.role.to_string()).await?;
 
     let start = Instant::now();
 

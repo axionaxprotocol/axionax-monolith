@@ -1,7 +1,8 @@
 //! axionax Node - Integrated blockchain node combining Network, State, and RPC
 //!
 //! The Node module provides a high-level API for running a complete axionax blockchain node
-//! that handles peer-to-peer networking, persistent storage, and JSON-RPC API endpoints.
+//! that handles peer-to-peer networking, persistent storage, JSON-RPC API endpoints,
+//! and block production (when running as a validator).
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -94,6 +95,7 @@ pub struct AxionaxNode {
     stats: Arc<RwLock<NodeStats>>,
     rpc_handle: Option<ServerHandle>,
     sync_handle: Option<JoinHandle<()>>,
+    producer_handle: Option<JoinHandle<()>>,
 }
 
 impl AxionaxNode {
@@ -148,11 +150,12 @@ impl AxionaxNode {
             stats,
             rpc_handle: None,
             sync_handle: None,
+            producer_handle: None,
         })
     }
 
-    /// Start the node (network, sync, and RPC server)
-    pub async fn start(&mut self) -> anyhow::Result<()> {
+    /// Start the node (network, sync, RPC server, and optionally block producer)
+    pub async fn start(&mut self, role: &str) -> anyhow::Result<()> {
         info!("Starting axionax node...");
 
         // Start network manager
@@ -177,8 +180,107 @@ impl AxionaxNode {
         self.rpc_handle = Some(rpc_handle);
         info!("RPC server started on {}", self.config.rpc_addr);
 
+        // Start block producer for validator role
+        if role == "validator" {
+            let block_time = self.config.network.block_time_seconds;
+            let handle = self.start_block_producer(block_time).await;
+            self.producer_handle = Some(handle);
+            info!("Block producer started (interval={}s)", block_time);
+        }
+
         info!("✅ axionax node fully operational!");
         Ok(())
+    }
+
+    /// Start the block production loop (validator only)
+    async fn start_block_producer(&self, block_time_secs: u64) -> JoinHandle<()> {
+        let state = self.state.clone();
+        let stats = self.stats.clone();
+        let network = self.network.clone();
+        let mempool = self.mempool.clone();
+
+        tokio::spawn(async move {
+            info!("Block producer running (every {}s)...", block_time_secs);
+
+            let interval = tokio::time::Duration::from_secs(block_time_secs);
+
+            loop {
+                tokio::time::sleep(interval).await;
+
+                // Read current chain state
+                let height = state.get_chain_height().unwrap_or(0);
+                let parent_hash = match state.get_block_by_number(height) {
+                    Ok(parent) => parent.hash,
+                    Err(_) => [0u8; 32], // Genesis parent
+                };
+
+                let new_number = height + 1;
+                let timestamp = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs();
+
+                // Drain transactions from mempool
+                let pending_txs = mempool.get_pending_transactions(100).await;
+
+                // Compute block hash: SHA3(parent_hash || number || timestamp)
+                let mut hash_input = Vec::with_capacity(48);
+                hash_input.extend_from_slice(&parent_hash);
+                hash_input.extend_from_slice(&new_number.to_le_bytes());
+                hash_input.extend_from_slice(&timestamp.to_le_bytes());
+                let block_hash = crypto::hash::sha3_256(&hash_input);
+
+                // Compute state root (simplified: hash of block number)
+                let state_root = crypto::hash::sha3_256(&new_number.to_le_bytes());
+
+                let block = Block {
+                    number: new_number,
+                    hash: block_hash,
+                    parent_hash,
+                    timestamp,
+                    proposer: "validator".to_string(),
+                    transactions: pending_txs,
+                    state_root,
+                    gas_used: 0,
+                    gas_limit: 30_000_000,
+                };
+
+                // Store block
+                if let Err(e) = state.store_block(&block) {
+                    error!("Failed to store block #{}: {}", new_number, e);
+                    continue;
+                }
+
+                // Update stats
+                {
+                    let mut s = stats.write().await;
+                    s.blocks_stored = new_number;
+                }
+
+                info!("⛏ Produced block #{} (txs={}, hash=0x{})",
+                    new_number,
+                    block.transactions.len(),
+                    hex::encode(&block_hash[..4]),
+                );
+
+                // Publish to P2P network
+                let block_msg = BlockMessage {
+                    number: block.number,
+                    hash: hash_to_hex(&block.hash),
+                    parent_hash: hash_to_hex(&block.parent_hash),
+                    timestamp: block.timestamp,
+                    proposer: block.proposer.clone(),
+                    transactions: block.transactions.iter()
+                        .map(|tx| hash_to_hex(&tx.hash))
+                        .collect(),
+                    state_root: hash_to_hex(&block.state_root),
+                };
+
+                if let Ok(mut net) = network.try_write() {
+                    let _ = net.publish(NetworkMessage::Block(block_msg));
+                }
+            }
+        })
     }
 
     /// Start the sync task that listens for network messages and stores them
