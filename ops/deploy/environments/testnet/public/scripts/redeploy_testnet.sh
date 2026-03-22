@@ -107,11 +107,13 @@ log "  Dockerfile: ${DOCKERFILE}"
 log "  Context:    ${CORE_DIR}"
 
 docker build \
+  --progress=plain \
   --no-cache \
   -f "$DOCKERFILE" \
   -t axionax-node:latest \
   -t ghcr.io/axionaxprotocol/core:latest \
-  "${CORE_DIR}" 2>&1 | tail -20
+  "${CORE_DIR}"
+
 
 pass "Docker image rebuilt: axionax-node:latest"
 
