@@ -14,7 +14,6 @@ services:
     ulimits:
       nofile: { soft: 65536, hard: 65536 }
     command:
-      - axionax-node
       - --role
       - validator
       - --chain
@@ -42,7 +41,6 @@ services:
     ulimits:
       nofile: { soft: 65536, hard: 65536 }
     command:
-      - axionax-node
       - --role
       - rpc
       - --chain
@@ -64,7 +62,6 @@ services:
     ulimits:
       nofile: { soft: 65536, hard: 65536 }
     command:
-      - axionax-node
       - --role
       - bootnode
       - --chain
