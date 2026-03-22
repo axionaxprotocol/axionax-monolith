@@ -81,6 +81,40 @@ Traffic flows **down** from clients; trust and execution anchor in **Rust core**
               └───────────────────────────────┘
 ```
 
+*Tip: use a **monospace** font in the editor so column alignment matches the diagram.*
+
+### 2.3 Same diagram (Mermaid — renders on GitHub / many Markdown viewers)
+
+```mermaid
+flowchart TB
+  subgraph L1["Clients & services"]
+    W[Web / dApps]
+    MP[Marketplace]
+    EX[Explorer]
+    FA[Faucet]
+  end
+
+  RPC["RPC (HTTP 8545 / WS 8546)"]
+
+  subgraph L3["Behind RPC"]
+    P2P["P2P chain\n(val, boot, full …)"]
+    DEAI["DeAI workers"]
+    INFRA["Infra services\n(explorer backend, metrics, …)"]
+  end
+
+  CORE["Rust core + Python DeAI\n(state, consensus, rpc, …)"]
+  HAL["HAL: SILICON | NPU | PHOTONIC"]
+
+  L1 --> RPC
+  RPC --> P2P
+  RPC --> DEAI
+  RPC --> INFRA
+  P2P --> CORE
+  DEAI --> CORE
+  INFRA --> CORE
+  CORE --> HAL
+```
+
 ---
 
 ## 3. Repository layout
