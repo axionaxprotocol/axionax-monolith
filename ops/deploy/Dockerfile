@@ -41,9 +41,10 @@ FROM python:3.11-slim-bookworm as python-app-builder
 
 WORKDIR /app
 
-# Install Python dependencies from requirements.txt
+# Install Python dependencies from requirements.txt (use CPU-only PyTorch to save disk space)
 COPY deai/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy the built Python wheel from the bridge-builder stage
 COPY --from=python-bridge-builder /build/dist/*.whl .
