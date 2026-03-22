@@ -88,7 +88,7 @@ pub struct NodeStats {
 /// axionax blockchain node
 pub struct AxionaxNode {
     config: NodeConfig,
-    network: Arc<RwLock<NetworkManager>>,
+    network: Arc<tokio::sync::Mutex<NetworkManager>>,
     state: Arc<StateDB>,
     mempool: Arc<TransactionPool>,
     event_bus: Arc<events::EventBus>,
@@ -124,7 +124,7 @@ impl AxionaxNode {
         }
 
         // Initialize network manager
-        let network = Arc::new(RwLock::new(
+        let network = Arc::new(tokio::sync::Mutex::new(
             NetworkManager::new(config.network.clone()).await?
         ));
         info!("Network manager initialized");
@@ -160,7 +160,7 @@ impl AxionaxNode {
 
         // Start network manager
         {
-            let mut network = self.network.write().await;
+            let mut network = self.network.lock().await;
             network.start().await?;
         }
         info!("Network layer started");
@@ -280,7 +280,7 @@ impl AxionaxNode {
                         state_root: hash_to_hex(&block.state_root),
                     };
 
-                    if let Ok(mut net) = network.try_write() {
+                    if let Ok(mut net) = network.try_lock() {
                         let _ = net.publish(NetworkMessage::Block(block_msg));
                     }
                 }
@@ -487,7 +487,7 @@ impl AxionaxNode {
             state_root: hash_to_hex(&block.state_root),
         };
 
-        let mut network = self.network.write().await;
+        let mut network = self.network.lock().await;
         network.publish(NetworkMessage::Block(block_msg))?;
 
         Ok(())
@@ -508,7 +508,7 @@ impl AxionaxNode {
             signature: vec![], // TODO: Extract signature from transaction data when ECDSA is implemented
         };
 
-        let mut network = self.network.write().await;
+        let mut network = self.network.lock().await;
         network.publish(NetworkMessage::Transaction(tx_msg))?;
 
         Ok(())
@@ -521,7 +521,7 @@ impl AxionaxNode {
 
     /// Get current peer count
     pub async fn peer_count(&self) -> usize {
-        let network = self.network.read().await;
+        let network = self.network.lock().await;
         network.peer_count()
     }
 
