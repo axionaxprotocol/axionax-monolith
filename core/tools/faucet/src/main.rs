@@ -29,6 +29,8 @@ struct AppState {
     faucet_address: String,
     chain_id: u64,
     amount_per_request: u128,
+    /// Must be >= chain min gas price (default 1 Gwei in blockchain validation).
+    gas_price: u128,
     addr_limiter: Arc<DashMap<String, u64>>,  // address -> timestamp
     ip_limiter: Arc<DashMap<String, u64>>,    // IP -> timestamp
     cooldown_secs: u64,                       // configurable cooldown (default 86400)
@@ -155,8 +157,14 @@ async fn main() -> anyhow::Result<()> {
         .and_then(|v| v.parse::<u128>().ok())
         .unwrap_or(100);
 
+    let gas_price: u128 = env::var("FAUCET_GAS_PRICE")
+        .ok()
+        .and_then(|v| v.parse::<u128>().ok())
+        .unwrap_or(1_000_000_000); // 1 Gwei — matches core/blockchain validation default min
+
     info!("Rate limit: {} seconds ({} hours)", cooldown_secs, cooldown_secs / 3600);
     info!("Amount per request: {} AXX", amount);
+    info!("Gas price (wei): {}", gas_price);
 
     let app_state = AppState {
         client: Client::new(),
@@ -165,6 +173,7 @@ async fn main() -> anyhow::Result<()> {
         faucet_address,
         chain_id,
         amount_per_request: amount * 10_u128.pow(18),
+        gas_price,
         addr_limiter: Arc::new(DashMap::new()),
         ip_limiter: Arc::new(DashMap::new()),
         cooldown_secs,
@@ -312,7 +321,7 @@ async fn request_handler(
         from: state.faucet_address.clone(),
         to: address.clone(),
         value: state.amount_per_request,
-        gas_price: 20,
+        gas_price: state.gas_price,
         gas_limit: 21000,
         nonce,
         data: vec![],
