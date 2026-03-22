@@ -52,23 +52,26 @@ End-to-end architecture of Axionax Protocol: blockchain, network, DeAI, and hard
 |-------|-------------------|------|
 | **Core (Rust)** | `core/` | Blockchain protocol and node services (Cargo workspace root) |
 | **DeAI (Python)** | `core/deai/` | Worker node, HAL (ComputeBackend), optical simulation |
-| **Ops** | `ops/deploy/` | Deploy scripts, environments, monitoring, nginx |
+| **Ops** | `ops/deploy/` | Deploy scripts, **canonical public testnet:** `environments/testnet/public/`, Dockerfiles, monitoring, nginx, mock-rpc |
 | **Tools (root)** | `tools/` | Devtools (Python), analysis scripts |
-| **Tools (core)** | `core/tools/` | Faucet (Rust), genesis generator, validators |
+| **Tools (core)** | `core/tools/` | Genesis / validator helpers (non-workspace binaries where applicable) |
+| **Scripts (root)** | `scripts/` | Readiness checks, load tests (`load_test/`), optimize suite, security helpers |
+| **Docs (root)** | `docs/` | Launch plans, MetaMask, production readiness, Bible index |
+| **Reports** | `reports/` | Generated readiness / benchmark outputs (gitignored or committed as snapshots) |
 | **Config** | `configs/` | Monolith HYDRA (sentinel / worker TOML) |
 | **Root** | `hydra_manager.py` | Project HYDRA — Dual-Core (Split-Brain) MK-I controller |
 
-**Rust workspace:** `core/Cargo.toml` is the workspace root. Protocol crates live under `core/core/` (blockchain, consensus, network, etc.). Bridge and faucet: `core/bridge/rust-python/`, `core/tools/faucet/`.
+**Rust workspace:** `core/Cargo.toml` lists all protocol crates under `core/core/`, plus `bridge/rust-python` and **`tools/faucet`** (Rust faucet binary). **Research / photonic:** `core/photonic/` (README and roadmap-linked material; not a workspace crate).
 
 ---
 
-## 3. Core Protocol (Rust) — 19 Modules
+## 3. Core Protocol (Rust) — workspace members (18 protocol crates + bridge + faucet)
 
 | Module | Role |
 |--------|------|
 | **blockchain** | Block and chain management |
 | **consensus** | PoPC (Proof of Probabilistic Checking), Proof-of-Light (simulation) |
-| **crypto** | Ed25519, Blake3, cryptographic primitives |
+| **crypto** | Ed25519, Blake3, primitives; **ECVRF** (schnorrkel) for production VRF paths |
 | **network** | P2P (libp2p), Gossipsub, NodeCapabilities (ASR / Monolith) |
 | **state** | RocksDB state management |
 | **rpc** | JSON-RPC API, WebSocket, health endpoints |
@@ -79,12 +82,13 @@ End-to-end architecture of Axionax Protocol: blockchain, network, DeAI, and hard
 | **ppc** | Posted Price Controller — dynamic compute pricing |
 | **da** | Data Availability — erasure coding |
 | **asr** | Auto-Selection Router — VRF-based worker selection |
-| **vrf** | Verifiable Random Function (commit-reveal) |
+| **vrf** | VRF layer (ECVRF recommended; legacy paths may differ) |
 | **events** | Pub/Sub events (blocks, transactions, staking) |
 | **cli** | Command-line interface |
 | **metrics** | Prometheus metrics |
 | **genesis** | Genesis block generator |
 | **bridge (rust-python)** | `core/bridge/rust-python/` — PyO3 bindings for Python |
+| **faucet** | `core/tools/faucet/` — Rust faucet tool (workspace member; deploy may use separate faucet image/service) |
 
 ---
 
@@ -172,9 +176,11 @@ End-to-end architecture of Axionax Protocol: blockchain, network, DeAI, and hard
 | [SENTINELS.md](./SENTINELS.md) | The 7 Sentinels (network immune system) |
 | [API_REFERENCE.md](./API_REFERENCE.md) | RPC and API reference |
 | [RPC_API.md](./RPC_API.md) | JSON-RPC methods |
+| [NODE_SPECS.md](./NODE_SPECS.md) | CPU/RAM/storage for node roles |
+| [RUNBOOK.md](./RUNBOOK.md) | Operations runbook (incidents, restarts) |
 
 ---
 
-*Full architecture overview for Axionax Core Universe. See `core/docs/` for all references.*
+*Full architecture overview for Axionax Core Universe. Repo index: [docs/AXIONAX_BIBLE.md](../../docs/AXIONAX_BIBLE.md). See `core/docs/` for protocol references.*
 
 **Version:** 2026-02
