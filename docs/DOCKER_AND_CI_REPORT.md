@@ -16,7 +16,7 @@
 | `ops/deploy/docker-compose.yaml` | ✅ แก้แล้ว | context = `../../core`, ports 8545/8546/30303, ไม่อ้างอิง repo ภายนอก |
 | `ops/deploy/docker-compose.vps.yml` | ✅ ใช้ image | ใช้ `ghcr.io/axionaxprotocol/axionax-core:latest` ไม่ build ในไฟล์ |
 | `ops/deploy/mock-rpc/Dockerfile` | ✅ ใช้ได้ | build จาก context ของ mock-rpc |
-| Testnet_in_a_Box Dockerfile | ⚠️ โครงต่างกัน | ใช้ `cmd/axionax`, `--example full_node` — โครงนี้ไม่มี `cmd/` ใน repo |
+| ~~Testnet_in_a_Box~~ | — | ลบออกจาก repo แล้ว — ใช้ `ops/deploy/Dockerfile` + `testnet/public/` แทน |
 | `core/.github/workflows/*` | ℹ️ ไม่รันบน GitHub | เฉพาะ `.github/workflows` ที่ **root** ถึงจะรัน — ไฟล์ใน core/ เป็น legacy |
 | Services ฝั่ง web/marketplace ใน dev | ℹ️ ต้องมี web-universe | context `./web-universe/...` ต้องมีโฟลเดอร์หรือ submodule นั้น |
 
@@ -74,10 +74,7 @@ Cache ใช้ `core/target` และ `core/Cargo.lock` — ถูกต้อ
 
 - **ops/deploy/docker-compose.vps.yml:** ใช้ image `ghcr.io/axionaxprotocol/axionax-core:latest` ไม่ build ในไฟล์ — ใช้ได้
 - **ops/deploy/mock-rpc/Dockerfile:** build จาก context ของ mock-rpc — ใช้ได้
-- **ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/Dockerfile:**  
-  - ใช้โครงแบบมี `cmd/axionax`, COPY แบบ repo อื่น  
-  - โครงนี้ไม่มี `cmd/` และ build ด้วย `--example full_node` แบบที่ Dockerfile เขียน  
-  - ถ้าจะใช้กับ repo นี้ต้องเขียน Dockerfile ใหม่ให้ context = `core/` และ build ตามโครงปัจจุบัน (เช่น `-p node` ได้ binary `axionax-node`)
+- **Public testnet:** `ops/deploy/environments/testnet/public/docker-compose.yaml` + `ops/deploy/Dockerfile` (context `core/`)
 
 ### 2.5 Services ที่ต้องมีโฟลเดอร์นอก core
 

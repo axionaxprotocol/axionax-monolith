@@ -486,7 +486,7 @@ This audit reviewed the entire Axionax Protocol codebase. A total of **130 findi
 
 #### PH-1: Faucet ERC-20 Endpoint Accepts User-Controlled Amount
 
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/faucet/index.js`, line 86
+- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/faucet/index.js`, line 86 *(โฟลเดอร์นี้ถูกลบออกจาก repo แล้ว — อ้างอิงประวัติการ audit เท่านั้น)*
 - **Category:** Business Logic
 - **Description:** `/request-erc20` accepts a user-supplied `amount` query parameter. An attacker can request `amount=999999999999999`.
 - **Impact:** Complete drain of faucet's ERC-20 balance in a single request.
@@ -494,7 +494,7 @@ This audit reviewed the entire Axionax Protocol codebase. A total of **130 findi
 
 #### PH-2: Faucet server.js Variant Has No Rate Limiting
 
-- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/faucet/server.js`, line 33
+- **File:** `ops/deploy/environments/testnet/Axionax_v1.6_Testnet_in_a_Box/faucet/server.js`, line 33 *(โฟลเดอร์นี้ถูกลบออกจาก repo แล้ว — อ้างอิงประวัติการ audit เท่านั้น)*
 - **Description:** Unlike `index.js`, this variant has no `express-rate-limit`.
 - **Recommendation:** Add rate limiting.
 

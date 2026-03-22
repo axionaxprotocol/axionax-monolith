@@ -41,7 +41,7 @@ services:
       - axionax-network
     restart: "no"
 
-  # Hardhat/Anvil (from Testnet-in-a-Box)
+  # Local EVM dev chain (Anvil) — optional; separate chain-id from axionax testnet
   hardhat:
     image: ghcr.io/foundry-rs/foundry:latest
     container_name: axionax-hardhat

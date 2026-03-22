@@ -515,13 +515,11 @@ This core implementation is part of the complete axionax Protocol ecosystem:
 
 ### Environment & Deployment
 
-- **[Testnet v1.5](environments/testnet/axionax_v1.5_Testnet_in_a_Box/)** -
-  Testnet v1.5 setup
-- **[Testnet v1.6](environments/testnet/axionax_v1.6_Testnet_in_a_Box/)** -
-  Testnet v1.6 setup
-- **[Config Example](environments/config.example.yaml)** - Configuration
-  template
-- **[Docker Compose](environments/docker-compose.yaml)** - Docker setup
+- **[Public testnet](environments/testnet/README.md)** — points to canonical
+  stack under `ops/deploy/environments/testnet/public/`
+- **Deploy / Docker:** [`ops/deploy/`](../ops/deploy/) — Dockerfile, compose,
+  VPS scripts
+- **Repo configs:** [`configs/`](../configs/) — worker / monolith TOML examples
 
 ### Testing & Performance
 

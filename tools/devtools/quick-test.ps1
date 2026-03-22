@@ -69,9 +69,8 @@ Write-Host "  .\build\axionax-core.exe worker register" -ForegroundColor White
 Write-Host "  .\build\axionax-core.exe --help" -ForegroundColor White
 Write-Host ""
 
-Write-Host "Start Testnet:" -ForegroundColor Cyan
-Write-Host "  cd Axionax_v1.5_Testnet_in_a_Box" -ForegroundColor White
-Write-Host "  powershell -ExecutionPolicy Bypass -File start-testnet.ps1" -ForegroundColor White
+Write-Host "Public testnet (Docker):" -ForegroundColor Cyan
+Write-Host "  See repo: ops\deploy\environments\testnet\public\" -ForegroundColor White
 Write-Host ""
 
 Write-Host "Documentation:" -ForegroundColor Cyan

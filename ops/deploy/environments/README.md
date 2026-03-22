@@ -1,63 +1,51 @@
 # axionax Environments
 
-This directory contains environment-specific configurations and deployment files for axionax Core.
+Environment-specific configurations and deployment files for axionax Core.
 
-## Directory Structure
+## Directory structure
 
 ```
 environments/
-├── mainnet/              # Mainnet configuration (reserved, not launched)
-├── testnet/              # Testnet configurations
-│   ├── axionax_v1.5_Testnet_in_a_Box/
-│   └── axionax_v1.6_Testnet_in_a_Box/
+├── mainnet/              # Reserved (not launched)
+├── testnet/
+│   └── public/           # Canonical public testnet (Docker Compose, genesis, scripts)
 ├── config.example.yaml   # Example configuration template
-└── docker-compose.yaml   # Docker compose setup
+└── docker-compose.yaml   # Generic compose (optional local stack)
 ```
 
-## Environments
+## Testnet
 
-### Testnet
+- **Chain ID:** 86137 (`0x15079`)
+- **Purpose:** Development, integration, and VPS-style deployment
+- **Entry point:** [testnet/public/README.md](./testnet/public/README.md)
 
-- **Chain ID**: 86137
-- **Status**: Active for testing
-- **Purpose**: Development, testing, and integration
-- **Versions**:
-  - v1.5: Legacy testnet setup
-  - v1.6: Current testnet setup with Rust/Python architecture
+## Mainnet
 
-### Mainnet
-
-- **Chain ID**: 86150
-- **Status**: Reserved, NOT launched
-- **Purpose**: Production network (future)
-
-⚠️ **WARNING**: Any network claiming to be "axionax Mainnet" is a SCAM. Verify at https://axionax.org/networks
+- **Chain ID:** 86150 (reserved, not launched)
+- Verify official network info at https://axionax.org/networks
 
 ## Configuration
 
-### Using config.example.yaml
-
-Copy and modify the example configuration:
-
 ```bash
 cp config.example.yaml config.yaml
-# Edit config.yaml with your settings
+# Edit config.yaml
 ```
 
-### Using Docker Compose
+## Docker (generic)
 
-Start a local testnet:
+From this directory:
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
+
+For the **public testnet** stack, use `testnet/public/docker-compose.yaml` (see that folder’s README).
 
 ## Documentation
 
-- [Testnet v1.5 Setup](./testnet/axionax_v1.5_Testnet_in_a_Box/README.md)
-- [Testnet v1.6 Setup](./testnet/axionax_v1.6_Testnet_in_a_Box/README.md)
-- [Main Documentation](../docs/)
+- [Public testnet](./testnet/public/README.md)
+- [Main docs](../../docs/)
 
 ## Security
 
-For security concerns, please see [SECURITY.md](../docs/SECURITY.md) and report vulnerabilities to security@axionax.org
+See project `SECURITY.md` / `docs/SECURITY.md` and report issues to security@axionax.org.

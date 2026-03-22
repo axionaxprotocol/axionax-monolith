@@ -420,8 +420,6 @@ class TestnetReadinessChecker:
             'setup_rpc_node.sh',
             'monorepo-archive',  # Archived code
             'your_private_key',  # Placeholder text
-            'Axionax_v1.5',  # Old testnet version
-            'Axionax_v1.6',  # Old testnet version
         ]
         
         findings = []
