@@ -29,13 +29,23 @@ def get_block_number(w3: Web3) -> int:
     return w3.eth.block_number
 
 
+def _ensure_rpc_reachable(w3: Web3, rpc_url: str) -> None:
+    """
+    Axionax nodes may not implement web3_clientVersion; Web3.is_connected() then
+    returns False even when eth_blockNumber works (same as curl). Use a real RPC call.
+    """
+    try:
+        _ = w3.eth.block_number
+    except Exception as e:
+        raise RuntimeError(f"Cannot connect to RPC: {rpc_url}") from e
+
+
 def run_block_time_mode(
     rpc_url: str, duration_sec: int, *, max_block_time_sec: float = 5.0
 ) -> dict:
     """Measure block production rate and average block time (proxy for finality)."""
     w3 = Web3(Web3.HTTPProvider(rpc_url))
-    if not w3.is_connected():
-        raise RuntimeError(f"Cannot connect to RPC: {rpc_url}")
+    _ensure_rpc_reachable(w3, rpc_url)
 
     start_block = get_block_number(w3)
     start_time = time.perf_counter()
@@ -84,8 +94,7 @@ def run_tps_mode(
 ) -> dict:
     """Send transactions and measure included TPS. Requires funded account."""
     w3 = Web3(Web3.HTTPProvider(rpc_url))
-    if not w3.is_connected():
-        raise RuntimeError(f"Cannot connect to RPC: {rpc_url}")
+    _ensure_rpc_reachable(w3, rpc_url)
 
     if not private_key:
         raise ValueError("TPS mode requires AXIONAX_PRIVATE_KEY or --private-key")
