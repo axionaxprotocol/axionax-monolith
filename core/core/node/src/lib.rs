@@ -207,77 +207,82 @@ impl AxionaxNode {
             loop {
                 tokio::time::sleep(interval).await;
 
-                // Read current chain state
-                let height = state.get_chain_height().unwrap_or(0);
-                let parent_hash = match state.get_block_by_number(height) {
-                    Ok(parent) => parent.hash,
-                    Err(_) => [0u8; 32], // Genesis parent
-                };
-
-                let new_number = height + 1;
-                let timestamp = std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_secs();
-
-                // Drain transactions from mempool
+                // Step 1 (async): Get pending transactions from mempool
                 let pending_txs = mempool.get_pending_transactions(100).await;
 
-                // Compute block hash: SHA3(parent_hash || number || timestamp)
-                let mut hash_input = Vec::with_capacity(48);
-                hash_input.extend_from_slice(&parent_hash);
-                hash_input.extend_from_slice(&new_number.to_le_bytes());
-                hash_input.extend_from_slice(&timestamp.to_le_bytes());
-                let block_hash = crypto::hash::sha3_256(&hash_input);
+                // Step 2 (sync): Read chain state, create block, store it
+                // All StateDB ops must be in this sync block to avoid Send issues
+                let produced = {
+                    let height = state.get_chain_height().unwrap_or(0);
+                    let parent_hash = match state.get_block_by_number(height) {
+                        Ok(parent) => parent.hash,
+                        Err(_) => [0u8; 32],
+                    };
 
-                // Compute state root (simplified: hash of block number)
-                let state_root = crypto::hash::sha3_256(&new_number.to_le_bytes());
+                    let new_number = height + 1;
+                    let timestamp = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs();
 
-                let block = Block {
-                    number: new_number,
-                    hash: block_hash,
-                    parent_hash,
-                    timestamp,
-                    proposer: "validator".to_string(),
-                    transactions: pending_txs,
-                    state_root,
-                    gas_used: 0,
-                    gas_limit: 30_000_000,
+                    // Compute block hash: SHA3(parent_hash || number || timestamp)
+                    let mut hash_input = Vec::with_capacity(48);
+                    hash_input.extend_from_slice(&parent_hash);
+                    hash_input.extend_from_slice(&new_number.to_le_bytes());
+                    hash_input.extend_from_slice(&timestamp.to_le_bytes());
+                    let block_hash = crypto::hash::sha3_256(&hash_input);
+
+                    let state_root = crypto::hash::sha3_256(&new_number.to_le_bytes());
+
+                    let block = Block {
+                        number: new_number,
+                        hash: block_hash,
+                        parent_hash,
+                        timestamp,
+                        proposer: "validator".to_string(),
+                        transactions: pending_txs,
+                        state_root,
+                        gas_used: 0,
+                        gas_limit: 30_000_000,
+                    };
+
+                    match state.store_block(&block) {
+                        Ok(()) => Some((block, new_number, block_hash)),
+                        Err(e) => {
+                            error!("Failed to store block #{}: {}", new_number, e);
+                            None
+                        }
+                    }
                 };
 
-                // Store block
-                if let Err(e) = state.store_block(&block) {
-                    error!("Failed to store block #{}: {}", new_number, e);
-                    continue;
-                }
+                // Step 3 (async): Update stats and publish to network
+                if let Some((block, new_number, block_hash)) = produced {
+                    {
+                        let mut s = stats.write().await;
+                        s.blocks_stored = new_number;
+                    }
 
-                // Update stats
-                {
-                    let mut s = stats.write().await;
-                    s.blocks_stored = new_number;
-                }
+                    info!("⛏ Produced block #{} (txs={}, hash=0x{})",
+                        new_number,
+                        block.transactions.len(),
+                        hex::encode(&block_hash[..4]),
+                    );
 
-                info!("⛏ Produced block #{} (txs={}, hash=0x{})",
-                    new_number,
-                    block.transactions.len(),
-                    hex::encode(&block_hash[..4]),
-                );
+                    let block_msg = BlockMessage {
+                        number: block.number,
+                        hash: hash_to_hex(&block.hash),
+                        parent_hash: hash_to_hex(&block.parent_hash),
+                        timestamp: block.timestamp,
+                        proposer: block.proposer.clone(),
+                        transactions: block.transactions.iter()
+                            .map(|tx| hash_to_hex(&tx.hash))
+                            .collect(),
+                        state_root: hash_to_hex(&block.state_root),
+                    };
 
-                // Publish to P2P network
-                let block_msg = BlockMessage {
-                    number: block.number,
-                    hash: hash_to_hex(&block.hash),
-                    parent_hash: hash_to_hex(&block.parent_hash),
-                    timestamp: block.timestamp,
-                    proposer: block.proposer.clone(),
-                    transactions: block.transactions.iter()
-                        .map(|tx| hash_to_hex(&tx.hash))
-                        .collect(),
-                    state_root: hash_to_hex(&block.state_root),
-                };
-
-                if let Ok(mut net) = network.try_write() {
-                    let _ = net.publish(NetworkMessage::Block(block_msg));
+                    if let Ok(mut net) = network.try_write() {
+                        let _ = net.publish(NetworkMessage::Block(block_msg));
+                    }
                 }
             }
         })
