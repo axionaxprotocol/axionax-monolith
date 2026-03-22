@@ -104,14 +104,14 @@ if [[ -z "$DOCKERFILE" ]]; then
 fi
 
 log "  Dockerfile: ${DOCKERFILE}"
-log "  Context:    ${CORE_DIR}/.."
+log "  Context:    ${CORE_DIR}"
 
 docker build \
   --no-cache \
   -f "$DOCKERFILE" \
   -t axionax-node:latest \
   -t ghcr.io/axionaxprotocol/core:latest \
-  "${CORE_DIR}/.." 2>&1 | tail -20
+  "${CORE_DIR}" 2>&1 | tail -20
 
 pass "Docker image rebuilt: axionax-node:latest"
 
@@ -135,14 +135,14 @@ echo ""
 echo "╔══════════════════════════════════════════════════════════════╗"
 echo "║        ✅ REDEPLOY COMPLETE                                 ║"
 echo "╠══════════════════════════════════════════════════════════════╣"
-echo "║  • Image rebuilt with block_time fix                       ║"
-echo "║  • State reset — starting from genesis block #0            ║"
-echo "║  • Core services started (validator, bootnode, rpc)        ║"
-echo "║                                                            ║"
-echo "║  Next: Wait 30s then verify with:                          ║"
-echo "║    curl -s localhost:8545 -X POST                          ║"
-echo "║      -H 'Content-Type: application/json'                   ║"
-echo "║      -d '{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",      ║"
-echo "║           \"params\":[],\"id\":1}'                              ║"
+echo "║  • Image rebuilt with block_time fix                         ║"
+echo "║  • State reset — starting from genesis block #0              ║"
+echo "║  • Core services started (validator, bootnode, rpc)          ║"
+echo "║                                                              ║"
+echo "║  Next: Wait 30s then verify with:                            ║"
+echo "║    curl -s localhost:8545 -X POST                            ║"
+echo "║      -H 'Content-Type: application/json'                     ║"
+echo "║      -d '{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",║"
+echo "║           \"params\":[],\"id\":1}'                           ║"
 echo "╚══════════════════════════════════════════════════════════════╝"
 echo ""
