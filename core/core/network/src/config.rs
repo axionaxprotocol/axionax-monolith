@@ -49,6 +49,9 @@ pub struct NetworkConfig {
     /// (suitable for tests only).
     #[serde(default)]
     pub key_file: Option<PathBuf>,
+
+    /// Block time in seconds
+    pub block_time_seconds: u64,
 }
 
 /// Gossipsub validation mode
@@ -78,6 +81,7 @@ impl Default for NetworkConfig {
             protocol_version: "1.0.0".to_string(),
             chain_id: 86137, // axionax Testnet
             key_file: None,
+            block_time_seconds: 5,
         }
     }
 }
@@ -88,6 +92,7 @@ impl NetworkConfig {
         Self {
             chain_id: 86137,
             bootstrap_nodes: vec![], // Set AXIONAX_BOOTSTRAP_NODES=/ip4/<IP>/tcp/30303/p2p/<PEER_ID> on VPS
+            block_time_seconds: 5,
             ..Default::default()
         }
     }
@@ -99,6 +104,7 @@ impl NetworkConfig {
             validation_mode: ValidationMode::Strict,
             max_peers: 100,
             bootstrap_nodes: vec![],
+            block_time_seconds: 5,
             ..Default::default()
         }
     }
@@ -111,6 +117,7 @@ impl NetworkConfig {
             max_peers: 10,
             validation_mode: ValidationMode::None,
             bootstrap_nodes: vec![],
+            block_time_seconds: 2,
             ..Default::default()
         }
     }

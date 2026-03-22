@@ -166,10 +166,19 @@ impl ConsensusEngine {
 
 impl Default for ConsensusConfig {
     fn default() -> Self {
+        Self::with_block_time(2) // Default to 2s/block to match genesis
+    }
+}
+
+impl ConsensusConfig {
+    /// Create a config dynamically adapting block counts based on the target block time
+    pub fn with_block_time(block_time_sec: u64) -> Self {
+        let block_time = if block_time_sec == 0 { 1 } else { block_time_sec };
+        let fraud_window_blocks = 3600 / block_time; // ~1 hour
         Self {
             sample_size: 1000,              // Recommended: 600-1500 (ARCHITECTURE v1.5)
             min_confidence: 0.99,           // 99%+ required detection probability
-            fraud_window_blocks: 720,       // ~3600s @ 5s/block (Δt_fraud)
+            fraud_window_blocks,            // ~3600s (Δt_fraud)
             min_validator_stake: 1_000_000, // Minimum stake requirement
             false_pass_penalty_bps: 500,    // 5% (≥500 bps per ARCHITECTURE v1.5)
         }

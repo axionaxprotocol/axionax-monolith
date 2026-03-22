@@ -67,12 +67,21 @@ pub struct StakingConfig {
 
 impl Default for StakingConfig {
     fn default() -> Self {
+        Self::with_block_time(2) // Default to 2s/block to match genesis
+    }
+}
+
+impl StakingConfig {
+    /// Create a config dynamically adapting block counts based on the target block time
+    pub fn with_block_time(block_time_sec: u64) -> Self {
+        let block_time = if block_time_sec == 0 { 1 } else { block_time_sec };
+        let blocks_per_day = (24 * 3600) / block_time;
         Self {
             min_validator_stake: 10_000 * 10_u128.pow(18), // 10,000 AXX
             min_delegation: 100 * 10_u128.pow(18),          // 100 AXX
-            unstaking_lock_blocks: 725_760,                  // ~21 days @ 2.5s/block
+            unstaking_lock_blocks: blocks_per_day * 21,      // 21 days
             epoch_reward_rate_bps: 50,                       // 0.5% per epoch (~6% APY)
-            blocks_per_epoch: 17_280,                        // ~12 hours @ 2.5s/block
+            blocks_per_epoch: blocks_per_day / 2,            // 12 hours
             max_slash_rate_bps: 5000,                        // 50% max slash
         }
     }

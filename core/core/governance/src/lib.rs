@@ -79,10 +79,19 @@ pub struct GovernanceConfig {
 
 impl Default for GovernanceConfig {
     fn default() -> Self {
+        Self::with_block_time(2) // Default to 2s/block to match genesis
+    }
+}
+
+impl GovernanceConfig {
+    /// Create a config dynamically adapting block counts based on the target block time
+    pub fn with_block_time(block_time_sec: u64) -> Self {
+        let block_time = if block_time_sec == 0 { 1 } else { block_time_sec };
+        let blocks_per_day = (24 * 3600) / block_time;
         Self {
             min_proposal_stake: 100_000 * 10_u128.pow(18), // 100,000 AXX
-            voting_period_blocks: 241_920,                  // ~7 days @ 2.5s/block
-            execution_delay_blocks: 69_120,                 // ~2 days @ 2.5s/block
+            voting_period_blocks: blocks_per_day * 7,       // 7 days
+            execution_delay_blocks: blocks_per_day * 2,     // 2 days
             quorum_bps: 3000,                               // 30% quorum
             pass_threshold_bps: 5000,                       // 50%+1 to pass
         }

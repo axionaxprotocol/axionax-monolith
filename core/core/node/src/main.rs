@@ -75,6 +75,10 @@ struct Args {
     /// Demo mode (simulated blocks for testing)
     #[arg(long)]
     demo_mode: bool,
+
+    /// Block time in seconds (overrides config/genesis)
+    #[arg(long)]
+    block_time: Option<u64>,
 }
 
 #[tokio::main]
@@ -91,6 +95,28 @@ async fn main() -> anyhow::Result<()> {
         86150 => NodeConfig::mainnet(),
         _ => NodeConfig::dev(),
     };
+
+    // If chain genesis is provided, try parsing blockTime from it
+    if let Some(ref chain_path) = args.chain {
+        if let Ok(contents) = std::fs::read_to_string(chain_path) {
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&contents) {
+                if let Some(bt) = json.get("config")
+                    .and_then(|c| c.get("axionax"))
+                    .and_then(|a| a.get("blockTime"))
+                    .and_then(|v| v.as_u64()) 
+                {
+                    config.network.block_time_seconds = bt;
+                    info!("Adopted block_time_seconds={} from genesis.json", bt);
+                }
+            }
+        }
+    }
+
+    // CLI --block-time overrides genesis
+    if let Some(bt) = args.block_time {
+        config.network.block_time_seconds = bt;
+        info!("Overriding block_time_seconds={} from CLI", bt);
+    }
 
     config.state_path = args.state_path.to_string_lossy().to_string();
     config.rpc_addr = args.rpc;
