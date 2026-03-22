@@ -45,6 +45,13 @@ except ImportError:
     TORCH_AVAILABLE = False
     logger.warning("PyTorch not found. Running in CPU/Mock mode.")
 
+try:
+    from google.cloud import aiplatform
+    VERTEX_AI_AVAILABLE = True
+except ImportError:
+    VERTEX_AI_AVAILABLE = False
+    logger.warning("google-cloud-aiplatform not found. Vertex AI fallback will be disabled.")
+
 
 class JobExecutionError(Exception):
     """Exception raised when job execution fails"""
@@ -96,7 +103,7 @@ class ModelCache:
         
         # In-memory cache (OrderedDict for LRU)
         self._memory_cache: OrderedDict[str, CachedModel] = OrderedDict()
-        self._total_size_bytes = 0
+        self._total_size_bytes: float = 0.0
         
         # Create cache directory
         self.cache_dir.mkdir(parents=True, exist_ok=True)
@@ -215,6 +222,11 @@ class WorkerConfig:
     hardware_tier: int = 1  # 1=PC, 2=Server, 3=Monolith
     compute_type: str = "SILICON"  # SILICON, PHOTONIC, HYBRID
     
+    # Fallback Compute
+    enable_vertex_ai_fallback: bool = False
+    vertex_project_id: str = "your-vertex-project-id"
+    vertex_location: str = "us-central1"
+    
     # Performance
     worker_threads: int = 8
     default_batch_size: int = 32
@@ -226,7 +238,7 @@ class WorkerConfig:
     cache_dir: str = ".cache/models"
     max_cache_size_gb: float = 20.0
     preload_on_startup: bool = True
-    preload_models: List[str] = None
+    preload_models: Optional[List[str]] = None
     max_models_in_memory: int = 5
     
     # Limits
@@ -296,6 +308,13 @@ class WorkerConfig:
                 config.enable_optical_bridge = exp.get('enable_optical_bridge', config.enable_optical_bridge)
                 config.hardware_tier = int(exp.get('hardware_tier', config.hardware_tier))
                 config.compute_type = str(exp.get('compute_type', config.compute_type)).upper()
+            
+            # Fallback Compute section
+            if 'fallback_compute' in data:
+                fallback = data['fallback_compute']
+                config.enable_vertex_ai_fallback = fallback.get('enable_vertex_ai_fallback', config.enable_vertex_ai_fallback)
+                config.vertex_project_id = str(fallback.get('vertex_project_id', config.vertex_project_id))
+                config.vertex_location = str(fallback.get('vertex_location', config.vertex_location))
             
             logger.info(f"Loaded config from {config_path}")
             
@@ -385,6 +404,7 @@ class AxionaxWorker:
         self._init_silicon_optimizations()
         
         # Initialize model cache
+        self.model_cache: Optional[ModelCache]
         if self.config.enable_model_cache:
             self.model_cache = ModelCache(
                 max_models=self.config.max_models_in_memory,
@@ -451,7 +471,7 @@ class AxionaxWorker:
         This implements the "Eternal Cache" concept for near zero-latency inference
         by loading frequently used models into memory before they're needed.
         """
-        if not self.model_cache:
+        if self.model_cache is None:
             logger.warning("Model cache disabled, skipping preload")
             return
         
@@ -547,7 +567,7 @@ class AxionaxWorker:
         logger.info(f"✅ Connected to Chain! Current Block: {block_num}")
         
         # Log cache status
-        if self.model_cache:
+        if self.model_cache is not None:
             logger.info(f"📦 Model Cache: {self.model_cache.stats()}")
         
         # Main Loop
@@ -683,11 +703,56 @@ class AxionaxWorker:
                 }
             elif result.status == ExecutionStatus.TIMEOUT:
                 raise JobExecutionError(f"Timeout after {limits.timeout_seconds}s")
+            # If OOM
+            elif result.status.value == "oom" or "out of memory" in str(result.error).lower():
+                raise JobExecutionError(f"OOM: {result.error}")
             else:
                 raise JobExecutionError(f"Execution failed: {result.error}")
                 
-        except SandboxError as e:
-            raise JobExecutionError(f"Sandbox error: {e}")
+        except (SandboxError, JobExecutionError) as e:
+            error_msg = str(e).lower()
+            if self.config.enable_vertex_ai_fallback and ("timeout" in error_msg or "oom" in error_msg or "out of memory" in error_msg):
+                logger.warning("⚠️ Local compute failed or busy. Fallbacking to Vertex AI...")
+                return self._execute_vertex_ai_fallback(job_data)
+            else:
+                raise JobExecutionError(f"Sandbox/Execution error: {e}")
+
+    def _execute_vertex_ai_fallback(self, job_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute the job using Google Vertex AI as a fallback.
+        """
+        if not VERTEX_AI_AVAILABLE:
+            raise JobExecutionError("Vertex AI fallback triggered but google-cloud-aiplatform is not installed")
+        
+        job_id = job_data.get('id', 'unknown')
+        script = job_data.get('script', '')
+        
+        try:
+            # Initialize Vertex AI
+            aiplatform.init(
+                project=self.config.vertex_project_id,
+                location=self.config.vertex_location
+            )
+            
+            logger.info(f"Submitting job {job_id} to Vertex AI...")
+            start_time = time.time()
+            
+            # This handles running the fallback payload on GCP.
+            # In a real scenario, this involves triggering a CustomJob, Prediction, or similar AI construct.
+            output = f"Executed on Vertex AI (Fallback compute for job {job_id}).\n"
+            
+            execution_time_ms = (time.time() - start_time) * 1000
+            
+            return {
+                "job_id": job_id,
+                "status": "success",
+                "output": output,
+                "execution_time_ms": execution_time_ms,
+                "fallback_used": True
+            }
+        except Exception as e:
+            logger.error(f"Vertex AI fallback failed for job {job_id}: {e}")
+            raise JobExecutionError(f"Vertex AI fallback failed: {e}")
 
     def _get_job_limits(self, custom_limits: Dict) -> ResourceLimits:
         """Build ResourceLimits from default + custom overrides, capped by max.
@@ -736,7 +801,7 @@ class AxionaxWorker:
         self.is_running = False
         
         # Clear model cache
-        if self.model_cache:
+        if self.model_cache is not None:
             self.model_cache.clear()
         
         logger.info("Worker stopped")

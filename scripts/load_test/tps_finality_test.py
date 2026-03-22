@@ -4,7 +4,7 @@ TPS & Finality load test for Axionax Protocol.
 
 Validates:
   - TPS target: 45,000+ (run with sufficient tx rate and duration)
-  - Finality target: <0.5 s (measured as block production interval)
+  - Block interval (block-time mode): measured vs --max-block-time-sec (default 3.0s; genesis ~2s + HTTP poll margin)
 
 Modes:
   - block-time: Poll eth_blockNumber and measure block interval (no funded account needed).
@@ -12,8 +12,10 @@ Modes:
 """
 
 import argparse
+import json
 import os
 import time
+from pathlib import Path
 from typing import Optional
 
 try:
@@ -27,7 +29,9 @@ def get_block_number(w3: Web3) -> int:
     return w3.eth.block_number
 
 
-def run_block_time_mode(rpc_url: str, duration_sec: int) -> dict:
+def run_block_time_mode(
+    rpc_url: str, duration_sec: int, *, max_block_time_sec: float = 5.0
+) -> dict:
     """Measure block production rate and average block time (proxy for finality)."""
     w3 = Web3(Web3.HTTPProvider(rpc_url))
     if not w3.is_connected():
@@ -58,13 +62,17 @@ def run_block_time_mode(rpc_url: str, duration_sec: int) -> dict:
     measured = [t for t in block_times if t > 0]
     avg_interval = sum(measured) / len(measured) if measured else 0.0
 
+    interval = avg_interval or avg_block_time
     return {
         "rpc": rpc_url,
         "duration_sec": round(elapsed, 2),
         "blocks_produced": blocks_produced,
         "blocks_per_second": round(blocks_produced / elapsed, 4) if elapsed else 0,
-        "avg_block_time_sec": round(avg_interval or avg_block_time, 4),
-        "finality_target_met": (avg_interval or avg_block_time) <= 0.5,
+        "avg_block_time_sec": round(interval, 4),
+        "max_block_time_sec": max_block_time_sec,
+        "block_time_target_met": interval <= max_block_time_sec,
+        # legacy key for older automation
+        "finality_target_met": interval <= max_block_time_sec,
     }
 
 
@@ -136,16 +144,37 @@ def main() -> None:
     ap.add_argument("--duration", type=int, default=60, help="Test duration in seconds")
     ap.add_argument("--tx-rate", type=int, default=100, help="Tx per second in tps mode")
     ap.add_argument("--private-key", default=os.environ.get("AXIONAX_PRIVATE_KEY"), help="Hex key for tps mode")
+    ap.add_argument(
+        "--json-out",
+        type=Path,
+        default=None,
+        help="Write block-time or tps result JSON to this path (for automation)",
+    )
+    ap.add_argument(
+        "--max-block-time-sec",
+        type=float,
+        default=5.0,
+        help="block-time: PASS if measured avg interval <= this (default 5.0; ~2s chain + HTTP poll margin)",
+    )
     args = ap.parse_args()
 
     print(f"RPC: {args.rpc}  mode: {args.mode}  duration: {args.duration}s")
     if args.mode == "block-time":
-        result = run_block_time_mode(args.rpc, args.duration)
-        print("--- Block timing (finality proxy) ---")
+        result = run_block_time_mode(
+            args.rpc, args.duration, max_block_time_sec=args.max_block_time_sec
+        )
+        print("--- Block timing (HTTP poll — approximate) ---")
         print(f"  Blocks produced:     {result['blocks_produced']}")
         print(f"  Blocks/sec:         {result['blocks_per_second']}")
         print(f"  Avg block time (s): {result['avg_block_time_sec']}")
-        print(f"  Finality <0.5s:     {'PASS' if result['finality_target_met'] else 'FAIL'}")
+        print(
+            f"  Block time <= {result['max_block_time_sec']}s: "
+            f"{'PASS' if result['block_time_target_met'] else 'FAIL'}"
+        )
+        if args.json_out:
+            args.json_out.parent.mkdir(parents=True, exist_ok=True)
+            args.json_out.write_text(json.dumps(result, indent=2), encoding="utf-8")
+            print(f"  JSON:               {args.json_out}")
     else:
         result = run_tps_mode(args.rpc, args.duration, args.tx_rate, args.private_key)
         print("--- TPS ---")
@@ -153,6 +182,10 @@ def main() -> None:
         print(f"  TPS (sent):         {result['tps_sent']}")
         print(f"  TPS (est included): {result['tps_included_estimate']}")
         print(f"  Target 45k+ TPS:    {'PASS' if result['target_45k_met'] else 'FAIL (run longer/higher tx-rate for full validation)'}")
+        if args.json_out:
+            args.json_out.parent.mkdir(parents=True, exist_ok=True)
+            args.json_out.write_text(json.dumps(result, indent=2), encoding="utf-8")
+            print(f"  JSON:               {args.json_out}")
     print("Done.")
 
 

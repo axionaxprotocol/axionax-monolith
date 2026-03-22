@@ -66,6 +66,7 @@
 - [ ] **Rate limit ไม่หนักเกินไป** — ผู้ใช้ / dApp เรียก RPC ได้ไม่ถูก block บ่อย
 - [ ] **CORS ถูกต้อง** — frontend (axionax.org) เรียก RPC ได้ไม่มี CORS error
 - [ ] **HTTPS ใช้งานได้** — ใช้ `https://rpc.axionax.org` ไม่ fallback เป็น HTTP
+- [ ] **Optimize suite (Python)** — จำลองโหลดอ่านแบบเบาและ (ถ้าต้องการ) ทดสอบความทนทาน RPC ต่อทราฟฟิกผิดรูปแบบ บน **เครือข่ายที่คุณเป็น operator หรือได้รับอนุญาตเท่านั้น** — รันจาก **root ของ repo**: `python scripts/run_optimize_suite.py …` หรือถ้าอยู่ในโฟลเดอร์ `scripts` แล้วใช้ `python run_optimize_suite.py …` (อย่าใช้ `python scripts/run_optimize_suite.py` ขณะ `cd` อยู่ใน `scripts` เพราะ path จะกลายเป็น `scripts/scripts/...`) — โหมด `--mode smoke` / `light` / `full`; stress ต้องมี `--cyber`; ชี้ RPC ด้วย `--rpc` หรือ `AXIONAX_RPC_URL`
 
 ---
 
@@ -109,6 +110,7 @@ done
 - [ ] **Firewall** — VPS เปิดแค่ port ที่ใช้ (22, 80, 443, 8545 ตามที่ deploy)
 - [ ] **ไม่ leak key** — ไม่ commit `.env`, `FAUCET_PRIVATE_KEY`; ใช้ env บน server
 - [ ] **HTTPS เท่านั้น** — RPC และ Faucet ใช้ HTTPS; ไม่ redirect user ไป HTTP
+- [ ] **ทดสอบโหลด / จำลองภัยคุกคามอย่างรับผิดชอบ** — ใช้ optimize suite หรือเครื่องมือ stress กับ **โครงสร้างของคุณเอง หรือเมื่อได้รับอนุญาตเป็นลายลักษณ์อักษรเท่านั้น** ไม่ใช้เป็นภัยต่อเครือข่ายของผู้อื่น (สอดคล้องหลัก self-sufficiency: chain ทำงานได้โดยไม่พึ่ง telemetry/API ภายนอก; การทดสอบเป็น optional และแยกจาก runtime ของ node)
 
 ---
 
@@ -131,3 +133,6 @@ done
 - Plan: [GENESIS_PUBLIC_TESTNET_PLAN.md](GENESIS_PUBLIC_TESTNET_PLAN.md)
 - Add network: [ADD_NETWORK_AND_TOKEN.md](ADD_NETWORK_AND_TOKEN.md)
 - Faucet deploy: [VPS3_FAUCET_DEPLOY.md](../ops/deploy/VPS3_FAUCET_DEPLOY.md)
+- Optimize suite (RPC smoke / light / optional stress): จาก root `python scripts/run_optimize_suite.py` หรือจาก `scripts/` รัน `python run_optimize_suite.py` — แพ็กเกจ `scripts/optimize_suite/` — unit test (ไม่ต้องมีเครือข่าย): `cd scripts && python -m unittest discover -s optimize_suite/tests -q`
+- สร้างรายงาน performance อัตโนมัติ (optimize + block-time → `reports/NETWORK_PERFORMANCE_SUMMARY.md`): จาก root `python scripts/generate_network_performance_report.py` (ต้องมี `web3` สำหรับขั้น block-time — ดู `scripts/requirements.txt`)
+- ภาพรวมความพร้อมแบบ production-like + เกณฑ์: [TESTNET_PRODUCTION_READINESS.md](TESTNET_PRODUCTION_READINESS.md) — เช็กอัตโนมัติ (chain / height / hash / faucet): `python scripts/check_testnet_production_readiness.py` → `reports/TESTNET_PRODUCTION_READINESS_LAST.md`

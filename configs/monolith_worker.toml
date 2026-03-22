@@ -32,3 +32,8 @@ preload_on_startup = false
 hardware_tier = 3
 compute_type = "NPU"  # Align with [hardware]
 task_role = "WORKER"  # General compute jobs
+
+[fallback_compute]
+enable_vertex_ai_fallback = true
+vertex_project_id = "your-vertex-project-id"
+vertex_location = "us-central1"
