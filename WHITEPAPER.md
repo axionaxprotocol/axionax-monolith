@@ -120,6 +120,29 @@ Network organized in 5 tiers to reduce data density and scale toward 11M+ nodes:
 | **Tier 2** (Regional Titans)   | Super nodes for LLM training               | —          |
 | **Tier 1** (Global Root)       | Space/Foundation nodes; global state root  | —          |
 
+```mermaid
+graph TD
+    subgraph Geo-Hierarchy Topology
+        direction TB
+        T1(Tier 1: Global Root)
+        T2(Tier 2: Regional Titans)
+        T3(Tier 3: National Gateways)
+        T4(Tier 4: Metro Aggregators)
+        T5(Tier 5: Edge Workers)
+
+        T1 --> T2
+        T2 --> T3
+        T3 --> T4
+        T4 --> T5
+    end
+
+    style T1 fill:#8E44AD,stroke:#fff,stroke-width:2px,color:#fff
+    style T2 fill:#3498DB,stroke:#fff,stroke-width:2px,color:#fff
+    style T3 fill:#2ECC71,stroke:#fff,stroke-width:2px,color:#fff
+    style T4 fill:#F1C40F,stroke:#fff,stroke-width:2px,color:#fff
+    style T5 fill:#E74C3C,stroke:#fff,stroke-width:2px,color:#fff
+```
+
 ### 2.3 Technology Stack
 
 | Component     | Technology    | Purpose                                             |
@@ -163,6 +186,34 @@ axionax-web-universe/           # Frontend (separate repo)
 - **Adaptive Security Thresholds** (dynamic adjustment based on network conditions)
 
 ### 3.2 Three-Phase Process
+
+```mermaid
+sequenceDiagram
+    participant Leader
+    participant Validators
+    participant Blockchain
+
+    Note over Leader,Validators: A Leader is selected for the current round via VRF.
+
+    Leader->>+Validators: 1. Propose New Block
+    Note right of Leader: The leader sends the proposed block to all validators.
+
+    par Parallel Validation
+        Validators->>Validators: 2. Probabilistically check transactions
+    end
+    Note left of Validators: Each validator checks a random sample of transactions.
+
+    Validators->>-Validators: 3. Broadcast Pre-Commit Vote
+    Note over Validators: If sample is valid, broadcast pre-commit. Consensus requires >2/3 agreement.
+
+    Validators->>+Validators: 4. Broadcast Commit Vote
+    Note right of Validators: Seeing >2/3 pre-commits, validators broadcast final commit votes.
+
+    Note over Validators: Consensus requires >2/3 commit votes.
+
+    Validators->>Blockchain: 5. Commit Block
+    Note over Blockchain: The block is finalized and added to the chain.
+```
 
 #### Phase 1: Proposal
 
@@ -741,6 +792,19 @@ impl SlashableOffense {
 - **Decimals**: 18
 
 ### 8.2 Token Distribution (Mainnet)
+
+```mermaid
+pie
+    title AXX Token Distribution
+    "Ecosystem Reserve": 45
+    "Team & Advisors": 20
+    "Early Investors": 10
+    "Public Sale": 10
+    "Foundation": 8
+    "Community Airdrops": 5
+    "Liquidity Provision": 2
+```
+
 
 ```
 Total Supply: 1,000,000,000,000 AXX (1 Trillion)
