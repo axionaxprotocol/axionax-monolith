@@ -24,6 +24,8 @@ services:
       - 0.0.0.0:30333
       - --telemetry
       - https://telemetry.axionax.org/submit
+    environment:
+      - AXIONAX_VALIDATOR_ADDRESS=${AXIONAX_VALIDATOR_ADDRESS}
     env_file:
       - validator.env
     volumes:

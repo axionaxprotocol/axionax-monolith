@@ -6,6 +6,7 @@ const app = express();
 
 const PORT = process.env.PORT || 8545;
 const WS_PORT = process.env.WS_PORT || 8546;
+const HOST = process.env.HOST || '127.0.0.1';
 const CHAIN_ID = process.env.CHAIN_ID || '86137';
 const NETWORK = process.env.NETWORK || 'axionax-testnet';
 const BLOCK_TIME = parseInt(process.env.BLOCK_TIME || '5000'); // 5 seconds
@@ -196,7 +197,7 @@ app.post('/', (req, res) => {
     return res.json(jsonRpcError(id, -32600, 'Invalid Request'));
   }
 
-  console.log(`[RPC] ${method}`, JSON.stringify(params).slice(0, 100));
+  console.log(`[RPC] ${method}`);
 
   try {
     const result = handleRpcMethod(method, params, id);
@@ -548,8 +549,10 @@ function handleRpcMethod(method, params, id) {
 
     case 'web3_sha3': {
       const [data] = params;
-      // Simple mock - in production use proper keccak256
-      return jsonRpcResponse(id, generateHash());
+      const crypto = require('crypto');
+      const input = Buffer.from(data.startsWith('0x') ? data.slice(2) : data, 'hex');
+      const hash = '0x' + crypto.createHash('sha3-256').update(input).digest('hex');
+      return jsonRpcResponse(id, hash);
     }
 
     // =========================================================================
@@ -635,7 +638,7 @@ wss.on('connection', (ws) => {
 // Server Start
 // =============================================================================
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, HOST, () => {
   console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
 ║  Axionax Mock RPC Server v1.9.0                               ║
@@ -644,9 +647,9 @@ server.listen(PORT, '0.0.0.0', () => {
 ║  Chain ID:       ${CHAIN_ID.padEnd(44)}║
 ║  Block Time:     ${(BLOCK_TIME / 1000 + 's').padEnd(44)}║
 ╠═══════════════════════════════════════════════════════════════╣
-║  HTTP RPC:       http://0.0.0.0:${PORT.toString().padEnd(32)}║
-║  WebSocket:      ws://0.0.0.0:${WS_PORT.toString().padEnd(34)}║
-║  Health:         http://0.0.0.0:${PORT}/health${' '.repeat(24)}║
+║  HTTP RPC:       http://${HOST}:${PORT.toString().padEnd(31 - HOST.length)}║
+║  WebSocket:      ws://${HOST}:${WS_PORT.toString().padEnd(33 - HOST.length)}║
+║  Health:         http://${HOST}:${PORT}/health${' '.repeat(23 - HOST.length)}║
 ╠═══════════════════════════════════════════════════════════════╣
 ║  Methods:        40+ (ETH + Axionax)                          ║
 ║  Validators:     ${validators.length.toString().padEnd(44)}║
