@@ -292,6 +292,15 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
             ).into());
         }
 
+        // Nonce validation — must match the sender's current nonce to prevent replays
+        let expected_nonce = self.state.get_nonce(&tx.from).unwrap_or(0);
+        if tx.nonce != expected_nonce {
+            return Err(RpcError::InvalidParams(format!(
+                "Nonce mismatch: expected {}, got {}",
+                expected_nonce, tx.nonce
+            )).into());
+        }
+
         if tx.hash == [0u8; 32] {
             tx.compute_hash();
         }
@@ -311,7 +320,7 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
     }
 }
 
-/// Start RPC server (eth_* + system_* + metrics_* + events_subscribe via WS)
+/// Start RPC server (eth_* + staking_* + gov_* + system_* + metrics_* + events WS)
 pub async fn start_rpc_server(
     addr: SocketAddr,
     state: Arc<StateDB>,
@@ -321,7 +330,32 @@ pub async fn start_rpc_server(
 ) -> anyhow::Result<ServerHandle> {
     info!("Starting RPC server on {}", addr);
 
+    // Build CORS layer — restrict origins in production, allow all in dev.
+    let cors = {
+        use tower_http::cors::{CorsLayer, AllowOrigin, AllowMethods, AllowHeaders};
+        use http::Method;
+
+        let allowed_origins = std::env::var("AXIONAX_RPC_CORS_ORIGINS")
+            .unwrap_or_default();
+
+        if allowed_origins.is_empty() || allowed_origins == "*" {
+            CorsLayer::permissive()
+        } else {
+            let origins: Vec<http::HeaderValue> = allowed_origins
+                .split(',')
+                .filter_map(|s| s.trim().parse().ok())
+                .collect();
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::list(origins))
+                .allow_methods(AllowMethods::list([Method::POST, Method::OPTIONS]))
+                .allow_headers(AllowHeaders::list([http::header::CONTENT_TYPE]))
+        }
+    };
+
+    let middleware = tower::ServiceBuilder::new().layer(cors);
+
     let server = Server::builder()
+        .set_http_middleware(middleware)
         .max_request_body_size(1_048_576)    // 1 MB max request
         .max_response_body_size(10_485_760)  // 10 MB max response
         .max_connections(1_000)
@@ -343,6 +377,94 @@ pub async fn start_rpc_server(
 
     let handle = server.start(module);
     info!("RPC server started (eth_* + system_* + metrics_* + events WS)");
+    Ok(handle)
+}
+
+/// Extended version that also wires staking_* and gov_* endpoints.
+pub async fn start_rpc_server_full(
+    addr: SocketAddr,
+    state: Arc<StateDB>,
+    chain_id: u64,
+    mempool: Option<Arc<TransactionPool>>,
+    event_bus: Option<Arc<events::EventBus>>,
+    staking: Option<Arc<tokio::sync::RwLock<staking::Staking>>>,
+    governance: Option<(Arc<tokio::sync::RwLock<governance::Governance>>, Arc<tokio::sync::RwLock<staking::Staking>>)>,
+) -> anyhow::Result<ServerHandle> {
+    info!("Starting full RPC server on {}", addr);
+
+    // Build CORS layer
+    let cors = {
+        use tower_http::cors::{CorsLayer, AllowOrigin, AllowMethods, AllowHeaders};
+        use http::Method;
+        let allowed_origins = std::env::var("AXIONAX_RPC_CORS_ORIGINS").unwrap_or_default();
+        if allowed_origins.is_empty() || allowed_origins == "*" {
+            CorsLayer::permissive()
+        } else {
+            let origins: Vec<http::HeaderValue> = allowed_origins
+                .split(',')
+                .filter_map(|s| s.trim().parse().ok())
+                .collect();
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::list(origins))
+                .allow_methods(AllowMethods::list([Method::POST, Method::OPTIONS]))
+                .allow_headers(AllowHeaders::list([http::header::CONTENT_TYPE]))
+        }
+    };
+    // Global rate limit (requests/sec) — configurable via env
+    let rps: u64 = std::env::var("AXIONAX_RPC_RATE_LIMIT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(100);
+
+    let middleware = tower::ServiceBuilder::new()
+        .layer(cors)
+        .layer(tower::limit::RateLimitLayer::new(rps, std::time::Duration::from_secs(1)));
+
+    let server = Server::builder()
+        .set_http_middleware(middleware)
+        .max_request_body_size(1_048_576)
+        .max_response_body_size(10_485_760)
+        .max_connections(1_000)
+        .build(addr)
+        .await?;
+
+    info!("RPC middleware: CORS + rate limit ({} req/s)", rps);
+
+    let mut rpc_impl = AxionaxRpcServerImpl::new(state.clone(), chain_id);
+    if let Some(pool) = mempool {
+        rpc_impl = rpc_impl.with_mempool(pool);
+    }
+    let mut module = rpc_impl.into_rpc();
+
+    module.merge(build_system_module(state, chain_id)?)?;
+
+    if let Some(bus) = event_bus {
+        module.merge(build_events_module(bus)?)?;
+    }
+
+    // Merge staking RPC (staking_*)
+    if let Some(staking_ref) = staking {
+        let staking_rpc = StakingRpcServerImpl::new(
+            staking_ref,
+            staking::StakingConfig::default(),
+        );
+        module.merge(staking_rpc.into_rpc())?;
+        info!("Staking RPC methods registered");
+    }
+
+    // Merge governance RPC (gov_*)
+    if let Some((gov_ref, staking_for_gov)) = governance {
+        let gov_rpc = GovernanceRpcServerImpl::new(
+            gov_ref,
+            staking_for_gov,
+            governance::GovernanceConfig::default(),
+        );
+        module.merge(gov_rpc.into_rpc())?;
+        info!("Governance RPC methods registered");
+    }
+
+    let handle = server.start(module);
+    info!("Full RPC server started (eth_* + staking_* + gov_* + system_* + metrics_* + events WS)");
     Ok(handle)
 }
 
@@ -369,20 +491,21 @@ fn build_system_module(
 
     let state_for_health = state.clone();
     module.register_method("system_health", move |_, _, _| {
-        let block_height = state_for_health
-            .get_chain_height()
-            .unwrap_or(0);
+        let db_ok = state_for_health.get_chain_height().is_ok();
+        let block_height = state_for_health.get_chain_height().unwrap_or(0);
         let peers = metrics::PEERS_CONNECTED.get();
-        let healthy = block_height > 0 || peers > 0;
+        let network_ok = peers > 0;
+        let consensus_ok = block_height > 0;
+        let healthy = db_ok && (network_ok || consensus_ok);
         Ok::<_, ErrorObjectOwned>(serde_json::json!({
             "status": if healthy { "healthy" } else { "starting" },
             "block_height": block_height,
             "peers": peers,
-            "sync_status": "synced",
+            "sync_status": if block_height > 0 { "synced" } else { "syncing" },
             "checks": {
-                "database": true,
-                "network": peers >= 0,
-                "consensus": true,
+                "database": db_ok,
+                "network": network_ok,
+                "consensus": consensus_ok,
             },
         }))
     })?;
@@ -444,7 +567,16 @@ fn build_events_module(
                     })
                     .collect();
 
-                let mut sub = bus.subscribe(types).await;
+                let mut sub = match bus.subscribe(types).await {
+                    Some(s) => s,
+                    None => {
+                        return Err(ErrorObjectOwned::owned(
+                            -32000,
+                            "Max subscriptions reached",
+                            None::<()>,
+                        ).into());
+                    }
+                };
                 let sink = pending.accept().await?;
 
                 tokio::spawn(async move {

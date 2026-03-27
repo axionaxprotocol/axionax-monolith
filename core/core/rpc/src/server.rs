@@ -106,16 +106,18 @@ pub async fn start_unified_server(
     module.register_method("system_health", |_, _, _| {
         let block_height = metrics::BLOCK_HEIGHT.get() as u64;
         let peers = metrics::PEERS_CONNECTED.get() as usize;
-        let healthy = block_height > 0 || peers > 0;
+        let network_ok = peers > 0;
+        let consensus_ok = block_height > 0;
+        let healthy = network_ok || consensus_ok;
         Ok::<_, jsonrpsee::types::ErrorObjectOwned>(HealthCheck {
             status: if healthy { "healthy".to_string() } else { "starting".to_string() },
             block_height,
             peers,
-            sync_status: "synced".to_string(),
+            sync_status: if block_height > 0 { "synced".to_string() } else { "syncing".to_string() },
             checks: HealthChecks {
                 database: true,
-                network: peers > 0,
-                consensus: true,
+                network: network_ok,
+                consensus: consensus_ok,
             },
         })
     })?;

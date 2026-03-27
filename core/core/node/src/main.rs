@@ -79,6 +79,11 @@ struct Args {
     /// Block time in seconds (overrides config/genesis)
     #[arg(long)]
     block_time: Option<u64>,
+
+    /// Staking address of this validator (0x-prefixed hex). Required for block rewards.
+    /// Can also be set via AXIONAX_VALIDATOR_ADDRESS env variable.
+    #[arg(long)]
+    validator_address: Option<String>,
 }
 
 #[tokio::main]
@@ -121,6 +126,13 @@ async fn main() -> anyhow::Result<()> {
     config.state_path = args.state_path.to_string_lossy().to_string();
     config.rpc_addr = args.rpc;
     config.network.chain_id = chain_id;
+
+    // Validator address: CLI arg > env variable
+    config.validator_address = args.validator_address
+        .or_else(|| std::env::var("AXIONAX_VALIDATOR_ADDRESS").ok());
+    if let Some(ref addr) = config.validator_address {
+        info!("Validator address: {}", addr);
+    }
 
     if let Some(p2p_addr) = args.p2p {
         config.network.listen_addr = p2p_addr.ip().to_string();

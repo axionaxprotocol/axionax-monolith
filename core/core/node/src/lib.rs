@@ -13,9 +13,11 @@ use tracing::{info, warn, error, debug};
 
 use blockchain::{Block, Transaction, TransactionPool, PoolConfig, ValidationConfig};
 use network::{NetworkManager, NetworkConfig, NetworkMessage};
-use network::protocol::{BlockMessage, TransactionMessage};
+use network::protocol::{BlockMessage, TransactionMessage, BlockConfirmationMessage};
 use state::StateDB;
-use rpc::start_rpc_server;
+use rpc::start_rpc_server_full;
+use staking::Staking;
+use governance::Governance;
 use jsonrpsee::server::ServerHandle;
 
 /// Convert hex string to [u8; 32] hash
@@ -35,6 +37,9 @@ fn hash_to_hex(hash: &[u8; 32]) -> String {
     format!("0x{}", hex::encode(hash))
 }
 
+/// Block reward per block (1 AXX in base units)
+pub const BLOCK_REWARD: u128 = 1_000_000_000_000_000_000;
+
 /// Node configuration
 #[derive(Debug, Clone)]
 pub struct NodeConfig {
@@ -44,6 +49,8 @@ pub struct NodeConfig {
     pub rpc_addr: SocketAddr,
     /// State database path
     pub state_path: String,
+    /// Staking address of this validator (hex string). None = not a registered validator.
+    pub validator_address: Option<String>,
 }
 
 impl NodeConfig {
@@ -53,6 +60,7 @@ impl NodeConfig {
             network: NetworkConfig::dev(),
             rpc_addr: "127.0.0.1:8545".parse().unwrap(),
             state_path: "/tmp/axionax-dev".to_string(),
+            validator_address: None,
         }
     }
 
@@ -62,6 +70,7 @@ impl NodeConfig {
             network: NetworkConfig::testnet(),
             rpc_addr: "127.0.0.1:8545".parse().unwrap(),
             state_path: "/var/lib/axionax/testnet".to_string(),
+            validator_address: None,
         }
     }
 
@@ -71,7 +80,44 @@ impl NodeConfig {
             network: NetworkConfig::mainnet(),
             rpc_addr: "127.0.0.1:8545".parse().unwrap(),
             state_path: "/var/lib/axionax/mainnet".to_string(),
+            validator_address: None,
         }
+    }
+}
+
+/// Tracks block finality votes: block_hash → set of confirming validator addresses.
+/// A block is finalized once votes ≥ ⌈2/3 * active_validator_count⌉.
+#[derive(Debug, Default)]
+pub struct FinalityTracker {
+    /// votes[block_hash] = set of validator addresses that confirmed this block
+    votes: std::collections::HashMap<String, std::collections::HashSet<String>>,
+    /// block_hash → block_number (for logging)
+    block_numbers: std::collections::HashMap<String, u64>,
+    /// Already-finalized block hashes (to avoid double-logging)
+    finalized: std::collections::HashSet<String>,
+}
+
+impl FinalityTracker {
+    /// Record a confirmation vote. Returns true if this vote caused finalization.
+    pub fn record_vote(
+        &mut self,
+        block_hash: &str,
+        block_number: u64,
+        validator: &str,
+        active_count: usize,
+    ) -> bool {
+        if self.finalized.contains(block_hash) {
+            return false;
+        }
+        self.block_numbers.insert(block_hash.to_string(), block_number);
+        let votes = self.votes.entry(block_hash.to_string()).or_default();
+        votes.insert(validator.to_string());
+        let threshold = (active_count * 2).div_ceil(3).max(1);
+        if votes.len() >= threshold {
+            self.finalized.insert(block_hash.to_string());
+            return true;
+        }
+        false
     }
 }
 
@@ -92,10 +138,13 @@ pub struct AxionaxNode {
     state: Arc<StateDB>,
     mempool: Arc<TransactionPool>,
     event_bus: Arc<events::EventBus>,
+    staking: Arc<RwLock<Staking>>,
+    governance: Arc<RwLock<Governance>>,
     stats: Arc<RwLock<NodeStats>>,
     rpc_handle: Option<ServerHandle>,
     sync_handle: Option<JoinHandle<()>>,
     producer_handle: Option<JoinHandle<()>>,
+    local_peer_id: libp2p::PeerId,
 }
 
 impl AxionaxNode {
@@ -124,10 +173,10 @@ impl AxionaxNode {
         }
 
         // Initialize network manager
-        let network = Arc::new(tokio::sync::Mutex::new(
-            NetworkManager::new(config.network.clone()).await?
-        ));
-        info!("Network manager initialized");
+        let mut network_manager = NetworkManager::new(config.network.clone()).await?;
+        let local_peer_id = *network_manager.local_peer_id();
+        let network = Arc::new(tokio::sync::Mutex::new(network_manager));
+        info!("Network manager initialized (peer_id: {:?})", local_peer_id);
 
         // Initialize transaction pool
         let mempool = Arc::new(TransactionPool::new(
@@ -139,6 +188,11 @@ impl AxionaxNode {
         let event_bus = Arc::new(events::EventBus::new(1024));
         info!("Event bus initialized");
 
+        // Initialize staking and governance modules
+        let staking = Arc::new(RwLock::new(Staking::new(staking::StakingConfig::default())));
+        let governance = Arc::new(RwLock::new(Governance::new(governance::GovernanceConfig::default())));
+        info!("Staking and governance modules initialized");
+
         let stats = Arc::new(RwLock::new(NodeStats::default()));
 
         Ok(Self {
@@ -147,10 +201,13 @@ impl AxionaxNode {
             state,
             mempool,
             event_bus,
+            staking,
+            governance,
             stats,
             rpc_handle: None,
             sync_handle: None,
             producer_handle: None,
+            local_peer_id,
         })
     }
 
@@ -165,27 +222,60 @@ impl AxionaxNode {
         }
         info!("Network layer started");
 
-        // Start sync task (network → state)
-        let sync_handle = self.start_sync_task().await;
+        // Start sync task (network → state) — take the inbound event receiver
+        // so the sync loop processes real gossipsub messages from the network.
+        let event_rx = {
+            let mut network = self.network.lock().await;
+            network.take_event_receiver()
+        };
+        let sync_handle = self.start_sync_task(event_rx).await;
         self.sync_handle = Some(sync_handle);
         info!("Sync task started");
 
-        let rpc_handle = start_rpc_server(
+        let rpc_handle = start_rpc_server_full(
             self.config.rpc_addr,
             self.state.clone(),
             self.config.network.chain_id,
             Some(self.mempool.clone()),
             Some(self.event_bus.clone()),
+            Some(self.staking.clone()),
+            Some((self.governance.clone(), self.staking.clone())),
         ).await?;
         self.rpc_handle = Some(rpc_handle);
         info!("RPC server started on {}", self.config.rpc_addr);
 
+        // Start HTTP health server (/health, /ready, /metrics)
+        let health_server = rpc::HttpHealthServer::new(rpc::HttpHealthConfig::default());
+        let health_state = health_server.state();
+        health_server.start().await?;
+        info!("HTTP health server started");
+
+        // Background task: sync HealthState from real metrics every 5s
+        let state_for_health = self.state.clone();
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
+            loop {
+                interval.tick().await;
+                let mut hs = health_state.write().await;
+                hs.peers_connected = metrics::PEERS_CONNECTED.get() as usize;
+                hs.block_height = metrics::BLOCK_HEIGHT.get() as u64;
+                hs.database_ok = state_for_health.get_chain_height().is_ok();
+                hs.sync_ok = hs.block_height > 0 || hs.peers_connected > 0;
+                hs.update(); // refresh uptime
+            }
+        });
+
         // Start block producer for validator role
         if role == "validator" {
             let block_time = self.config.network.block_time_seconds;
-            let handle = self.start_block_producer(block_time).await;
+            let handle = self.start_block_producer(
+                block_time,
+                self.staking.clone(),
+                self.config.validator_address.clone(),
+            ).await;
             self.producer_handle = Some(handle);
-            info!("Block producer started (interval={}s)", block_time);
+            info!("Block producer started (interval={}s, address={:?})",
+                block_time, self.config.validator_address);
         }
 
         info!("✅ axionax node fully operational!");
@@ -193,19 +283,67 @@ impl AxionaxNode {
     }
 
     /// Start the block production loop (validator only)
-    async fn start_block_producer(&self, block_time_secs: u64) -> JoinHandle<()> {
+    async fn start_block_producer(
+        &self,
+        block_time_secs: u64,
+        staking: Arc<RwLock<staking::Staking>>,
+        validator_address: Option<String>,
+    ) -> JoinHandle<()> {
         let state = self.state.clone();
         let stats = self.stats.clone();
         let network = self.network.clone();
         let mempool = self.mempool.clone();
+        let local_peer_id = self.local_peer_id;
 
         tokio::spawn(async move {
-            info!("Block producer running (every {}s)...", block_time_secs);
+            info!("Block producer running (every {}s, validator={:?})...",
+                block_time_secs, validator_address);
 
             let interval = tokio::time::Duration::from_secs(block_time_secs);
+            let mut round_count = 0u64;
 
             loop {
                 tokio::time::sleep(interval).await;
+                round_count += 1;
+
+                // Validator selection: round-robin over SORTED active validator addresses.
+                // This is deterministic and consistent across all peers.
+                let active_validators = {
+                    let s = staking.read().await;
+                    let mut v: Vec<String> = s.get_active_validators().await
+                        .into_iter().map(|vi| vi.address).collect();
+                    v.sort();
+                    v
+                };
+
+                let validator_count = active_validators.len().max(1) as u64;
+
+                // Determine slot based on our validator_address position, or fallback to peer_id hash
+                let my_slot = if let Some(ref addr) = validator_address {
+                    active_validators.iter().position(|a| a == addr).map(|i| i as u64)
+                } else {
+                    None
+                };
+
+                let should_produce = match my_slot {
+                    Some(slot) => round_count % validator_count == slot % validator_count,
+                    None => {
+                        // Not in staking registry — fallback to peer_id hash
+                        use std::hash::{Hash, Hasher};
+                        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+                        local_peer_id.hash(&mut hasher);
+                        let peer_hash = hasher.finish();
+                        (peer_hash + round_count) % validator_count == 0
+                    }
+                };
+
+                if !should_produce {
+                    debug!("Skipping block production (not my turn, round={}, validators={})",
+                        round_count, validator_count);
+                    continue;
+                }
+
+                debug!("My turn to produce block (round={}, slot={:?})", round_count, my_slot);
 
                 // Step 1 (async): Get pending transactions from mempool
                 let pending_txs = mempool.get_pending_transactions(100).await;
@@ -234,12 +372,15 @@ impl AxionaxNode {
 
                     let state_root = crypto::hash::sha3_256(&new_number.to_le_bytes());
 
+                    let proposer = validator_address.clone()
+                        .unwrap_or_else(|| "unknown".to_string());
+
                     let block = Block {
                         number: new_number,
                         hash: block_hash,
                         parent_hash,
                         timestamp,
-                        proposer: "validator".to_string(),
+                        proposer,
                         transactions: pending_txs,
                         state_root,
                         gas_used: 0,
@@ -283,37 +424,79 @@ impl AxionaxNode {
                     if let Ok(mut net) = network.try_lock() {
                         let _ = net.publish(NetworkMessage::Block(block_msg));
                     }
+
+                    // Credit block reward to proposer in staking module
+                    if let Some(ref addr) = validator_address {
+                        let s = staking.read().await;
+                        s.record_block_produced(addr, BLOCK_REWARD).await;
+                    }
+
+                    // Broadcast our own finality confirmation
+                    if let Some(ref addr) = validator_address {
+                        let conf = NetworkMessage::BlockConfirmation(
+                            BlockConfirmationMessage {
+                                block_hash: hash_to_hex(&block_hash),
+                                block_number: new_number,
+                                validator_address: addr.clone(),
+                            }
+                        );
+                        if let Ok(mut net) = network.try_lock() {
+                            let _ = net.publish(conf);
+                        }
+                    }
                 }
             }
         })
     }
 
-    /// Start the sync task that listens for network messages and stores them
-    async fn start_sync_task(&self) -> JoinHandle<()> {
-        let _network = self.network.clone();
+    /// Start the sync task that listens for network messages and stores them.
+    /// `event_rx` is the receiver end of the channel that the NetworkManager
+    /// writes incoming gossipsub messages to.  If `None` (e.g. in tests),
+    /// a local dummy channel is created.
+    async fn start_sync_task(
+        &self,
+        event_rx: Option<mpsc::Receiver<NetworkMessage>>,
+    ) -> JoinHandle<()> {
+        let network = self.network.clone();
         let state = self.state.clone();
         let stats = self.stats.clone();
+        let staking = self.staking.clone();
+        let validator_address = self.config.validator_address.clone();
 
         tokio::spawn(async move {
             info!("Sync task running...");
 
-            // Create a channel for receiving network messages
-            let (_tx, mut rx) = mpsc::channel::<NetworkMessage>(100);
-
-            // In a real implementation, we'd integrate with NetworkManager's event loop
-            // For now, this is a placeholder structure
+            let (_guard_tx, fallback_rx) = mpsc::channel::<NetworkMessage>(1);
+            let mut rx = event_rx.unwrap_or(fallback_rx);
+            let mut finality = FinalityTracker::default();
 
             loop {
                 tokio::select! {
                     Some(msg) = rx.recv() => {
                         match msg {
                             NetworkMessage::Block(block_msg) => {
+                                let block_hash = block_msg.hash.clone();
+                                let block_number = block_msg.number;
                                 if let Err(e) = Self::handle_block_message(
                                     &state,
                                     &stats,
                                     block_msg
                                 ).await {
                                     error!("Failed to handle block: {}", e);
+                                } else {
+                                    // Broadcast our confirmation vote for this peer block
+                                    if let Some(ref addr) = validator_address {
+                                        let conf = NetworkMessage::BlockConfirmation(
+                                            BlockConfirmationMessage {
+                                                block_hash: block_hash.clone(),
+                                                block_number,
+                                                validator_address: addr.clone(),
+                                            }
+                                        );
+                                        if let Ok(mut net) = network.try_lock() {
+                                            let _ = net.publish(conf);
+                                        }
+                                    }
                                 }
                             }
                             NetworkMessage::Transaction(tx_msg) => {
@@ -323,6 +506,29 @@ impl AxionaxNode {
                                     tx_msg
                                 ).await {
                                     error!("Failed to handle transaction: {}", e);
+                                }
+                            }
+                            NetworkMessage::BlockConfirmation(conf_msg) => {
+                                // Count finality votes
+                                let active_count = {
+                                    let s = staking.read().await;
+                                    s.get_active_validators().await.len().max(1)
+                                };
+                                let finalized = finality.record_vote(
+                                    &conf_msg.block_hash,
+                                    conf_msg.block_number,
+                                    &conf_msg.validator_address,
+                                    active_count,
+                                );
+                                if finalized {
+                                    info!("✅ FINALIZED block #{} (hash={})",
+                                        conf_msg.block_number,
+                                        &conf_msg.block_hash[..10]);
+                                } else {
+                                    debug!("Confirmation for block #{} from {} (active={})",
+                                        conf_msg.block_number,
+                                        &conf_msg.validator_address,
+                                        active_count);
                                 }
                             }
                             _ => {

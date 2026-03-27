@@ -25,15 +25,19 @@ pub struct HttpHealthConfig {
 
     /// Metrics path
     pub metrics_path: String,
+
+    /// Version info path
+    pub version_path: String,
 }
 
 impl Default for HttpHealthConfig {
     fn default() -> Self {
         Self {
-            addr: "0.0.0.0:8080".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([0, 0, 0, 0], 8080))),
+            addr: "127.0.0.1:8080".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([127, 0, 0, 1], 8080))),
             ready_path: "/ready".to_string(),
             live_path: "/health".to_string(),
             metrics_path: "/metrics".to_string(),
+            version_path: "/version".to_string(),
         }
     }
 }
@@ -43,6 +47,16 @@ impl Default for HttpHealthConfig {
 pub struct SimpleHealthResponse {
     pub status: String,
     pub timestamp: u64,
+}
+
+/// Version response
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct VersionResponse {
+    pub version: String,
+    pub commit: String,
+    pub build_time: String,
+    pub rust_version: String,
+    pub chain_id: String,
 }
 
 /// Detailed health response for /ready
@@ -237,10 +251,46 @@ async fn handle_request(
             (status_code, serde_json::to_string(&response).unwrap_or_else(|_| r#"{"ready":false}"#.to_string()))
         } else if path == metrics_path {
             let mut body = metrics::export();
+            
+            // Basic metrics
             body.push_str("# HELP axionax_up Node is up\n");
             body.push_str("# TYPE axionax_up gauge\n");
             body.push_str(&format!("axionax_up {}\n", if state.is_alive() { 1 } else { 0 }));
+            
+            // Network metrics
+            body.push_str("# HELP axionax_peers_connected Number of connected peers\n");
+            body.push_str("# TYPE axionax_peers_connected gauge\n");
+            body.push_str(&format!("axionax_peers_connected {}\n", state.peers_connected));
+            
+            // Blockchain metrics
+            body.push_str("# HELP axionax_block_height Current block height\n");
+            body.push_str("# TYPE axionax_block_height counter\n");
+            body.push_str(&format!("axionax_block_height {}\n", state.block_height));
+            
+            // Health check metrics
+            body.push_str("# HELP axionax_database_ok Database connectivity status\n");
+            body.push_str("# TYPE axionax_database_ok gauge\n");
+            body.push_str(&format!("axionax_database_ok {}\n", if state.database_ok { 1 } else { 0 }));
+            
+            body.push_str("# HELP axionax_sync_ok Blockchain sync status\n");
+            body.push_str("# TYPE axionax_sync_ok gauge\n");
+            body.push_str(&format!("axionax_sync_ok {}\n", if state.sync_ok { 1 } else { 0 }));
+            
+            // Performance metrics
+            body.push_str("# HELP axionax_min_peers Minimum required peers\n");
+            body.push_str("# TYPE axionax_min_peers gauge\n");
+            body.push_str(&format!("axionax_min_peers {}\n", state.min_peers));
+            
             ("200 OK", body)
+        } else if path == version_path {
+            let response = VersionResponse {
+                version: env!("CARGO_PKG_VERSION").to_string(),
+                commit: option_env!("GIT_COMMIT").unwrap_or("unknown").to_string(),
+                build_time: option_env!("BUILD_TIME").unwrap_or("unknown").to_string(),
+                rust_version: option_env!("RUSTC_VERSION").unwrap_or("unknown").to_string(),
+                chain_id: "86137".to_string(),
+            };
+            ("200 OK", serde_json::to_string(&response).unwrap_or_else(|_| r#"{"version":"unknown"}"#.to_string()))
         } else {
             ("404 Not Found", r#"{"error":"Not found"}"#.to_string())
         }

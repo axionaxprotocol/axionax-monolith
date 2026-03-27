@@ -20,6 +20,8 @@ blockchain = { path = "../blockchain" }
 genesis = { path = "../genesis" }
 crypto = { path = "../crypto" }
 consensus = { path = "../consensus" }
+staking = { path = "../staking" }
+governance = { path = "../governance" }
 metrics = { path = "../metrics" }
 events = { path = "../events" }
 

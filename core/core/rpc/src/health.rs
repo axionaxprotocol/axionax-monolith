@@ -7,6 +7,7 @@ use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use state::StateDB;
+use metrics;
 
 /// Health status response
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -136,14 +137,14 @@ impl HealthChecker {
         }
     }
 
-    /// Check network health
+    /// Check network health using the global peer-count metric.
     async fn check_network(&self) -> ComponentStatus {
-        // Network health checks:
-        // - Peer connectivity (minimum peer threshold)
-        // - Network message propagation
-        // - No network partitions
-        // For now, assume healthy if RPC is responding
-        ComponentStatus::healthy()
+        let peers = metrics::PEERS_CONNECTED.get();
+        if peers > 0 {
+            ComponentStatus::healthy()
+        } else {
+            ComponentStatus::unhealthy("No peers connected".to_string())
+        }
     }
 
     /// Get node status
