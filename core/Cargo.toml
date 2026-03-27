@@ -43,6 +43,7 @@ blockchain = { path = "core/blockchain" }
 state = { path = "core/state" }
 crypto = { path = "core/crypto" }
 network = { path = "core/network" }
+metrics = { path = "core/metrics" }
 
 [dev-dependencies]
 criterion = { workspace = true }
@@ -122,7 +123,7 @@ opt-level = 3
 lto = "fat"
 codegen-units = 1
 strip = true
-panic = "abort"
+panic = "unwind"
 
 [profile.dev]
 opt-level = 0

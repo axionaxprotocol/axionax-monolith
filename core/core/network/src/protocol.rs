@@ -17,6 +17,17 @@ pub enum NetworkMessage {
     Request(RequestMessage),
     /// Response to data request
     Response(ResponseMessage),
+    /// Block finality confirmation vote (2/3 majority → finalized)
+    BlockConfirmation(BlockConfirmationMessage),
+}
+
+/// Block finality confirmation — broadcast by each validator after accepting a block
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockConfirmationMessage {
+    pub block_hash: String,
+    pub block_number: u64,
+    /// Staking address of the confirming validator
+    pub validator_address: String,
 }
 
 /// Block propagation message
@@ -179,6 +190,7 @@ impl NetworkMessage {
             NetworkMessage::Status(_) => MessageType::Status,
             NetworkMessage::Request(_) => MessageType::Status,
             NetworkMessage::Response(_) => MessageType::Status,
+            NetworkMessage::BlockConfirmation(_) => MessageType::Consensus,
         }
     }
 }

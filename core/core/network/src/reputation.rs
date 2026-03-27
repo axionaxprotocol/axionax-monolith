@@ -231,8 +231,8 @@ impl ReputationManager {
         for peer in scores.values_mut() {
             let hours_since_seen = (now - peer.last_seen) / 3600;
             if hours_since_seen > 0 {
-                let decay = (hours_since_seen as i32) * self.config.decay_per_hour;
-                peer.score = (peer.score - decay).max(MIN_REPUTATION);
+                let decay = (hours_since_seen as i32).saturating_mul(self.config.decay_per_hour);
+                peer.score = peer.score.saturating_sub(decay).max(MIN_REPUTATION);
             }
             
             // Unban if ban expired

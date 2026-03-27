@@ -147,17 +147,28 @@ impl ConsensusEngine {
         }
 
         use sha3::{Digest, Sha3_256};
+        use std::collections::HashSet;
 
-        let mut samples = Vec::with_capacity(sample_size);
+        // Cap sample_size to output_size to avoid infinite loop
+        let actual_sample_size = sample_size.min(output_size);
+        let mut seen = HashSet::with_capacity(actual_sample_size);
+        let mut samples = Vec::with_capacity(actual_sample_size);
         let mut hasher = Sha3_256::new();
+        let mut nonce: usize = 0;
 
-        for i in 0..sample_size {
+        while samples.len() < actual_sample_size {
             hasher.update(seed);
-            hasher.update(i.to_le_bytes());
+            hasher.update(nonce.to_le_bytes());
             let hash = hasher.finalize_reset();
 
-            let index = u64::from_le_bytes(hash[0..8].try_into().unwrap()) as usize % output_size;
-            samples.push(index);
+            let mut buf = [0u8; 8];
+            buf.copy_from_slice(&hash[0..8]);
+            let index = u64::from_le_bytes(buf) as usize % output_size;
+
+            if seen.insert(index) {
+                samples.push(index);
+            }
+            nonce += 1;
         }
 
         samples

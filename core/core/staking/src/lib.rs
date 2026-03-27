@@ -200,9 +200,8 @@ impl Staking {
         let mut validators = self.validators.write().await;
         let mut total = self.total_staked.write().await;
 
-        if validators.contains_key(&address) {
+        if let Some(validator) = validators.get_mut(&address) {
             // Add to existing stake
-            let validator = validators.get_mut(&address).unwrap();
             if validator.unlock_block > 0 {
                 let _current = *self.current_block.read().await;
                 return Err(StakingError::StakeLocked {
@@ -409,6 +408,18 @@ impl Staking {
     /// Update current block (called by node)
     pub async fn set_current_block(&self, block: u64) {
         *self.current_block.write().await = block;
+    }
+
+    /// Record a produced block and credit the block reward to the proposer.
+    /// Called by the block producer immediately after a block is stored.
+    pub async fn record_block_produced(&self, address: &str, reward: u128) {
+        let mut validators = self.validators.write().await;
+        if let Some(validator) = validators.get_mut(address) {
+            validator.blocks_produced = validator.blocks_produced.saturating_add(1);
+            validator.unclaimed_rewards = validator.unclaimed_rewards.saturating_add(reward);
+            validator.total_rewards = validator.total_rewards.saturating_add(reward);
+            debug!("Block reward {} credited to validator {}", reward, address);
+        }
     }
 
     /// Distribute epoch rewards (called at epoch boundary)

@@ -231,9 +231,10 @@ class AutoSelectionRouter:
         scores_array = np.array([c.total_score for c in top_candidates])
         probabilities = scores_array / scores_array.sum()
 
-        # VRF-based selection (using seed as randomness source)
-        np.random.seed(int.from_bytes(vrf_seed[:4], 'big'))
-        selected_idx = np.random.choice(len(top_candidates), p=probabilities)
+        # VRF-based selection (using full seed for proper entropy)
+        from numpy.random import SeedSequence, default_rng
+        rng = default_rng(SeedSequence(int.from_bytes(vrf_seed, 'big')))
+        selected_idx = rng.choice(len(top_candidates), p=probabilities)
 
         return top_candidates[selected_idx].worker
 

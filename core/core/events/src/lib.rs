@@ -152,6 +152,9 @@ pub struct EventBus {
 
     /// Max history size
     max_history: usize,
+
+    /// Max concurrent subscriptions
+    max_subscriptions: usize,
 }
 
 impl EventBus {
@@ -165,6 +168,7 @@ impl EventBus {
             subscriptions: Arc::new(RwLock::new(HashMap::new())),
             history: Arc::new(RwLock::new(VecDeque::new())),
             max_history: 1000,
+            max_subscriptions: 100,
         }
     }
 
@@ -227,8 +231,15 @@ impl EventBus {
         event_id
     }
 
-    /// Subscribe to events
-    pub async fn subscribe(&self, event_types: Vec<EventType>) -> Subscription {
+    /// Subscribe to events. Returns None if max subscriptions reached.
+    pub async fn subscribe(&self, event_types: Vec<EventType>) -> Option<Subscription> {
+        {
+            let subs = self.subscriptions.read().await;
+            if subs.len() >= self.max_subscriptions {
+                tracing::warn!("Max subscriptions ({}) reached, rejecting", self.max_subscriptions);
+                return None;
+            }
+        }
         let sub_id = self.next_sub_id.fetch_add(1, Ordering::SeqCst);
         let receiver = self.sender.subscribe();
 
@@ -240,11 +251,11 @@ impl EventBus {
 
         info!("New subscription {} for {:?}", sub_id, event_types);
 
-        Subscription {
+        Some(Subscription {
             id: sub_id,
             event_types,
             receiver,
-        }
+        })
     }
 
     /// Unsubscribe
@@ -414,7 +425,7 @@ mod tests {
     async fn test_publish_subscribe() {
         let bus = EventBus::new(100);
 
-        let mut sub = bus.subscribe(vec![EventType::NewBlock]).await;
+        let mut sub = bus.subscribe(vec![EventType::NewBlock]).await.unwrap();
 
         bus.emit_new_block(
             1,
@@ -441,7 +452,7 @@ mod tests {
     async fn test_event_filtering() {
         let bus = EventBus::new(100);
 
-        let mut sub = bus.subscribe(vec![EventType::Stake]).await;
+        let mut sub = bus.subscribe(vec![EventType::Stake]).await.unwrap();
 
         // This should NOT be received
         bus.emit_new_block(1, "0x".to_string(), "0x".to_string(), 0, "0x".to_string()).await;
@@ -475,7 +486,7 @@ mod tests {
     async fn test_wildcard_subscription() {
         let bus = EventBus::new(100);
 
-        let mut sub = bus.subscribe(vec![EventType::All]).await;
+        let mut sub = bus.subscribe(vec![EventType::All]).await.unwrap();
 
         bus.emit_stake("0x1".to_string(), "100".to_string()).await;
         bus.emit_vote(1, "0x1".to_string(), "for".to_string()).await;

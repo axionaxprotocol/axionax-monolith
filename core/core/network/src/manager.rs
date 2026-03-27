@@ -2,6 +2,7 @@
 
 use futures::StreamExt;
 use libp2p::{
+    gossipsub, mdns,
     identity::Keypair, multiaddr::Protocol, swarm::SwarmEvent, Multiaddr, PeerId, Swarm,
     SwarmBuilder,
 };
@@ -23,6 +24,9 @@ pub struct NetworkManager {
     local_peer_id: PeerId,
     _message_tx: mpsc::Sender<NetworkMessage>,
     message_rx: mpsc::Receiver<NetworkMessage>,
+    /// Channel for forwarding incoming network messages to the node layer.
+    event_tx: mpsc::Sender<NetworkMessage>,
+    event_rx: Option<mpsc::Receiver<NetworkMessage>>,
 }
 
 /// Network events
@@ -106,6 +110,8 @@ impl NetworkManager {
 
         // Create message channels (bounded to apply backpressure)
         let (message_tx, message_rx) = mpsc::channel(1000);
+        // Channel for forwarding inbound gossipsub messages to the node
+        let (event_tx, event_rx) = mpsc::channel(1000);
 
         Ok(Self {
             swarm,
@@ -113,6 +119,8 @@ impl NetworkManager {
             local_peer_id,
             _message_tx: message_tx,
             message_rx,
+            event_tx,
+            event_rx: Some(event_rx),
         })
     }
 
@@ -220,6 +228,13 @@ impl NetworkManager {
         self.swarm.behaviour().peer_count()
     }
 
+    /// Take the inbound-event receiver.  The caller (e.g. the Node) owns this
+    /// receiver and reads incoming blocks / transactions from the network.
+    /// Can only be called once; subsequent calls return `None`.
+    pub fn take_event_receiver(&mut self) -> Option<mpsc::Receiver<NetworkMessage>> {
+        self.event_rx.take()
+    }
+
     /// Get list of connected peers
     pub fn connected_peers(&self) -> Vec<PeerId> {
         self.swarm
@@ -263,8 +278,7 @@ impl NetworkManager {
                 info!("Listening on {}", address);
             }
             SwarmEvent::Behaviour(event) => {
-                debug!("Behaviour event: {:?}", event);
-                // Handle gossipsub messages here
+                self.handle_behaviour_event(event).await;
             }
             SwarmEvent::ConnectionEstablished { peer_id, .. } => {
                 info!("Connected to peer: {}", peer_id);
@@ -296,6 +310,54 @@ impl NetworkManager {
         }
 
         Ok(())
+    }
+
+    /// Dispatch a behaviour-level event (gossipsub, mDNS, identify, etc.)
+    async fn handle_behaviour_event(&mut self, event: crate::behaviour::AxionaxBehaviourEvent) {
+        use crate::behaviour::AxionaxBehaviourEvent;
+
+        match event {
+            AxionaxBehaviourEvent::Gossipsub(gossipsub::Event::Message {
+                propagation_source,
+                message_id,
+                message,
+            }) => {
+                debug!(
+                    "Gossipsub message from {}: id={}, {} bytes",
+                    propagation_source,
+                    message_id,
+                    message.data.len()
+                );
+
+                match NetworkMessage::from_bytes(&message.data) {
+                    Ok(net_msg) => {
+                        if self.event_tx.try_send(net_msg).is_err() {
+                            warn!("Inbound event channel full; dropping message {}", message_id);
+                        }
+                    }
+                    Err(e) => {
+                        warn!(
+                            "Failed to deserialize gossipsub message from {}: {}",
+                            propagation_source, e
+                        );
+                    }
+                }
+            }
+            AxionaxBehaviourEvent::Mdns(mdns::Event::Discovered(peers)) => {
+                for (peer_id, addr) in peers {
+                    debug!("mDNS discovered peer {} at {}", peer_id, addr);
+                    self.swarm.behaviour_mut().add_address(&peer_id, addr);
+                }
+            }
+            AxionaxBehaviourEvent::Mdns(mdns::Event::Expired(peers)) => {
+                for (peer_id, _addr) in peers {
+                    debug!("mDNS expired peer {}", peer_id);
+                }
+            }
+            _ => {
+                // Identify, Kademlia, Ping — handled automatically by libp2p
+            }
+        }
     }
 }
 

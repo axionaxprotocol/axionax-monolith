@@ -144,7 +144,8 @@ mod tests {
     fn test_testnet_config() {
         let config = NetworkConfig::testnet();
         assert_eq!(config.chain_id, 86137);
-        assert!(!config.bootstrap_nodes.is_empty());
+        // bootstrap_nodes is empty by default; operators set AXIONAX_BOOTSTRAP_NODES at runtime
+        assert!(config.bootstrap_nodes.is_empty());
     }
 
     #[test]

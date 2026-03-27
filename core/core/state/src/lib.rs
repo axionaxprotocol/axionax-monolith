@@ -415,9 +415,9 @@ impl StateDB {
             )));
         }
 
-        self.set_balance(&tx.from, from_bal - cost)?;
-        self.set_balance(&tx.to, to_bal + cost)?;
-        self.set_nonce(&tx.from, tx.nonce + 1)?;
+        self.set_balance(&tx.from, from_bal.saturating_sub(cost))?;
+        self.set_balance(&tx.to, to_bal.saturating_add(cost))?;
+        self.set_nonce(&tx.from, tx.nonce.saturating_add(1))?;
         Ok(())
     }
 

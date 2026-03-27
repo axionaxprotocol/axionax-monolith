@@ -56,6 +56,9 @@ pub enum ValidationError {
 
     #[error("Invalid state root")]
     InvalidStateRoot,
+
+    #[error("Duplicate transaction in block: {hash}")]
+    DuplicateTransaction { hash: String },
 }
 
 pub type Result<T> = std::result::Result<T, ValidationError>;
@@ -197,6 +200,16 @@ impl BlockValidator {
                 count: block.transactions.len(),
                 max: self.config.max_transactions_per_block,
             });
+        }
+
+        // Check for duplicate transaction hashes
+        let mut seen = std::collections::HashSet::with_capacity(block.transactions.len());
+        for tx in &block.transactions {
+            if !seen.insert(tx.hash) {
+                return Err(ValidationError::DuplicateTransaction {
+                    hash: hex::encode(tx.hash),
+                });
+            }
         }
 
         // Validate each transaction
