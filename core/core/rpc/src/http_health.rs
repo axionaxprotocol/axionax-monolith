@@ -156,6 +156,7 @@ impl HttpHealthServer {
         let ready_path = self.config.ready_path.clone();
         let live_path = self.config.live_path.clone();
         let metrics_path = self.config.metrics_path.clone();
+        let version_path = self.config.version_path.clone();
 
         tokio::spawn(async move {
             loop {
@@ -165,6 +166,7 @@ impl HttpHealthServer {
                         let ready_path = ready_path.clone();
                         let live_path = live_path.clone();
                         let metrics_path = metrics_path.clone();
+                        let version_path = version_path.clone();
 
                         tokio::spawn(async move {
                             if let Err(e) = handle_request(
@@ -173,6 +175,7 @@ impl HttpHealthServer {
                                 &ready_path,
                                 &live_path,
                                 &metrics_path,
+                                &version_path,
                             )
                             .await
                             {
@@ -197,6 +200,7 @@ async fn handle_request(
     ready_path: &str,
     live_path: &str,
     metrics_path: &str,
+    version_path: &str,
 ) -> anyhow::Result<()> {
     let mut buffer = [0; 1024];
     let n = socket.read(&mut buffer).await?;
@@ -251,36 +255,36 @@ async fn handle_request(
             (status_code, serde_json::to_string(&response).unwrap_or_else(|_| r#"{"ready":false}"#.to_string()))
         } else if path == metrics_path {
             let mut body = metrics::export();
-            
+
             // Basic metrics
             body.push_str("# HELP axionax_up Node is up\n");
             body.push_str("# TYPE axionax_up gauge\n");
             body.push_str(&format!("axionax_up {}\n", if state.is_alive() { 1 } else { 0 }));
-            
+
             // Network metrics
             body.push_str("# HELP axionax_peers_connected Number of connected peers\n");
             body.push_str("# TYPE axionax_peers_connected gauge\n");
             body.push_str(&format!("axionax_peers_connected {}\n", state.peers_connected));
-            
+
             // Blockchain metrics
             body.push_str("# HELP axionax_block_height Current block height\n");
             body.push_str("# TYPE axionax_block_height counter\n");
             body.push_str(&format!("axionax_block_height {}\n", state.block_height));
-            
+
             // Health check metrics
             body.push_str("# HELP axionax_database_ok Database connectivity status\n");
             body.push_str("# TYPE axionax_database_ok gauge\n");
             body.push_str(&format!("axionax_database_ok {}\n", if state.database_ok { 1 } else { 0 }));
-            
+
             body.push_str("# HELP axionax_sync_ok Blockchain sync status\n");
             body.push_str("# TYPE axionax_sync_ok gauge\n");
             body.push_str(&format!("axionax_sync_ok {}\n", if state.sync_ok { 1 } else { 0 }));
-            
+
             // Performance metrics
             body.push_str("# HELP axionax_min_peers Minimum required peers\n");
             body.push_str("# TYPE axionax_min_peers gauge\n");
             body.push_str(&format!("axionax_min_peers {}\n", state.min_peers));
-            
+
             ("200 OK", body)
         } else if path == version_path {
             let response = VersionResponse {

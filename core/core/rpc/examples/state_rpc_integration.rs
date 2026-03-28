@@ -110,7 +110,7 @@ async fn main() -> anyhow::Result<()> {
     // 4. Start RPC server
     println!("\n--- Starting RPC server ---");
     let addr: SocketAddr = "127.0.0.1:8545".parse()?;
-    let _handle = start_rpc_server(addr, state.clone(), 86137).await?;
+    let _handle = start_rpc_server(addr, state.clone(), 86137, None, None).await?;
     println!("✓ RPC server listening on http://{}", addr);
 
     // 5. Test RPC endpoints with curl examples

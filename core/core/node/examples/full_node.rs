@@ -82,7 +82,7 @@ async fn main() -> anyhow::Result<()> {
     // Create and start node
     println!("🚀 Starting axionax node!\n");
     let mut node = AxionaxNode::new(config).await?;
-    node.start().await?;
+    node.start("validator").await?;
 
     // Give RPC server time to start
     sleep(Duration::from_secs(1)).await;

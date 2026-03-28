@@ -92,9 +92,10 @@ impl HealthChecker {
         let sync_health = self.check_sync().await;
         let network_health = self.check_network().await;
 
+        // Database and sync are critical; network (peer count) is non-critical
+        // for a starting/isolated node so we don't let it bring overall status down.
         let overall_status = if db_health.status == "healthy"
             && sync_health.status == "healthy"
-            && network_health.status == "healthy"
         {
             "healthy".to_string()
         } else {

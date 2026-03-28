@@ -410,15 +410,8 @@ pub async fn start_rpc_server_full(
                 .allow_headers(AllowHeaders::list([http::header::CONTENT_TYPE]))
         }
     };
-    // Global rate limit (requests/sec) — configurable via env
-    let rps: u64 = std::env::var("AXIONAX_RPC_RATE_LIMIT")
-        .ok()
-        .and_then(|v| v.parse().ok())
-        .unwrap_or(100);
-
     let middleware = tower::ServiceBuilder::new()
-        .layer(cors)
-        .layer(tower::limit::RateLimitLayer::new(rps, std::time::Duration::from_secs(1)));
+        .layer(cors);
 
     let server = Server::builder()
         .set_http_middleware(middleware)
@@ -428,7 +421,7 @@ pub async fn start_rpc_server_full(
         .build(addr)
         .await?;
 
-    info!("RPC middleware: CORS + rate limit ({} req/s)", rps);
+    info!("RPC middleware: CORS enabled");
 
     let mut rpc_impl = AxionaxRpcServerImpl::new(state.clone(), chain_id);
     if let Some(pool) = mempool {

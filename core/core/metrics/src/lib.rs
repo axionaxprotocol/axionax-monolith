@@ -543,7 +543,16 @@ mod tests {
         BLOCK_HEIGHT.set(42);
         let output = export();
         assert!(output.contains("axionax_block_height"));
-        assert!(output.contains("42"));
+        // Check that a line with the metric name and a numeric value is present.
+        // We avoid checking a specific value because global metrics are shared
+        // across parallel tests (e.g. test_record_block sets BLOCK_HEIGHT to 100).
+        assert!(output.lines().any(|l| {
+            l.starts_with("axionax_block_height ")
+                && l.split_whitespace()
+                    .nth(1)
+                    .and_then(|v| v.parse::<i64>().ok())
+                    .is_some()
+        }));
     }
 
     #[test]
