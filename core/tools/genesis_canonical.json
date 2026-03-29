@@ -1,0 +1,66 @@
+﻿{
+  "number": 0,
+  "hash": "0xf78ed62a713cef40588614485ec0eaeb0c17166250daf0ee77eecc60a20ea087",
+  "parent_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "state_root": "0x308e3b80469d613607ce80315e32eaf42f89fdacb296658074d5681d8fd9f667",
+  "transactions_root": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "receipts_root": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "timestamp": 1775001600,
+  "chain_id": 86137,
+  "chain_name": "Axionax Mainnet",
+  "extra_data": "axionaxius - Genesis Block #0 - Axionax Core Universe",
+  "config": {
+    "chain_id": 86137,
+    "chain_name": "Axionax Mainnet",
+    "timestamp": 1775001600,
+    "validators": [
+      {
+        "address": "0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326",
+        "stake": 25000000000000000000000000000,
+        "public_key": "0x",
+        "node_url": "http://217.76.61.116:30303"
+      },
+      {
+        "address": "0x26e714016c6a91b791bb440ca8db6cd7c4d1e6cb",
+        "stake": 25000000000000000000000000000,
+        "public_key": "0x",
+        "node_url": "http://46.250.244.4:30303"
+      }
+    ],
+    "balances": {
+      "0x6af7d73fdcc0bf711ccada1422774ab1fdff9ae4": 100000000000000000000000000000,
+      "0xa77f117ff23b672cf484b1d05cc48b5e7c03909d": 200000000000000000000000000000,
+      "0x58abb3d4e75f232b4177bfd6061972a210f4c9e6": 50000000000000000000000000000,
+      "0xb9e3968de4ec06c75ecb3c8ca151b446939aec7f": 100000000000000000000000000000,
+      "0x776b0130e806cb70003744a4691238052c0b972a": 150000000000000000000000000000,
+      "0x26e714016c6a91b791bb440ca8db6cd7c4d1e6cb": 25000000000000000000000000000,
+      "0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326": 25000000000000000000000000000,
+      "0x59927b9ed220aa6bf2f0ef46bc6efefaf935109f": 30000000000000000000000000000,
+      "0x866740f77e808b381bcb8622015b4a31cc3ca935": 300000000000000000000000000000,
+      "0xa61e8cb3ec1e6246a852ca0493f7e8c9c44006cd": 20000000000000000000000000000
+    },
+    "config": {
+      "block_time_ms": 2500,
+      "max_block_size": 5242880,
+      "max_txs_per_block": 10000,
+      "min_validator_stake": 10000000000000000000000,
+      "base_gas_price": 1000000000,
+      "staking": {
+        "min_delegation": 100000000000000000000,
+        "unstaking_lock_blocks": 725760,
+        "epoch_reward_rate_bps": 50,
+        "max_slash_rate_bps": 5000
+      },
+      "governance": {
+        "min_proposal_stake": 100000000000000000000000,
+        "voting_period_blocks": 241920,
+        "execution_delay_blocks": 69120,
+        "quorum_bps": 3000,
+        "pass_threshold_bps": 5000
+      }
+    },
+    "extra_data": "axionaxius - Genesis Block #0 - Axionax Core Universe",
+    "total_supply": 1000000000000000000000000000000,
+    "creator_alias": "axionaxius"
+  }
+}

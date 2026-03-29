@@ -5,6 +5,10 @@ authors.workspace = true
 edition.workspace = true
 description = "Genesis Block Generator - Create genesis blocks for new chains"
 
+[[bin]]
+name = "genesis-export"
+path = "src/bin/genesis_export.rs"
+
 [dependencies]
 tokio = { workspace = true }
 serde = { workspace = true }

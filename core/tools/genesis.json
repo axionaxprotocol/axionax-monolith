@@ -25,6 +25,8 @@
       "symbol": "AXX"
     }
   },
+  "genesis_hash": "0xf78ed62a713cef40588614485ec0eaeb0c17166250daf0ee77eecc60a20ea087",
+  "state_root": "0x308e3b80469d613607ce80315e32eaf42f89fdacb296658074d5681d8fd9f667",
   "nonce": "0x0",
   "timestamp": "0x69cc6000",
   "extraData": "0x6178696f6e6178697573202d2047656e6573697320426c6f636b202330202d204178696f6e617820436f726520556e697665727365",
@@ -168,7 +170,7 @@
       "percent": "5%",
       "balance": "50000000000000000000000000000"
     },
-    "0xE04E25CC531F499621aa18Eb505af375D097F372": {
+    "0x59927b9ed220aa6bf2f0ef46bc6efefaf935109f": {
       "label": "Faucet (Testnet & Mainnet)",
       "percent": "3%",
       "balance": "30000000000000000000000000000"
