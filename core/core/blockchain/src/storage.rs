@@ -1,7 +1,7 @@
 //! Persistent Storage Module for Axionax Blockchain
 //!
 //! Uses `redb` (pure-Rust embedded database) for block storage.
-//! Blocks are serialized with `bincode` for efficient storage.
+//! Blocks are serialized with `postcard` for efficient storage.
 
 use std::path::Path;
 use thiserror::Error;
@@ -9,7 +9,7 @@ use redb::{Database, TableDefinition};
 
 use crate::Block;
 
-/// Blocks table: block_number (u64) → bincode-encoded Block bytes
+/// Blocks table: block_number (u64) → postcard-encoded Block bytes
 const BLOCKS: TableDefinition<u64, &[u8]> = TableDefinition::new("blocks");
 /// Metadata table: key (&str) → value bytes
 const META: TableDefinition<&str, &[u8]> = TableDefinition::new("meta");
@@ -21,13 +21,13 @@ pub enum StorageError {
     #[error("Database error: {0}")]
     Database(String),
 
-    /// Encode error (bincode)
+    /// Encode error (postcard)
     #[error("Encode error: {0}")]
-    EncodeError(#[from] bincode::error::EncodeError),
+    EncodeError(String),
 
-    /// Decode error (bincode)
+    /// Decode error (postcard)
     #[error("Decode error: {0}")]
-    DecodeError(#[from] bincode::error::DecodeError),
+    DecodeError(String),
 
     /// Block not found
     #[error("Block {0} not found")]
@@ -71,6 +71,12 @@ impl From<redb::CommitError> for StorageError {
 impl From<redb::StorageError> for StorageError {
     fn from(e: redb::StorageError) -> Self {
         StorageError::Database(e.to_string())
+    }
+}
+
+impl From<postcard::Error> for StorageError {
+    fn from(e: postcard::Error) -> Self {
+        StorageError::EncodeError(e.to_string())
     }
 }
 
@@ -137,7 +143,7 @@ impl BlockStore for RedbBlockStore {
         // write transaction, which redb does not allow.
         let current_latest = self.get_latest_block_number()?;
 
-        let value = bincode::serde::encode_to_vec(block, bincode::config::standard())?;
+        let value = postcard::to_allocvec(block).map_err(StorageError::from)?;
 
         let tx = self.db.begin_write()?;
         {
@@ -157,8 +163,7 @@ impl BlockStore for RedbBlockStore {
         let table = tx.open_table(BLOCKS)?;
         match table.get(number)? {
             Some(data) => {
-                let (block, _): (Block, usize) =
-                    bincode::serde::decode_from_slice(data.value(), bincode::config::standard())?;
+                let block: Block = postcard::from_bytes(data.value()).map_err(StorageError::from)?;
                 Ok(Some(block))
             }
             None => Ok(None),

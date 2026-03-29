@@ -10,7 +10,7 @@ use tempfile::TempDir;
 fn create_test_block(number: u64) -> Block {
     let mut hash = [0u8; 32];
     hash[0..8].copy_from_slice(&number.to_le_bytes());
-    
+
     Block {
         number,
         hash,
@@ -27,7 +27,7 @@ fn create_test_block(number: u64) -> Block {
 fn create_test_tx(id: u8) -> Transaction {
     let mut hash = [0u8; 32];
     hash[0] = id;
-    
+
     Transaction {
         hash,
         from: "0x1234567890123456789012345678901234567890".to_string(),
@@ -37,6 +37,8 @@ fn create_test_tx(id: u8) -> Transaction {
         gas_limit: 21_000,
         nonce: id as u64,
         data: vec![],
+        signature: vec![],
+        signer_public_key: vec![],
     }
 }
 
@@ -60,7 +62,7 @@ fn benchmark_store_block(c: &mut Criterion) {
 fn benchmark_get_block_by_number(c: &mut Criterion) {
     let temp_dir = TempDir::new().unwrap();
     let db = StateDB::open(temp_dir.path()).unwrap();
-    
+
     // Pre-populate with blocks
     for i in 0..100 {
         db.store_block(&create_test_block(i)).unwrap();
@@ -94,7 +96,7 @@ fn benchmark_store_transaction(c: &mut Criterion) {
 fn benchmark_get_transaction(c: &mut Criterion) {
     let temp_dir = TempDir::new().unwrap();
     let db = StateDB::open(temp_dir.path()).unwrap();
-    
+
     // Pre-populate with transactions
     let block_hash = [1u8; 32];
     for i in 0..100 {

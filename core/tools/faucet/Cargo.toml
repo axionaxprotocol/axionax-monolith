@@ -3,6 +3,14 @@ name = "axionax-faucet"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "axionax_faucet"
+path = "src/lib.rs"
+
+[[bin]]
+name = "axionax-faucet"
+path = "src/main.rs"
+
 [dependencies]
 axum = "0.7"
 tokio = { version = "1.0", features = ["full"] }
