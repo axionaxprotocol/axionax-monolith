@@ -1,6 +1,6 @@
 # Axionax Core Universe — รายงานสำรวจโปรเจกต์ (Project Survey)
 
-**วันที่สำรวจ:** มีนาคม 2026 — อัปเดตล่าสุด
+**วันที่สำรวจ:** มีนาคม 2026 — อัปเดตล่าสุด 29 มีนาคม 2026
 
 ---
 
@@ -36,7 +36,7 @@
 | libp2p | ✅ workspace 0.55, network crate ใช้ workspace (แก้ ring 0.16 CVE) |
 | pyo3 (bridge) | ✅ อัปเกรดเป็น 0.24 (แก้ RUSTSEC-2025-0020) |
 | prometheus → metrics | ✅ ลบ prometheus crate; metrics self-contained (แก้ RUSTSEC-2024-0437) |
-| bincode | ✅ อัปเกรดจาก 1.3 เป็น 2.0 (แก้ unmaintained warning) |
+| bincode → postcard | ✅ ย้ายจาก bincode 2.0 (unmaintained) ไป `postcard` 1.x ใน network + bridge crates (ลบ RUSTSEC advisory) |
 | reqwest (cli, faucet) | ✅ อัปเกรดจาก 0.11 เป็น 0.12 (แก้ rustls-pemfile warning) |
 | dotenv (faucet) | ✅ ย้ายไป dotenvy 0.15 |
 | keccak | ✅ 0.1.6 แก้ unsoundness (cargo update) |
@@ -114,9 +114,9 @@
 | network | 7 | yes | solid |
 | crypto | 2 | yes | solid (VRF deprecated → ECVRF) |
 | rpc | 8 | yes | **improved** — system_status/metrics ใช้ข้อมูลจริง |
-| node | 2 | yes | **improved** — metrics loop ทุก 10s |
+| node | 2 | **12** | ✅ added FinalityTracker (6) + NodeConfig.validator_address (2) + existing (3) |
 | config | 1 | yes | unused — ไม่มี crate อื่นอ้างอิง |
-| staking | 1 | yes | solid |
+| staking | 1 | **13** | ✅ added record_block_produced (4) + get_active_validators (2) + existing (7) |
 | governance | 1 | yes | solid |
 | ppc | 1 | yes | solid |
 | da | 1 | yes | solid |
@@ -126,21 +126,37 @@
 | metrics | 1 | 6 | solid |
 | genesis | 1 | yes | solid |
 | events | 1 | yes | solid |
-| bridge/rust-python | 2 | no | solid (cdylib) |
-| tools/faucet | 1 | no | improved (error handling) |
+| bridge/rust-python | 2 | **12** | ✅ added — PyValidator, PyTransaction, config helpers |
+| tools/faucet | 2 | **18** | ✅ solid — address, cooldown, format_amount, RPC builders, nonce |
 
 ---
 
 ## 9. สิ่งที่ยังเหลือ
 
-`cargo audit` ผ่านแล้ว: **0 vulnerabilities**, เหลือ 5 warnings (transitive deps):
+`cargo audit` ผ่านแล้ว: **0 vulnerabilities**, เหลือ advisory warnings (transitive deps):
 
-| # | รายการ | หมายเหตุ |
-|---|--------|----------|
-| 1 | bincode 2.0 (unmaintained) | พิจารณาย้ายไป `bitcode` หรือ `postcard` |
-| 2 | sled → redb migration | จะแก้ fxhash + instant warnings ด้วย |
-| 3 | paste, lru (transitive via libp2p) | รอ libp2p 0.56+ |
-| 4 | External security audit | ดู SECURITY_AUDIT_SCOPE.md |
-| 5 | Build env: LLVM/Clang สำหรับ rocksdb (state crate) | CI ผ่าน, local Windows ต้อง install LLVM |
-| 6 | config crate ไม่มีใครใช้ | พิจารณาลบหรือ wire เข้า node |
-| 7 | signature verification (rpc, node, faucet) | Phase 2: ECDSA/SignedTransaction |
+| # | รายการ | สถานะ |
+|---|--------|-------|
+| 1 | bincode 2.0 (unmaintained) | ✅ **แก้แล้ว** — ย้ายไป `postcard` 1.x |
+| 2 | sled → redb migration | ⏳ รอ state crate refactor |
+| 3 | paste, lru (transitive via libp2p) | ⏳ รอ libp2p 0.56+ |
+| 4 | External security audit | 📋 ดู SECURITY_AUDIT_SCOPE.md |
+| 5 | Build env: MSVC/LLVM สำหรับ Windows | ⚠️ CI ผ่าน (Linux), local Windows ต้อง MSVC Build Tools |
+| 6 | config crate ไม่มีใครใช้ | ⏳ พิจารณา wire เข้า node |
+| 7 | P3-T8: SDK/UI (CSRF, address validation) | 📋 JS/Solidity frontend — out of core scope |
+
+### สถานะ Production Readiness (Mar 29, 2026)
+
+**Overall: ~85–90% production-grade** (อัปเกรดจาก 80-85% หลัง A–D tasks)
+
+| ส่วน | สถานะ |
+|------|-------|
+| Security audit 97 findings (P0–P3) | ✅ แก้ครบแล้ว |
+| Mainnet features: dynamic validators, finality, rewards | ✅ Done |
+| RPC: /version, /metrics advanced, rate limiting, CORS | ✅ Done |
+| Test coverage: bridge, staking, node FinalityTracker | ✅ Done |
+| Benchmarks: cargo bench working | ✅ Done |
+| bincode → postcard (RUSTSEC advisory) | ✅ Done |
+| Monitoring: 5 ops scripts | ✅ Done |
+| P3-T8 SDK/UI frontend | ⏸ Out of scope |
+| MSVC Build Tools (Windows local compile) | ⚠️ Blocked |
