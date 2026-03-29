@@ -586,4 +586,82 @@ mod tests {
         assert_eq!(validator.stake, 3000);
         assert_eq!(validator.pending_unstake, 0);
     }
+
+    // ── record_block_produced (block reward accounting) ───────────────────────
+
+    #[tokio::test]
+    async fn test_record_block_produced_credits_reward() {
+        const REWARD: u128 = 1_000_000_000_000_000_000; // 1 AXX in wei
+        let staking = Staking::new(default_config());
+        staking.stake("validator1".to_string(), 1000).await.unwrap();
+
+        staking.record_block_produced("validator1", REWARD).await;
+
+        let v = staking.get_validator("validator1").await.unwrap();
+        assert_eq!(v.blocks_produced, 1);
+        assert_eq!(v.unclaimed_rewards, REWARD);
+        assert_eq!(v.total_rewards, REWARD);
+    }
+
+    #[tokio::test]
+    async fn test_record_block_produced_accumulates() {
+        let staking = Staking::new(default_config());
+        staking.stake("validator1".to_string(), 1000).await.unwrap();
+
+        staking.record_block_produced("validator1", 500).await;
+        staking.record_block_produced("validator1", 300).await;
+
+        let v = staking.get_validator("validator1").await.unwrap();
+        assert_eq!(v.blocks_produced, 2);
+        assert_eq!(v.unclaimed_rewards, 800);
+        assert_eq!(v.total_rewards, 800);
+    }
+
+    #[tokio::test]
+    async fn test_record_block_produced_unknown_validator_no_panic() {
+        let staking = Staking::new(default_config());
+        // Must not panic for unregistered address
+        staking.record_block_produced("0xunknown", 1000).await;
+    }
+
+    #[tokio::test]
+    async fn test_record_block_produced_reward_claimable() {
+        let staking = Staking::new(default_config());
+        staking.stake("validator1".to_string(), 1000).await.unwrap();
+        staking.record_block_produced("validator1", 1000).await;
+
+        // Accumulated reward should be claimable via claim_rewards
+        let claimed = staking.claim_rewards("validator1".to_string()).await.unwrap();
+        assert_eq!(claimed, 1000);
+
+        let v = staking.get_validator("validator1").await.unwrap();
+        assert_eq!(v.unclaimed_rewards, 0);
+        assert_eq!(v.total_rewards, 1000); // total_rewards is lifetime total, not reset
+    }
+
+    // ── get_active_validators (used by dynamic validator count) ──────────────
+
+    #[tokio::test]
+    async fn test_get_active_validators() {
+        let staking = Staking::new(default_config());
+        staking.stake("val1".to_string(), 1000).await.unwrap();
+        staking.stake("val2".to_string(), 2000).await.unwrap();
+
+        let active = staking.get_active_validators().await;
+        assert_eq!(active.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn test_get_active_validators_excludes_slashed() {
+        let staking = Staking::new(default_config());
+        staking.stake("val1".to_string(), 1000).await.unwrap();
+        staking.stake("val2".to_string(), 1000).await.unwrap();
+
+        // Slash val2 → marks inactive
+        staking.slash("val2".to_string(), 5000).await.unwrap();
+
+        let active = staking.get_active_validators().await;
+        assert_eq!(active.len(), 1);
+        assert_eq!(active[0].address, "val1");
+    }
 }

@@ -313,3 +313,101 @@ fn axionax_python(m: &pyo3::Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyBlockchain>()?;
     Ok(())
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::simple_wrapper::{default_blockchain_config, default_consensus_config};
+
+    // ── Config helpers ────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_default_consensus_config() {
+        let cfg = default_consensus_config();
+        assert_eq!(cfg.sample_size, 1000);
+        assert!(cfg.min_confidence > 0.98);
+        assert_eq!(cfg.fraud_window_blocks, 720);
+        assert!(cfg.min_validator_stake > 0);
+        assert_eq!(cfg.false_pass_penalty_bps, 500);
+    }
+
+    #[test]
+    fn test_default_blockchain_config() {
+        let cfg = default_blockchain_config();
+        assert_eq!(cfg.block_time_secs, 12);
+        assert_eq!(cfg.max_block_size, 1_000_000);
+        assert_eq!(cfg.gas_limit, 30_000_000);
+        assert!(cfg.db_path.is_none());
+    }
+
+    // ── PyValidator ───────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_py_validator_construction() {
+        let v = PyValidator::new("0xabc123".to_string(), 5000);
+        assert_eq!(v.address, "0xabc123");
+        assert_eq!(v.stake, 5000u128);
+        assert!(v.is_active);
+    }
+
+    #[test]
+    fn test_py_validator_stake_widened_to_u128() {
+        let v = PyValidator::new("0x0".to_string(), u64::MAX);
+        assert_eq!(v.stake, u64::MAX as u128);
+    }
+
+    #[test]
+    fn test_py_validator_clone() {
+        let v = PyValidator::new("0xabc".to_string(), 1000);
+        let v2 = v.clone();
+        assert_eq!(v.address, v2.address);
+        assert_eq!(v.stake, v2.stake);
+        assert_eq!(v.is_active, v2.is_active);
+    }
+
+    #[test]
+    fn test_py_validator_zero_stake() {
+        let v = PyValidator::new("0x0000000000000000000000000000000000000001".to_string(), 0);
+        assert_eq!(v.stake, 0);
+        assert!(v.is_active);
+    }
+
+    // ── PyTransaction ─────────────────────────────────────────────────────────
+
+    #[test]
+    fn test_py_transaction_construction() {
+        let tx = PyTransaction::new(
+            "0xfrom".to_string(),
+            "0xto".to_string(),
+            1000,
+            vec![0x12, 0x34],
+        );
+        assert_eq!(tx.from, "0xfrom");
+        assert_eq!(tx.to, "0xto");
+        assert_eq!(tx.value, 1000u128);
+        assert_eq!(tx._data, vec![0x12, 0x34]);
+    }
+
+    #[test]
+    fn test_py_transaction_value_widened_to_u128() {
+        let tx = PyTransaction::new("0x1".to_string(), "0x2".to_string(), u64::MAX, vec![]);
+        assert_eq!(tx.value, u64::MAX as u128);
+    }
+
+    #[test]
+    fn test_py_transaction_empty_data() {
+        let tx = PyTransaction::new("0x1".to_string(), "0x2".to_string(), 0, vec![]);
+        assert!(tx._data.is_empty());
+        assert_eq!(tx.value, 0);
+    }
+
+    #[test]
+    fn test_py_transaction_clone() {
+        let tx = PyTransaction::new("0xA".to_string(), "0xB".to_string(), 42, vec![1, 2]);
+        let tx2 = tx.clone();
+        assert_eq!(tx.from, tx2.from);
+        assert_eq!(tx.value, tx2.value);
+        assert_eq!(tx._data, tx2._data);
+    }
+}

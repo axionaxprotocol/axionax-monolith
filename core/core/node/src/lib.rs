@@ -804,4 +804,80 @@ mod tests {
         let height = state.get_chain_height().unwrap();
         assert_eq!(height, 0); // Genesis
     }
+
+    // ── FinalityTracker ───────────────────────────────────────────────────────
+
+    #[test]
+    fn test_finality_single_validator_immediately_finalizes() {
+        let mut ft = FinalityTracker::default();
+        // 1 active validator: threshold = ceil(2/3 * 1) = 1
+        let finalized = ft.record_vote("0xhash1", 1, "val1", 1);
+        assert!(finalized);
+    }
+
+    #[test]
+    fn test_finality_three_validators_needs_two_votes() {
+        let mut ft = FinalityTracker::default();
+        // 3 active validators: threshold = ceil(2*3/3) = 2
+        let r1 = ft.record_vote("0xhash1", 1, "val1", 3);
+        assert!(!r1, "one vote is not enough");
+        let r2 = ft.record_vote("0xhash1", 1, "val2", 3);
+        assert!(r2, "two votes should finalize");
+    }
+
+    #[test]
+    fn test_finality_five_validators_needs_four_votes() {
+        let mut ft = FinalityTracker::default();
+        // 5 validators: threshold = ceil(10/3) = 4
+        assert!(!ft.record_vote("0xh", 1, "v1", 5));
+        assert!(!ft.record_vote("0xh", 1, "v2", 5));
+        assert!(!ft.record_vote("0xh", 1, "v3", 5));
+        assert!(ft.record_vote("0xh", 1, "v4", 5));
+    }
+
+    #[test]
+    fn test_finality_no_double_finalize() {
+        let mut ft = FinalityTracker::default();
+        let r1 = ft.record_vote("0xhash1", 1, "val1", 1);
+        assert!(r1);
+        // Already finalized — subsequent votes return false
+        let r2 = ft.record_vote("0xhash1", 1, "val2", 1);
+        assert!(!r2);
+    }
+
+    #[test]
+    fn test_finality_deduplicates_votes_from_same_validator() {
+        let mut ft = FinalityTracker::default();
+        // Same validator voting twice must not double-count
+        ft.record_vote("0xhash1", 1, "val1", 3);
+        ft.record_vote("0xhash1", 1, "val1", 3); // duplicate
+        // threshold=2; still needs val2
+        let result = ft.record_vote("0xhash1", 1, "val2", 3);
+        assert!(result);
+    }
+
+    #[test]
+    fn test_finality_independent_per_block() {
+        let mut ft = FinalityTracker::default();
+        // Votes for different block hashes are independent
+        let r1 = ft.record_vote("0xhash_a", 1, "val1", 1);
+        let r2 = ft.record_vote("0xhash_b", 2, "val1", 1);
+        assert!(r1);
+        assert!(r2);
+    }
+
+    // ── NodeConfig.validator_address ─────────────────────────────────────────
+
+    #[test]
+    fn test_node_config_validator_address_default_none() {
+        let cfg = NodeConfig::dev();
+        assert!(cfg.validator_address.is_none());
+    }
+
+    #[test]
+    fn test_node_config_validator_address_set() {
+        let mut cfg = NodeConfig::dev();
+        cfg.validator_address = Some("0xabc".to_string());
+        assert_eq!(cfg.validator_address.as_deref(), Some("0xabc"));
+    }
 }
