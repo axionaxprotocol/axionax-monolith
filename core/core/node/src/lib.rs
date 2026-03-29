@@ -11,7 +11,7 @@ use tokio::sync::{mpsc, RwLock};
 use tokio::task::JoinHandle;
 use tracing::{info, warn, error, debug};
 
-use blockchain::{Block, Transaction, TransactionPool, PoolConfig, ValidationConfig};
+use blockchain::{Block, Transaction, TransactionPool, PoolConfig, PoolError, ValidationConfig};
 use network::{NetworkManager, NetworkConfig, NetworkMessage};
 use network::protocol::{BlockMessage, TransactionMessage, BlockConfirmationMessage};
 use state::StateDB;
@@ -370,7 +370,14 @@ impl AxionaxNode {
                     hash_input.extend_from_slice(&timestamp.to_le_bytes());
                     let block_hash = crypto::hash::sha3_256(&hash_input);
 
-                    let state_root = crypto::hash::sha3_256(&new_number.to_le_bytes());
+                    let state_root = {
+                        let mut sr_input = Vec::with_capacity(8 + pending_txs.len() * 32);
+                        sr_input.extend_from_slice(&new_number.to_le_bytes());
+                        for tx in &pending_txs {
+                            sr_input.extend_from_slice(&tx.hash);
+                        }
+                        crypto::hash::sha3_256(&sr_input)
+                    };
 
                     let proposer = validator_address.clone()
                         .unwrap_or_else(|| "unknown".to_string());
@@ -461,6 +468,7 @@ impl AxionaxNode {
         let state = self.state.clone();
         let stats = self.stats.clone();
         let staking = self.staking.clone();
+        let mempool = self.mempool.clone();
         let validator_address = self.config.validator_address.clone();
 
         tokio::spawn(async move {
@@ -503,6 +511,7 @@ impl AxionaxNode {
                                 if let Err(e) = Self::handle_transaction_message(
                                     &state,
                                     &stats,
+                                    &mempool,
                                     tx_msg
                                 ).await {
                                     error!("Failed to handle transaction: {}", e);
@@ -626,11 +635,11 @@ impl AxionaxNode {
     async fn handle_transaction_message(
         state: &Arc<StateDB>,
         stats: &Arc<RwLock<NodeStats>>,
+        mempool: &Arc<TransactionPool>,
         tx_msg: TransactionMessage,
     ) -> anyhow::Result<()> {
         debug!("Received transaction from network: {}", &tx_msg.hash[..8]);
 
-        // Update stats
         {
             let mut s = stats.write().await;
             s.transactions_received += 1;
@@ -640,37 +649,40 @@ impl AxionaxNode {
         let hash = hex_to_hash(&tx_msg.hash)
             .map_err(|e| anyhow::anyhow!("Invalid tx hash: {}", e))?;
 
-        // Check if we already have this transaction
+        // Skip if already in state DB (confirmed)
         if state.get_transaction(&hash).is_ok() {
-            debug!("Transaction already in database");
+            debug!("Transaction already confirmed in state");
             return Ok(());
         }
 
-        // Convert TransactionMessage to Transaction
-        let tx = Transaction {
+        // Reconstruct full Transaction from propagated message
+        let mut tx = Transaction {
             hash,
             from: tx_msg.from,
             to: tx_msg.to,
             value: tx_msg.value,
-            gas_price: 20, // Default gas price (not in TransactionMessage)
-            gas_limit: 21000, // Default gas limit (not in TransactionMessage)
+            gas_price: tx_msg.gas_price,
+            gas_limit: tx_msg.gas_limit,
             nonce: tx_msg.nonce,
             data: tx_msg.data,
-            signature: vec![],
-            signer_public_key: vec![],
+            signature: tx_msg.signature,
+            signer_public_key: tx_msg.signer_public_key,
         };
+        tx.compute_hash();
 
-        // Note: We store transactions when they're included in blocks
-        // For now, we'll just track that we received them
-        // In a full implementation, we'd store them in a mempool
-
-        let _ = tx; // Silence unused variable warning
-        debug!("Transaction received (pending block inclusion)");
-
-        // Update stats
-        {
-            let mut s = stats.write().await;
-            s.transactions_stored += 1;
+        // Add to mempool — validates signature, nonce ordering, gas price
+        match mempool.add_transaction(tx).await {
+            Ok(()) => {
+                debug!("Transaction added to mempool");
+                let mut s = stats.write().await;
+                s.transactions_stored += 1;
+            }
+            Err(PoolError::AlreadyExists) => {
+                debug!("Transaction already in mempool");
+            }
+            Err(e) => {
+                debug!("Transaction rejected by mempool: {}", e);
+            }
         }
 
         Ok(())
@@ -703,7 +715,7 @@ impl AxionaxNode {
     pub async fn publish_transaction(&self, tx: &Transaction) -> anyhow::Result<()> {
         debug!("Publishing transaction to network: {}", hex::encode(&tx.hash[..8]));
 
-        // Convert Transaction to TransactionMessage (with hex-encoded hash)
+        // Convert Transaction to TransactionMessage with all fields for full propagation
         let tx_msg = TransactionMessage {
             hash: hash_to_hex(&tx.hash),
             from: tx.from.clone(),
@@ -711,7 +723,10 @@ impl AxionaxNode {
             value: tx.value,
             data: tx.data.clone(),
             nonce: tx.nonce,
-            signature: vec![], // TODO: Extract signature from transaction data when ECDSA is implemented
+            signature: tx.signature.clone(),
+            gas_price: tx.gas_price,
+            gas_limit: tx.gas_limit,
+            signer_public_key: tx.signer_public_key.clone(),
         };
 
         let mut network = self.network.lock().await;

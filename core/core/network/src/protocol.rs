@@ -52,7 +52,18 @@ pub struct TransactionMessage {
     pub data: Vec<u8>,
     pub nonce: u64,
     pub signature: Vec<u8>,
+    /// Gas price in wei (base units). Default 0 for legacy messages without this field.
+    #[serde(default)]
+    pub gas_price: u128,
+    /// Gas limit. Default 21000 (minimum transfer) for legacy messages.
+    #[serde(default = "default_gas_limit")]
+    pub gas_limit: u64,
+    /// Ed25519 signer public key (32 bytes). Empty = unsigned.
+    #[serde(default)]
+    pub signer_public_key: Vec<u8>,
 }
+
+fn default_gas_limit() -> u64 { 21_000 }
 
 /// Consensus-related messages
 #[derive(Debug, Clone, Serialize, Deserialize)]

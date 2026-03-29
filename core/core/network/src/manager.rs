@@ -39,7 +39,7 @@ pub enum NetworkEvent {
     /// New message received
     MessageReceived {
         peer: PeerId,
-        message: NetworkMessage,
+        message: Box<NetworkMessage>,
     },
     /// Message published successfully
     MessagePublished { message_id: String },

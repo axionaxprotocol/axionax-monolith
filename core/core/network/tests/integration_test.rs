@@ -85,6 +85,9 @@ async fn test_transaction_propagation() {
         data: vec![0x12, 0x34],
         nonce: 1,
         signature: vec![0xaa, 0xbb],
+        gas_price: 1_000_000_000,
+        gas_limit: 21_000,
+        signer_public_key: vec![],
     });
 
     // Publish transaction - result may vary without peers
