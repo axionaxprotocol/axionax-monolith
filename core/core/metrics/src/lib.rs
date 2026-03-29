@@ -18,6 +18,10 @@ const ORD: Ordering = Ordering::Relaxed;
 
 pub struct IntGauge(AtomicI64);
 
+impl Default for IntGauge {
+    fn default() -> Self { Self::new() }
+}
+
 impl IntGauge {
     pub fn new() -> Self {
         Self(AtomicI64::new(0))
@@ -31,6 +35,10 @@ impl IntGauge {
 }
 
 pub struct IntCounter(AtomicU64);
+
+impl Default for IntCounter {
+    fn default() -> Self { Self::new() }
+}
 
 impl IntCounter {
     pub fn new() -> Self {
@@ -49,6 +57,10 @@ impl IntCounter {
 
 /// f64 gauge stored as AtomicU64 via to_bits/from_bits.
 pub struct Gauge(AtomicU64);
+
+impl Default for Gauge {
+    fn default() -> Self { Self::new() }
+}
 
 impl Gauge {
     pub fn new() -> Self {

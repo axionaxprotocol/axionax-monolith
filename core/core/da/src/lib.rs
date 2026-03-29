@@ -182,7 +182,7 @@ impl DA {
         let chunk_size = self.config.chunk_size;
 
         // Calculate chunks needed
-        let data_chunks = (data_size + chunk_size - 1) / chunk_size;
+        let data_chunks = data_size.div_ceil(chunk_size);
         let parity_chunks = ((data_chunks as f64 * (self.config.erasure_coding_rate - 1.0)).ceil()) as usize;
         let total_chunks = data_chunks + parity_chunks;
 

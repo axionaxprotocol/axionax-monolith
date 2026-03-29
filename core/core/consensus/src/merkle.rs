@@ -85,8 +85,8 @@ impl MerkleTree {
         let mut level_size = padded_count;
 
         while level_size > 1 {
-            let sibling_idx = if idx % 2 == 0 { idx + 1 } else { idx - 1 };
-            let is_left = idx % 2 == 1;
+            let sibling_idx = if idx.is_multiple_of(2) { idx + 1 } else { idx - 1 };
+            let is_left = !idx.is_multiple_of(2);
 
             if level_start + sibling_idx < level_start + level_size {
                 siblings.push(self.nodes[level_start + sibling_idx]);

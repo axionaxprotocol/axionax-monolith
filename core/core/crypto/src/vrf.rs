@@ -125,8 +125,8 @@ impl ECVRF {
         while output.len() < length {
             let mut hasher = sha3::Sha3_256::new();
             use sha3::Digest;
-            hasher.update(&result.output);
-            hasher.update(&counter.to_le_bytes());
+            hasher.update(result.output);
+            hasher.update(counter.to_le_bytes());
             let hash = hasher.finalize();
             output.extend_from_slice(&hash);
             counter += 1;
@@ -137,8 +137,7 @@ impl ECVRF {
     }
 
     fn output_to_bytes(&self, inout: &VRFInOut) -> VrfOutput {
-        let hash = inout.make_bytes::<[u8; 32]>(b"VRFOutput");
-        hash
+        inout.make_bytes::<[u8; 32]>(b"VRFOutput")
     }
 
     fn inout_to_bytes(inout: &VRFInOut) -> VrfOutput {

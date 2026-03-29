@@ -158,9 +158,9 @@ impl StakingRpcServer for StakingRpcServerImpl {
 
     async fn stake(&self, address: String, amount: String, signature: String, public_key: String) -> RpcResult<bool> {
         let verified_addr = verify_signed_request(&address, "stake", &signature, &public_key)
-            .map_err(|e| StakingRpcError::AuthError(e))?;
+            .map_err(StakingRpcError::AuthError)?;
         let amount = parse_hex_u128(&amount)
-            .map_err(|e| StakingRpcError::InvalidParams(e))?;
+            .map_err(StakingRpcError::InvalidParams)?;
         
         let staking = self.staking.read().await;
         staking.stake(verified_addr.clone(), amount).await
@@ -172,9 +172,9 @@ impl StakingRpcServer for StakingRpcServerImpl {
 
     async fn unstake(&self, address: String, amount: String, signature: String, public_key: String) -> RpcResult<bool> {
         let verified_addr = verify_signed_request(&address, "unstake", &signature, &public_key)
-            .map_err(|e| StakingRpcError::AuthError(e))?;
+            .map_err(StakingRpcError::AuthError)?;
         let amount = parse_hex_u128(&amount)
-            .map_err(|e| StakingRpcError::InvalidParams(e))?;
+            .map_err(StakingRpcError::InvalidParams)?;
         
         let staking = self.staking.read().await;
         staking.unstake(verified_addr.clone(), amount).await
@@ -186,9 +186,9 @@ impl StakingRpcServer for StakingRpcServerImpl {
 
     async fn delegate(&self, delegator: String, validator: String, amount: String, signature: String, public_key: String) -> RpcResult<bool> {
         let verified_addr = verify_signed_request(&delegator, "delegate", &signature, &public_key)
-            .map_err(|e| StakingRpcError::AuthError(e))?;
+            .map_err(StakingRpcError::AuthError)?;
         let amount = parse_hex_u128(&amount)
-            .map_err(|e| StakingRpcError::InvalidParams(e))?;
+            .map_err(StakingRpcError::InvalidParams)?;
         
         let staking = self.staking.read().await;
         staking.delegate(verified_addr.clone(), validator.clone(), amount).await
@@ -200,7 +200,7 @@ impl StakingRpcServer for StakingRpcServerImpl {
 
     async fn claim_rewards(&self, address: String, signature: String, public_key: String) -> RpcResult<String> {
         let verified_addr = verify_signed_request(&address, "claimRewards", &signature, &public_key)
-            .map_err(|e| StakingRpcError::AuthError(e))?;
+            .map_err(StakingRpcError::AuthError)?;
 
         let staking = self.staking.read().await;
         let rewards = staking.claim_rewards(verified_addr.clone()).await

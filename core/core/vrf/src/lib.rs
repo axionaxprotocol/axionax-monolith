@@ -240,7 +240,7 @@ impl VRF {
 
         // Compute commitment hash
         let mut hasher = Sha3_256::new();
-        hasher.update(&secret);
+        hasher.update(secret);
         hasher.update(input);
         let hash = hasher.finalize();
         let mut hash_bytes = [0u8; 32];
@@ -301,7 +301,7 @@ impl VRF {
 
         // Verify commitment hash
         let mut hasher = Sha3_256::new();
-        hasher.update(&secret);
+        hasher.update(secret);
         hasher.update(input);
         let hash = hasher.finalize();
         let mut hash_bytes = [0u8; 32];
@@ -339,7 +339,7 @@ impl VRF {
     pub fn generate_seed(&self, block_hash: &[u8], vrf_output: &VRFOutput) -> [u8; 32] {
         let mut hasher = Sha3_256::new();
         hasher.update(block_hash);
-        hasher.update(&vrf_output.value);
+        hasher.update(vrf_output.value);
         let result = hasher.finalize();
         let mut seed = [0u8; 32];
         seed.copy_from_slice(&result);

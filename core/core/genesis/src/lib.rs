@@ -276,13 +276,13 @@ impl GenesisGenerator {
         balances.sort_by_key(|(k, _)| k.as_str());
         for (address, balance) in balances {
             hasher.update(address.as_bytes());
-            hasher.update(&balance.to_le_bytes());
+            hasher.update(balance.to_le_bytes());
         }
 
         // Hash validators
         for validator in &config.validators {
             hasher.update(validator.address.as_bytes());
-            hasher.update(&validator.stake.to_le_bytes());
+            hasher.update(validator.stake.to_le_bytes());
         }
 
         let result = hasher.finalize();
@@ -292,8 +292,8 @@ impl GenesisGenerator {
     /// Compute block hash
     fn compute_block_hash(config: &GenesisConfig, state_root: &str) -> String {
         let mut hasher = Sha3_256::new();
-        hasher.update(&config.chain_id.to_le_bytes());
-        hasher.update(&config.timestamp.to_le_bytes());
+        hasher.update(config.chain_id.to_le_bytes());
+        hasher.update(config.timestamp.to_le_bytes());
         hasher.update(state_root.as_bytes());
         hasher.update(config.extra_data.as_bytes());
 
@@ -359,16 +359,17 @@ impl GenesisGenerator {
 
     /// Generate genesis for local development (small balances, single validator)
     pub fn localnet() -> GenesisBlock {
-        let mut config = GenesisConfig::default();
-        config.chain_id = 31337;
-        config.chain_name = "Axionax Localnet".to_string();
-
-        config.validators = vec![GenesisValidator {
-            address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".to_string(),
-            stake: 10_000 * ONE_AXX,
-            public_key: "0x".to_string(),
-            node_url: "http://localhost:30333".to_string(),
-        }];
+        let mut config = GenesisConfig {
+            chain_id: 31337,
+            chain_name: "Axionax Localnet".to_string(),
+            validators: vec![GenesisValidator {
+                address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266".to_string(),
+                stake: 10_000 * ONE_AXX,
+                public_key: "0x".to_string(),
+                node_url: "http://localhost:30333".to_string(),
+            }],
+            ..Default::default()
+        };
 
         let dev_accounts = vec![
             "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",

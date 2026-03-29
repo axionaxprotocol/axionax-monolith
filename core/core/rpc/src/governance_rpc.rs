@@ -208,7 +208,7 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
         public_key: String,
     ) -> RpcResult<u64> {
         let verified_addr = verify_signed_request(&proposer, "createProposal", &signature, &public_key)
-            .map_err(|e| GovernanceRpcError::AuthError(e))?;
+            .map_err(GovernanceRpcError::AuthError)?;
 
         // Look up actual stake from the staking module
         let staking = self.staking.read().await;
@@ -217,7 +217,7 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
             .unwrap_or(0);
 
         let ptype = parse_proposal_type(&proposal_type)
-            .map_err(|e| GovernanceRpcError::InvalidParams(e))?;
+            .map_err(GovernanceRpcError::InvalidParams)?;
 
         let gov = self.governance.read().await;
         let id = gov.create_proposal(verified_addr.clone(), actual_stake, title.clone(), description, ptype)
@@ -237,7 +237,7 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
         public_key: String,
     ) -> RpcResult<bool> {
         let verified_addr = verify_signed_request(&voter, "vote", &signature, &public_key)
-            .map_err(|e| GovernanceRpcError::AuthError(e))?;
+            .map_err(GovernanceRpcError::AuthError)?;
 
         // Look up actual vote weight from the staking module
         let staking = self.staking.read().await;

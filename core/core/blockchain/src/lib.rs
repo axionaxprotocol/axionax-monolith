@@ -173,8 +173,7 @@ pub struct PersistentBlockchain {
 impl PersistentBlockchain {
     /// Opens a persistent blockchain at the configured path
     pub fn open(config: BlockchainConfig) -> Result<Self> {
-        let path = config.db_path.as_ref()
-            .map(|p| p.as_str())
+        let path = config.db_path.as_deref()
             .unwrap_or("./axionax_data");
 
         let store = SledBlockStore::open(path)?;
@@ -306,8 +305,8 @@ impl Blockchain {
         let g = GenesisGenerator::mainnet();
         Ok(Block {
             number: g.number,
-            hash: parse_hex_hash(&g.hash).map_err(|e| BlockchainError::TransactionValidation(e))?,
-            parent_hash: parse_hex_hash(&g.parent_hash).map_err(|e| BlockchainError::TransactionValidation(e))?,
+            hash: parse_hex_hash(&g.hash).map_err(BlockchainError::TransactionValidation)?,
+            parent_hash: parse_hex_hash(&g.parent_hash).map_err(BlockchainError::TransactionValidation)?,
             timestamp: g.timestamp,
             proposer: g
                 .config
@@ -316,7 +315,7 @@ impl Blockchain {
                 .map(|v| v.address.clone())
                 .unwrap_or_else(|| "axionaxius".to_string()),
             transactions: vec![],
-            state_root: parse_hex_hash(&g.state_root).map_err(|e| BlockchainError::TransactionValidation(e))?,
+            state_root: parse_hex_hash(&g.state_root).map_err(BlockchainError::TransactionValidation)?,
             gas_used: 0,
             gas_limit: 30_000_000,
         })

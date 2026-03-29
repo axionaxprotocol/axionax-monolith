@@ -78,7 +78,7 @@ impl LightValidator {
         let sum: f64 = pattern.iter().take(32).sum();
         let normalized = (sum % std::f64::consts::TAU).abs();
         // Constructive: near 0 or 2π; destructive: near π
-        if normalized < 0.1 || normalized > std::f64::consts::TAU - 0.1 {
+        if !(0.1..=(std::f64::consts::TAU - 0.1)).contains(&normalized) {
             FocusPoint::ConstructiveInterference
         } else if (normalized - std::f64::consts::PI).abs() < 0.1 {
             FocusPoint::DestructiveInterference
