@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// ASR Error types
 #[derive(Error, Debug)]
@@ -271,7 +271,7 @@ impl ASR {
     /// Register a worker
     pub async fn register_worker(&self, worker: Worker) -> Result<()> {
         let mut workers = self.workers.write().await;
-        info!("Registered worker: {} (org={}, region={})", 
+        info!("Registered worker: {} (org={}, region={})",
             worker.id, worker.org_id, worker.region);
         workers.insert(worker.id.clone(), worker);
         Ok(())

@@ -19,7 +19,7 @@ use tracing::info;
 pub enum GovernanceRpcError {
     #[error("Governance error: {0}")]
     GovernanceError(String),
-    
+
     #[error("Invalid parameters: {0}")]
     InvalidParams(String),
 
@@ -186,7 +186,7 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
     async fn get_stats(&self) -> RpcResult<GovernanceStatsResponse> {
         let gov = self.governance.read().await;
         let active = gov.get_active_proposals().await.len() as u64;
-        
+
         Ok(GovernanceStatsResponse {
             active_proposals: active,
             total_proposals: active, // Simplified
@@ -310,6 +310,7 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
     }
 }
 
+#[allow(dead_code)]
 fn parse_hex_u128(hex: &str) -> Result<u128, String> {
     let hex = hex.strip_prefix("0x").unwrap_or(hex);
     u128::from_str_radix(hex, 16).map_err(|e| format!("Invalid hex: {}", e))
@@ -349,7 +350,7 @@ fn parse_proposal_type(s: &str) -> Result<ProposalType, String> {
     if s == "text" || s.is_empty() {
         return Ok(ProposalType::Text);
     }
-    
+
     if let Some(rest) = s.strip_prefix("parameter:") {
         let parts: Vec<&str> = rest.splitn(2, '=').collect();
         if parts.len() == 2 {
@@ -359,7 +360,7 @@ fn parse_proposal_type(s: &str) -> Result<ProposalType, String> {
             });
         }
     }
-    
+
     if let Some(rest) = s.strip_prefix("treasury:") {
         let parts: Vec<&str> = rest.splitn(2, ':').collect();
         if parts.len() == 2 {
@@ -371,14 +372,14 @@ fn parse_proposal_type(s: &str) -> Result<ProposalType, String> {
             });
         }
     }
-    
+
     if let Some(rest) = s.strip_prefix("upgrade:") {
         return Ok(ProposalType::ProtocolUpgrade {
             version: rest.to_string(),
             data: vec![],
         });
     }
-    
+
     Err(format!("Unknown proposal type: {}", s))
 }
 
@@ -389,13 +390,13 @@ mod tests {
     #[test]
     fn test_parse_proposal_type() {
         assert!(matches!(parse_proposal_type("text").unwrap(), ProposalType::Text));
-        
+
         let param = parse_proposal_type("parameter:base_fee=1000").unwrap();
         assert!(matches!(param, ProposalType::ParameterChange { .. }));
-        
+
         let treasury = parse_proposal_type("treasury:0x1234:100000").unwrap();
         assert!(matches!(treasury, ProposalType::TreasurySpend { .. }));
-        
+
         let upgrade = parse_proposal_type("upgrade:v2.0.0").unwrap();
         assert!(matches!(upgrade, ProposalType::ProtocolUpgrade { .. }));
     }

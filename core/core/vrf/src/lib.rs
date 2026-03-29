@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use thiserror::Error;
 use tokio::sync::RwLock;
-use tracing::{debug, info, warn};
+use tracing::{debug, info};
 
 /// VRF Error types
 #[derive(Error, Debug)]
@@ -140,6 +140,7 @@ impl VRFKeyPair {
     }
 
     /// Get secret key bytes
+    #[allow(dead_code)]
     pub(crate) fn secret_key_bytes(&self) -> [u8; 32] {
         self.signing_key.to_bytes()
     }

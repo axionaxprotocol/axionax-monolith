@@ -23,7 +23,7 @@ pub mod storage;
 pub mod validation;
 
 pub use mempool::{PoolConfig, PoolError, PoolStats, TransactionPool};
-pub use storage::{BlockStore, SledBlockStore, StorageError};
+pub use storage::{BlockStore, RedbBlockStore, SledBlockStore, StorageError};
 pub use validation::{BlockValidator, TransactionValidator, ValidationConfig, ValidationError};
 
 /// Blockchain error types
@@ -154,13 +154,13 @@ pub struct BlockchainConfig {
 }
 
 /// Persistent Blockchain with disk-based storage
-/// 
-/// Uses `sled` database for all block storage. Data persists across restarts.
-/// 
+///
+/// Uses `redb` database for all block storage. Data persists across restarts.
+///
 /// # Example
 /// ```ignore
 /// use blockchain::{PersistentBlockchain, BlockchainConfig};
-/// 
+///
 /// let config = BlockchainConfig { db_path: Some("./data".to_string()), ..Default::default() };
 /// let blockchain = PersistentBlockchain::open(config)?;
 /// blockchain.init_with_genesis().await;
@@ -176,7 +176,7 @@ impl PersistentBlockchain {
         let path = config.db_path.as_ref()
             .map(|p| p.as_str())
             .unwrap_or("./axionax_data");
-        
+
         let store = SledBlockStore::open(path)?;
         Ok(Self { store, config })
     }

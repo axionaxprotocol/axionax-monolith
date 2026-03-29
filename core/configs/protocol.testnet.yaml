@@ -1,0 +1,39 @@
+popc:
+  sample_size: 1000
+  redundancy_rate: 0.025
+  min_confidence: 0.99
+  fraud_window_seconds: 3600
+  vrf_delay_blocks: 2
+  false_pass_penalty_bps: 500
+  min_validator_stake: 10000000000000000000000
+asr:
+  top_k: 64
+  max_quota: 0.125
+  exploration_rate: 0.05
+  newcomer_boost: 0.1
+  performance_window_days: 30
+  anti_collusion_enabled: true
+ppc:
+  target_utilization: 0.7
+  target_queue_time_seconds: 60
+  alpha: 0.1
+  beta: 0.05
+  min_price: 0.001
+  max_price: 10.0
+  adjustment_interval_seconds: 300
+da:
+  erasure_coding_rate: 1.5
+  chunk_size_kb: 256
+  availability_window_seconds: 300
+  replication_factor: 3
+  live_audit_enabled: true
+  storage_dir: "data/da"
+vrf:
+  delay_blocks: 2
+  use_delayed_vrf: true
+network:
+  chain_id: 86137
+  network_name: axionax-testnet
+  block_time_seconds: 5
+  max_peers: 50
+  bootstrap_nodes: []

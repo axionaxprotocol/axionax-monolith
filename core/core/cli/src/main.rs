@@ -2,6 +2,7 @@
 //!
 //! Usage: axionax <command> [options]
 
+use axionax_cli::{build_rpc_request, hex_to_decimal, parse_rpc_response};
 use clap::{Parser, Subcommand};
 use colored::*;
 use serde_json::Value;
@@ -112,7 +113,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
         Commands::BlockNumber => {
             let result = rpc_call(&client, &cli.rpc, "eth_blockNumber", vec![]).await?;
             let hex = result.as_str().unwrap_or("0x0");
-            let num = u64::from_str_radix(hex.trim_start_matches("0x"), 16).unwrap_or(0);
+            let num = hex_to_decimal(hex);
             println!("{} ({})", hex.green(), num);
         }
 
@@ -265,12 +266,7 @@ async fn rpc_call(
     method: &str,
     params: Vec<Value>,
 ) -> Result<Value, Box<dyn std::error::Error>> {
-    let body = serde_json::json!({
-        "jsonrpc": "2.0",
-        "method": method,
-        "params": params,
-        "id": 1
-    });
+    let body = build_rpc_request(method, params);
 
     let response = client
         .post(url)
@@ -280,9 +276,5 @@ async fn rpc_call(
         .json::<Value>()
         .await?;
 
-    if let Some(error) = response.get("error") {
-        return Err(format!("RPC Error: {}", error).into());
-    }
-
-    Ok(response["result"].clone())
+    parse_rpc_response(&response).map_err(|e| e.into())
 }

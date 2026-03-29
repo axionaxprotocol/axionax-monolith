@@ -173,7 +173,7 @@ impl AxionaxNode {
         }
 
         // Initialize network manager
-        let mut network_manager = NetworkManager::new(config.network.clone()).await?;
+        let network_manager = NetworkManager::new(config.network.clone()).await?;
         let local_peer_id = *network_manager.local_peer_id();
         let network = Arc::new(tokio::sync::Mutex::new(network_manager));
         info!("Network manager initialized (peer_id: {:?})", local_peer_id);

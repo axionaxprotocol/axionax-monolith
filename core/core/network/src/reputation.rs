@@ -22,22 +22,22 @@ pub const DEFAULT_REPUTATION: i32 = 0;
 pub struct ReputationConfig {
     /// Score gain for successful message
     pub success_gain: i32,
-    
+
     /// Score loss for failed message
     pub failure_penalty: i32,
-    
+
     /// Score decay per hour
     pub decay_per_hour: i32,
-    
+
     /// Minimum score to remain connected
     pub min_connection_score: i32,
-    
+
     /// Score threshold for priority connection
     pub priority_threshold: i32,
-    
+
     /// Ban threshold (disconnect if below)
     pub ban_threshold: i32,
-    
+
     /// Ban duration in seconds
     pub ban_duration_secs: u64,
 }
@@ -61,31 +61,31 @@ impl Default for ReputationConfig {
 pub struct PeerScore {
     /// Current reputation score
     pub score: i32,
-    
+
     /// Total successful messages
     pub successful_msgs: u64,
-    
+
     /// Total failed messages
     pub failed_msgs: u64,
-    
+
     /// Last activity timestamp
     pub last_seen: u64,
-    
+
     /// First seen timestamp
     pub first_seen: u64,
-    
+
     /// Is peer currently banned
     pub is_banned: bool,
-    
+
     /// Ban expiry timestamp
     pub ban_until: u64,
-    
+
     /// Peer address/multiaddr
     pub address: String,
 }
 
 impl PeerScore {
-    pub fn new(peer_id: &str, address: String) -> Self {
+    pub fn new(_peer_id: &str, address: String) -> Self {
         let now = current_timestamp();
         Self {
             score: DEFAULT_REPUTATION,
@@ -133,7 +133,7 @@ impl ReputationManager {
     /// Record successful message from peer
     pub async fn record_success(&self, peer_id: &str) {
         let mut scores = self.scores.write().await;
-        
+
         if let Some(peer) = scores.get_mut(peer_id) {
             peer.successful_msgs += 1;
             peer.score = (peer.score + self.config.success_gain).min(MAX_REPUTATION);
@@ -146,19 +146,19 @@ impl ReputationManager {
     pub async fn record_failure(&self, peer_id: &str) {
         let mut scores = self.scores.write().await;
         let config = &self.config;
-        
+
         if let Some(peer) = scores.get_mut(peer_id) {
             peer.failed_msgs += 1;
             peer.score = (peer.score - config.failure_penalty).max(MIN_REPUTATION);
             peer.last_seen = current_timestamp();
-            
+
             // Check if should ban
             if peer.score <= config.ban_threshold {
                 peer.is_banned = true;
                 peer.ban_until = current_timestamp() + config.ban_duration_secs;
                 warn!("Peer {} banned until {}", peer_id, peer.ban_until);
             }
-            
+
             debug!("Peer {} failure, score: {}", peer_id, peer.score);
         }
     }
@@ -166,7 +166,7 @@ impl ReputationManager {
     /// Register new peer
     pub async fn register_peer(&self, peer_id: &str, address: String) {
         let mut scores = self.scores.write().await;
-        
+
         if !scores.contains_key(peer_id) {
             scores.insert(peer_id.to_string(), PeerScore::new(peer_id, address));
             info!("Registered new peer: {}", peer_id);
@@ -176,7 +176,7 @@ impl ReputationManager {
     /// Check if peer is banned
     pub async fn is_banned(&self, peer_id: &str) -> bool {
         let scores = self.scores.read().await;
-        
+
         if let Some(peer) = scores.get(peer_id) {
             if peer.is_banned {
                 return current_timestamp() < peer.ban_until;
@@ -198,7 +198,7 @@ impl ReputationManager {
             .filter(|(_, p)| !p.is_banned || current_timestamp() >= p.ban_until)
             .map(|(id, score)| (id.clone(), score.clone()))
             .collect();
-        
+
         peers.sort_by(|a, b| b.1.score.cmp(&a.1.score));
         peers
     }
@@ -227,14 +227,14 @@ impl ReputationManager {
     pub async fn apply_decay(&self) {
         let mut scores = self.scores.write().await;
         let now = current_timestamp();
-        
+
         for peer in scores.values_mut() {
             let hours_since_seen = (now - peer.last_seen) / 3600;
             if hours_since_seen > 0 {
                 let decay = (hours_since_seen as i32).saturating_mul(self.config.decay_per_hour);
                 peer.score = peer.score.saturating_sub(decay).max(MIN_REPUTATION);
             }
-            
+
             // Unban if ban expired
             if peer.is_banned && now >= peer.ban_until {
                 peer.is_banned = false;
@@ -249,7 +249,7 @@ impl ReputationManager {
         let mut scores = self.scores.write().await;
         let now = current_timestamp();
         let cutoff = now - (max_age_hours * 3600);
-        
+
         scores.retain(|id, peer| {
             let keep = peer.last_seen > cutoff;
             if !keep {
@@ -270,7 +270,7 @@ impl ReputationManager {
         } else {
             0
         };
-        
+
         ReputationStats {
             total_peers: total,
             banned_peers: banned,
@@ -316,7 +316,7 @@ mod tests {
     async fn test_register_peer() {
         let mgr = ReputationManager::new(test_config());
         mgr.register_peer("peer1", "/ip4/1.2.3.4/tcp/30303".to_string()).await;
-        
+
         let score = mgr.get_score("peer1").await;
         assert_eq!(score, Some(DEFAULT_REPUTATION));
     }
@@ -325,10 +325,10 @@ mod tests {
     async fn test_success_increases_score() {
         let mgr = ReputationManager::new(test_config());
         mgr.register_peer("peer1", "addr".to_string()).await;
-        
+
         mgr.record_success("peer1").await;
         mgr.record_success("peer1").await;
-        
+
         let score = mgr.get_score("peer1").await.unwrap();
         assert_eq!(score, 20); // 2 * 10 success gain
     }
@@ -337,9 +337,9 @@ mod tests {
     async fn test_failure_decreases_score() {
         let mgr = ReputationManager::new(test_config());
         mgr.register_peer("peer1", "addr".to_string()).await;
-        
+
         mgr.record_failure("peer1").await;
-        
+
         let score = mgr.get_score("peer1").await.unwrap();
         assert_eq!(score, -20); // 20 failure penalty
     }
@@ -348,12 +348,12 @@ mod tests {
     async fn test_ban_on_low_score() {
         let mgr = ReputationManager::new(test_config());
         mgr.register_peer("peer1", "addr".to_string()).await;
-        
+
         // 5 failures = -100, should be banned at -80
         for _ in 0..5 {
             mgr.record_failure("peer1").await;
         }
-        
+
         assert!(mgr.is_banned("peer1").await);
     }
 
@@ -362,12 +362,12 @@ mod tests {
         let mgr = ReputationManager::new(test_config());
         mgr.register_peer("peer1", "addr1".to_string()).await;
         mgr.register_peer("peer2", "addr2".to_string()).await;
-        
+
         // Make peer1 priority (50+ score)
         for _ in 0..6 {
             mgr.record_success("peer1").await;
         }
-        
+
         let priority = mgr.get_priority_peers().await;
         assert!(priority.contains(&"peer1".to_string()));
         assert!(!priority.contains(&"peer2".to_string()));

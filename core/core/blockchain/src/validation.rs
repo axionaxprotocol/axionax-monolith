@@ -403,7 +403,7 @@ mod tests {
         let config = ValidationConfig::default();
         let validator = BlockValidator::new(config);
 
-        let mut block = create_valid_block(5); // Wrong number
+        let block = create_valid_block(5); // Wrong number
         let parent = create_valid_block(0);
 
         let result = validator.validate_block(&block, Some(&parent));

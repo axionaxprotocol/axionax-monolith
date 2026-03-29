@@ -12,6 +12,7 @@ use std::time::Instant;
 use tokio::time::{sleep, Duration};
 use tracing::{info, warn, Level};
 use tracing_subscriber::fmt;
+use config as proto_cfg;
 
 #[derive(Debug, Clone, ValueEnum)]
 enum NodeRole {
@@ -84,6 +85,10 @@ struct Args {
     /// Can also be set via AXIONAX_VALIDATOR_ADDRESS env variable.
     #[arg(long)]
     validator_address: Option<String>,
+
+    /// Path to protocol config YAML file (e.g. protocol.yaml)
+    #[arg(long)]
+    config: Option<PathBuf>,
 }
 
 #[tokio::main]
@@ -101,6 +106,35 @@ async fn main() -> anyhow::Result<()> {
         _ => NodeConfig::dev(),
     };
 
+    // Load protocol config if provided
+    let protocol_config = if let Some(ref cfg_path) = args.config {
+        match proto_cfg::ProtocolConfig::from_yaml(cfg_path.to_str().unwrap_or("")) {
+            Ok(pc) => {
+                info!("Protocol config loaded from {}", cfg_path.display());
+                info!("  PoPC sample_size={} min_confidence={}", pc.popc.sample_size, pc.popc.min_confidence);
+                info!("  ASR top_k={} exploration_rate={}", pc.asr.top_k, pc.asr.exploration_rate);
+                info!("  PPC target_utilization={}", pc.ppc.target_utilization);
+                pc
+            }
+            Err(e) => {
+                warn!("Could not load protocol config from {}: {} — using defaults", cfg_path.display(), e);
+                proto_cfg::ProtocolConfig::testnet()
+            }
+        }
+    } else {
+        match chain_id {
+            86137 => proto_cfg::ProtocolConfig::testnet(),
+            86150 => proto_cfg::ProtocolConfig::mainnet(),
+            _ => proto_cfg::ProtocolConfig::default(),
+        }
+    };
+    info!("Protocol: PoPC sample_size={} ASR top_k={}", protocol_config.popc.sample_size, protocol_config.asr.top_k);
+
+    // Only override block_time from protocol config if not already set by CLI/genesis
+    if args.block_time.is_none() && args.chain.is_none() {
+        config.network.block_time_seconds = protocol_config.network.block_time_seconds;
+    }
+
     // If chain genesis is provided, try parsing blockTime from it
     if let Some(ref chain_path) = args.chain {
         if let Ok(contents) = std::fs::read_to_string(chain_path) {
@@ -108,7 +142,7 @@ async fn main() -> anyhow::Result<()> {
                 if let Some(bt) = json.get("config")
                     .and_then(|c| c.get("axionax"))
                     .and_then(|a| a.get("blockTime"))
-                    .and_then(|v| v.as_u64()) 
+                    .and_then(|v| v.as_u64())
                 {
                     config.network.block_time_seconds = bt;
                     info!("Adopted block_time_seconds={} from genesis.json", bt);

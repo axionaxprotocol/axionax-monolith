@@ -5,6 +5,10 @@ authors.workspace = true
 edition.workspace = true
 description = "Axionax Protocol CLI - Command line interface"
 
+[lib]
+name = "axionax_cli"
+path = "src/lib.rs"
+
 [[bin]]
 name = "axionax"
 path = "src/main.rs"
