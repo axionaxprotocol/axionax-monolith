@@ -4,24 +4,65 @@ globs: web-universe/**/*
 alwaysApply: false
 ---
 
-# Frontend — Web Universe
+# AXIONAX FRONTEND — Web Universe (Git Submodule)
 
-The frontend project lives at **web-universe/** (Git submodule): Next.js, Marketplace, TypeScript SDK
+The frontend project lives at **web-universe/** (Git submodule pointing to `axionax-web-universe` repo).  
+Stack: Next.js 14, TypeScript, Tailwind CSS, pnpm workspaces, TurboRepo
 
-## Structure (inside web-universe/)
+## Structure (inside `web-universe/`)
 
-- **apps/web/** — Next.js 14, App Router (main website)
-- **apps/marketplace/** — Vite + React (marketplace)
-- **packages/sdk/** — TypeScript SDK (@axionax/sdk) — put business logic here, not in apps
+```
+axionax-web-universe/
+├── apps/
+│   ├── web/           ← Next.js 14 App Router — main portal, explorer, staking UI
+│   └── marketplace/   ← Vite + React — compute job marketplace
+└── packages/
+    ├── sdk/           ← @axionax/sdk — RPC calls, wallet, ABI, types, contract wrappers
+    └── ui/            ← @axionax/ui — shared design system (Tailwind + Radix-based)
+```
 
-## Do
+## Rules
 
-- Use **pnpm** (workspaces); do not use npm/yarn at the web-universe root
-- **Imports:** use workspace aliases e.g. `import { ... } from "@axionax/sdk"` — never use relative paths across packages (e.g. ../../packages/sdk)
-- **Next.js:** use Server Components by default; add `"use client"` only when using hooks (useState, useEffect)
-- **Styling:** Tailwind CSS; Cyberpunk/Futuristic theme, dark mode by default
+### Always
+- Use **pnpm** — never `npm` or `yarn` at the web-universe root
+- Use workspace aliases: `import { ... } from "@axionax/sdk"` — never relative cross-package paths
+- Default to **Server Components** in Next.js; add `"use client"` only for hooks (`useState`, `useEffect`, wallet events)
+- **All blockchain logic** (RPC, ABI, contract calls, wallet) goes in `packages/sdk` — apps only consume it
+- TypeScript strict mode — no `any`, no `@ts-ignore`
+- Use `NEXT_PUBLIC_*` env vars for client-side config only
 
-## Don't
+### Never
+- Never put reusable business logic in `apps/web` or `apps/marketplace` — move to `packages/sdk`
+- Never hardcode API keys, private keys, or RPC credentials in frontend code
+- Never use `npm install` or `yarn add` — always `pnpm --filter <pkg> add <dep>`
+- Never import types from `apps/` into `packages/` (one-way dependency)
 
-- Don't put reusable logic in apps/web or apps/marketplace — move it to **packages/sdk**
-- Don't hardcode API keys or secrets in frontend; use env (NEXT_PUBLIC_* for client)
+## Chain Config for Frontend
+
+```typescript
+export const AXIONAX_TESTNET_CONFIG = {
+  chainId: 86137,
+  chainIdHex: "0x15079",
+  name: "Axionax Testnet",
+  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL ?? "http://217.76.61.116:8545",
+  currency: { name: "AXX", symbol: "AXX", decimals: 18 },
+  explorerUrl: process.env.NEXT_PUBLIC_EXPLORER_URL ?? "",
+}
+```
+
+## Styling
+- Tailwind CSS — dark mode default, cyberpunk/futuristic aesthetic
+- Dark bg: `#0a0a0f` / `#0d0d1a`; Accent: cyan (`#00f5ff`) and purple (`#a855f7`)
+- Framer Motion for animations; Lucide React for icons; shadcn/ui for components
+
+## Commands
+
+```bash
+# Run from web-universe/ root
+pnpm install
+pnpm dev                          # starts all apps in parallel
+pnpm --filter apps/web dev        # web only
+pnpm --filter apps/marketplace dev  # marketplace only
+pnpm build                        # production build
+pnpm lint
+```

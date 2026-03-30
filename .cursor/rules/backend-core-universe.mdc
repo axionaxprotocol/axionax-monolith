@@ -4,32 +4,95 @@ globs: core/**/*, ops/**/*, tools/**/*, scripts/**/*, configs/**/*, *.toml, hydr
 alwaysApply: false
 ---
 
-# Backend — Core Universe
+# AXIONAX BACKEND — Core Universe
 
-The backend project lives at the root of this repo: **core-universe** (Rust Core + Python DeAI + ops + tools)
+This repo is `axionax-core-universe`: Rust blockchain core + Python DeAI + ops + tools.  
+**Version:** Core v1.9.0 | Tests: 201/201 | Chain ID: 86137 (testnet)
 
-## Structure
+## Repository Layout
 
-- **core/** — Rust blockchain (blockchain, consensus, rpc, staking, ...) and **core/deai/** — Python Worker
-- **ops/deploy/** — Deployment, environments, monitoring
-- **tools/** — faucet, devtools
-- **scripts/** — run-worker, health-check, join-network
-- **configs/** — monolith_*.toml, worker configs
+```
+axionax-core-universe/
+├── core/                  ← Rust Cargo workspace (core/Cargo.toml)
+│   ├── core/<crate>/      ← 18 Rust crates (consensus, blockchain, node, rpc, ...)
+│   ├── bridge/rust-python/← PyO3 FFI
+│   ├── tools/faucet/      ← Testnet faucet
+│   └── deai/              ← Python worker layer
+├── configs/               ← TOML configs (monolith_*.toml)
+├── ops/deploy/            ← Docker Compose environments
+├── ops/scripts/           ← Monitoring scripts (Python)
+└── scripts/               ← Node operation scripts
+```
 
-## Rust (core/)
+## Rust — Commands (always run from `core/`)
 
-- Run commands from **core/**: `cargo build`, `cargo test --workspace`, `cargo clippy --workspace`, `cargo fmt --all`
-- Use `core/Cargo.toml` as workspace root; don't move crates out of core/
-- Avoid `unsafe` unless necessary; focus on memory safety and performance
+```bash
+cargo build --release
+cargo test --workspace           # must pass — 201/201
+cargo clippy --workspace -- -D warnings   # zero warnings
+cargo fmt --all
+cargo audit                      # security check
+```
 
-## Python (core/deai/)
+- Workspace root is `core/Cargo.toml` — never restructure without direction
+- All crates live under `core/core/` (exception: `bridge/`, `tools/`)
+- See `rust-core.mdc` for deep Rust rules
 
-- Python 3.10+; dependencies from **core/deai/requirements.txt** only
-- Config: **worker_config.toml**; override with env (.env from .env.example) — never commit `.env` or `worker_key.json`
-- Wallet: supports `AXIONAX_WALLET_PATH`, `WORKER_PRIVATE_KEY`, `WORKER_KEY_PASSWORD`; path can be relative to config
-- Run tests: `python -m pytest . -v --tb=short` from core/deai/
+## Python DeAI — Commands (run from `core/deai/`)
 
-## Config & Security
+```bash
+python -m pytest . -v --tb=short --ignore=tests
+python core/deai/worker_node.py                                    # general worker
+python core/deai/worker_node.py --config configs/monolith_scout_single.toml  # Monolith
+python hydra_manager.py                                             # HYDRA dual-core
+```
 
-- Secrets go in env or .env; .env.example provides a template
-- Run/join docs: see README.md
+- Python 3.10+ only
+- Dependencies: `core/deai/requirements.txt`
+- Config: `worker_config.toml` (override with `--config`)
+- Secrets: `.env` (from `.env.example`) — **never commit `.env` or `worker_key.json`**
+- See `python-deai.mdc` for deep Python rules
+
+## Ops Scripts (`ops/scripts/`)
+
+| Script | Purpose |
+|---|---|
+| `health_monitor.py` | Automated health alerting (email on failure) |
+| `validator_monitor.py` | Validator set + block production monitoring |
+| `rpc_benchmark.py` | Load/concurrency benchmark |
+| `rate_limit_dashboard.py` | Real-time rate limiting dashboard |
+| `dev_server.py` | Mock JSON-RPC + health server (no Rust compile) |
+
+## Docker Environments
+
+| File | Use Case |
+|---|---|
+| `docker-compose.dev.yml` | Local dev |
+| `ops/deploy/docker-compose.vps.yml` | VPS production |
+| `ops/deploy/environments/testnet/public/docker-compose.yaml` | Public testnet |
+
+**Services:** `validator`, `rpc-node`, `faucet`, `mock-rpc`, `prometheus`, `grafana`
+
+## Node Configs
+
+| Config | Description |
+|---|---|
+| `core/deai/worker_config.toml` | General PC/Server worker |
+| `configs/monolith_scout_single.toml` | Monolith Scout (single Hailo-10H) |
+| `configs/monolith_sentinel.toml` | HYDRA Sentinel (Hailo #0) |
+| `configs/monolith_worker.toml` | HYDRA Worker (Hailo #1) |
+| `core/configs/protocol.testnet.yaml` | Canonical protocol parameters |
+
+## Live Testnet
+
+| Validator | IP | RPC |
+|---|---|---|
+| #1 (EU) | `217.76.61.116` | `http://217.76.61.116:8545` |
+| #2 (AU) | `46.250.244.4` | `http://46.250.244.4:8545` |
+
+## Security Reminders
+
+- `.env`, `worker_key.json`, private keys → always in `.gitignore`, never committed
+- `WORKER_PRIVATE_KEY` env injection is the production pattern (not file-based)
+- RPC authentication via `X-API-Key` header when `AXIONAX_RPC_API_KEY` is set
+- CORS restricted via `AXIONAX_RPC_CORS_ORIGINS` env
