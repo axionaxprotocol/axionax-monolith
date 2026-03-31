@@ -80,13 +80,41 @@ services:
       - "30334:30333/udp"
     logging: *default-logging
 
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=blockscout
+      - POSTGRES_PASSWORD=blockscout_dev
+      - POSTGRES_DB=blockscout
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U blockscout"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging: *default-logging
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    logging: *default-logging
+
   explorer:
     image: ghcr.io/blockscout/blockscout:6.4.0
     restart: unless-stopped
     env_file:
       - explorer.env
     depends_on:
-      - rpc
+      postgres:
+        condition: service_healthy
+      rpc:
+        condition: service_started
+      redis:
+        condition: service_started
     ports:
       - "4000:4000"
     logging: *default-logging
@@ -143,3 +171,5 @@ volumes:
   rpc-data:
   bootnode-data:
   grafana-data:
+  postgres-data:
+  redis-data:

@@ -382,6 +382,10 @@ impl AxionaxNode {
                     let proposer = validator_address.clone()
                         .unwrap_or_else(|| "unknown".to_string());
 
+                    let gas_used: u64 = pending_txs.iter()
+                        .map(|tx| tx.gas_limit)
+                        .fold(0u64, |acc, g| acc.saturating_add(g));
+
                     let block = Block {
                         number: new_number,
                         hash: block_hash,
@@ -390,7 +394,7 @@ impl AxionaxNode {
                         proposer,
                         transactions: pending_txs,
                         state_root,
-                        gas_used: 0,
+                        gas_used,
                         gas_limit: 30_000_000,
                     };
 
@@ -767,12 +771,12 @@ impl AxionaxNode {
             info!("RPC server stopped");
         }
 
-        // Stop network (note: NetworkManager doesn't have shutdown method yet)
-        // {
-        //     let mut network = self.network.write().await;
-        //     // network.shutdown().await?;
-        //     info!("Network layer stopped");
-        // }
+        // Stop network
+        {
+            let mut network = self.network.lock().await;
+            network.shutdown().await;
+            info!("Network layer stopped");
+        }
 
         // Close state database (note: close() returns () not Result)
         // self.state.close()?;

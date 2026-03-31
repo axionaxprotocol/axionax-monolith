@@ -245,6 +245,17 @@ impl NetworkManager {
             .collect()
     }
 
+    /// Gracefully shut down the network manager.
+    /// Disconnects all active peers; the swarm resources are released on drop.
+    pub async fn shutdown(&mut self) {
+        let peers: Vec<PeerId> = self.connected_peers();
+        let count = peers.len();
+        for peer_id in peers {
+            let _ = self.swarm.disconnect_peer_id(peer_id);
+        }
+        info!("Network manager shut down ({} peers disconnected)", count);
+    }
+
     /// Run the network event loop
     pub async fn run(&mut self) -> Result<()> {
         info!("Network manager running");
