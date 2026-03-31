@@ -16,3 +16,4 @@ pylint>=2.17.0,<4.0
 mypy>=1.4.0,<2.0
 eth-account>=0.10.0,<1.0
 google-cloud-aiplatform>=1.35.0,<2.0
+py-solc-x>=0.3.0,<1.0

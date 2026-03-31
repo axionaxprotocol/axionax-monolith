@@ -16,6 +16,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from eth_account import Account
+from eth_account.signers.local import LocalAccount
 from web3 import Web3
 from web3.exceptions import ContractLogicError
 
@@ -60,10 +62,25 @@ class ContractManager:
     return sensible defaults.
     """
 
-    def __init__(self, rpc_url: str, private_key: str, contract_address: str = ""):
+    def __init__(
+        self,
+        rpc_url: str,
+        account: LocalAccount,
+        contract_address: str = "",
+    ) -> None:
+        """
+        Args:
+            rpc_url: HTTP/HTTPS URL of the Axionax JSON-RPC endpoint.
+            account: An ``eth_account.Account`` instance (use
+                     ``Account.from_key(private_key)`` or
+                     ``WalletManager.account`` directly).
+            contract_address: Deployed JobMarketplace address.  Defaults to
+                              the ``AXIONAX_MARKETPLACE_ADDRESS`` env var, or
+                              ZERO_ADDRESS (mock mode) if unset.
+        """
         self.w3 = Web3(Web3.HTTPProvider(rpc_url))
-        self.account = self.w3.eth.account.from_key(private_key)
-        self.address = self.account.address
+        self.account: LocalAccount = account
+        self.address: str = account.address
 
         addr = (contract_address or MARKETPLACE_ADDRESS).strip()
         self.marketplace_address = Web3.to_checksum_address(addr)

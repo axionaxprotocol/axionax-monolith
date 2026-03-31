@@ -5,6 +5,32 @@ All notable changes to AxionAx Core will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-03-31
+
+### Added
+
+**Merkle State Root (replaces SHA3 heuristic):**
+- `core/core/state/src/merkle.rs`: binary Merkle tree using `blake2s_256` — `account_leaf()` + `merkle_root()` + 8 unit tests
+- `StateDB::get_all_accounts()`: iterates redb CHAIN_STATE for all `bal_0x*` entries, returns sorted `(address, balance, nonce)` list
+- `StateDB::compute_state_root()`: computes real Merkle root over all account states — replaces SHA3(block_number||tx_hashes) heuristic
+- Block producer in `node/lib.rs` now calls `state.compute_state_root()` (fallback to `[0u8;32]` + warn on error)
+- 7 integration tests in `state/src/lib.rs` covering empty root, determinism, mutation-sensitivity, insertion-order independence
+
+**Worker Registration — Contract Integration (replaces full mock):**
+- `contracts/MockAXXToken.sol`: standalone ERC-20 testnet token (no external imports, includes `mint()`)
+- `contracts/JobMarketplaceStandalone.sol`: production-grade JobMarketplace contract — matches `job_marketplace.json` ABI exactly; inline IERC20 interface, mutex reentrancy guard, full job lifecycle (register/assign/submit/claim/dispute/cancel/slash)
+- `ops/scripts/deploy_marketplace.py`: one-command deployment script using `py-solc-x` + `web3.py`; deploys MockAXXToken then JobMarketplace; writes addresses to `ops/deploy/marketplace_addresses.json`
+- `core/deai/test_contract_manager.py`: 26 unit tests for `ContractManager` (mock mode, ABI validation, hash helpers, constructor) — all passing
+- `core/deai/requirements.txt`: added `py-solc-x>=0.3.0,<1.0`
+
+### Fixed
+
+- **`ContractManager.__init__`** parameter mismatch: changed `private_key: str` → `account: LocalAccount` to match how `worker_node.py` instantiates it (was raising `TypeError` in production)
+
+### Changed
+
+- `state_root` field in produced blocks is now a real cryptographic Merkle root of account state, not a placeholder hash
+
 ## [1.9.0] - 2026-03-29
 
 ### Added
