@@ -370,14 +370,14 @@ impl AxionaxNode {
                     hash_input.extend_from_slice(&timestamp.to_le_bytes());
                     let block_hash = crypto::hash::sha3_256(&hash_input);
 
-                    let state_root = {
-                        let mut sr_input = Vec::with_capacity(8 + pending_txs.len() * 32);
-                        sr_input.extend_from_slice(&new_number.to_le_bytes());
-                        for tx in &pending_txs {
-                            sr_input.extend_from_slice(&tx.hash);
-                        }
-                        crypto::hash::sha3_256(&sr_input)
-                    };
+                    // Compute Merkle state root over all account balances and nonces.
+                    // Transactions from the mempool were already applied to state when
+                    // they were accepted via eth_sendRawTransaction, so the current
+                    // state already reflects the post-transaction account snapshot.
+                    let state_root = state.compute_state_root().unwrap_or_else(|e| {
+                        tracing::warn!("compute_state_root failed, falling back to zero: {}", e);
+                        [0u8; 32]
+                    });
 
                     let proposer = validator_address.clone()
                         .unwrap_or_else(|| "unknown".to_string());

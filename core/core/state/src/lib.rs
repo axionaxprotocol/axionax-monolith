@@ -5,6 +5,8 @@
 //! - Chain state and metadata
 //! - Account balances and nonces
 
+pub mod merkle;
+
 use redb::{Database, ReadableTable, TableDefinition};
 use std::collections::HashMap;
 use std::path::Path;
@@ -421,6 +423,61 @@ impl StateDB {
         Ok(())
     }
 
+    /// Iterate all accounts stored in the state database.
+    ///
+    /// Returns a **sorted** (by address, ascending) list of `(address, balance, nonce)` tuples.
+    /// Only entries with a `bal_0x` prefix are considered — system keys are skipped.
+    pub fn get_all_accounts(&self) -> Result<Vec<(String, u128, u64)>> {
+        // Phase 1: collect all balance entries inside one read transaction.
+        let address_balances: Vec<(String, u128)> = {
+            let read_txn = self.db.begin_read()?;
+            let t = read_txn.open_table(CHAIN_STATE)?;
+            let mut result = Vec::new();
+            for entry in t.iter()? {
+                let (key_guard, val_guard) = entry?;
+                let key: &str = key_guard.value();
+                if let Some(addr_lower) = key.strip_prefix("bal_0x") {
+                    let address = format!("0x{}", addr_lower);
+                    let bytes: &[u8] = val_guard.value();
+                    let balance = if bytes.len() >= 16 {
+                        let mut arr = [0u8; 16];
+                        arr.copy_from_slice(&bytes[..16]);
+                        u128::from_be_bytes(arr)
+                    } else {
+                        0
+                    };
+                    result.push((address, balance));
+                }
+            }
+            result
+        };
+
+        // Phase 2: fetch nonces in separate transactions (read txn above already dropped).
+        let mut accounts = Vec::with_capacity(address_balances.len());
+        for (address, balance) in address_balances {
+            let nonce = self.get_nonce(&address)?;
+            accounts.push((address, balance, nonce));
+        }
+
+        accounts.sort_by(|a, b| a.0.cmp(&b.0));
+        Ok(accounts)
+    }
+
+    /// Compute the Merkle state root over all account balances and nonces.
+    ///
+    /// Each account produces one leaf: `blake2s_256(address || balance_be || nonce_be)`.
+    /// Leaves are sorted by address before building the binary Merkle tree.
+    ///
+    /// Returns `[0u8; 32]` when the state is empty (genesis or no accounts yet).
+    pub fn compute_state_root(&self) -> Result<[u8; 32]> {
+        let accounts = self.get_all_accounts()?;
+        let leaves: Vec<[u8; 32]> = accounts
+            .iter()
+            .map(|(addr, balance, nonce)| merkle::account_leaf(addr, *balance, *nonce))
+            .collect();
+        Ok(merkle::merkle_root(leaves))
+    }
+
     /// Close the database
     pub fn close(self) {
         info!("Closing state database");
@@ -584,5 +641,95 @@ mod tests {
             result.unwrap_err(),
             StateError::TransactionNotFound(_)
         ));
+    }
+
+    #[test]
+    fn test_get_all_accounts_empty() {
+        let temp_dir = TempDir::new().unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
+        let accounts = db.get_all_accounts().unwrap();
+        assert!(accounts.is_empty());
+    }
+
+    #[test]
+    fn test_get_all_accounts_returns_sorted() {
+        let temp_dir = TempDir::new().unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
+
+        db.set_balance("0xcccccccccccccccccccccccccccccccccccccccc", 300).unwrap();
+        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100).unwrap();
+        db.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200).unwrap();
+
+        let accounts = db.get_all_accounts().unwrap();
+        assert_eq!(accounts.len(), 3);
+        assert!(accounts[0].0 <= accounts[1].0);
+        assert!(accounts[1].0 <= accounts[2].0);
+    }
+
+    #[test]
+    fn test_get_all_accounts_balance_and_nonce() {
+        let temp_dir = TempDir::new().unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
+
+        let addr = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        db.set_balance(addr, 999_000_000_000_000_000_000).unwrap();
+        db.set_nonce(addr, 42).unwrap();
+
+        let accounts = db.get_all_accounts().unwrap();
+        assert_eq!(accounts.len(), 1);
+        assert_eq!(accounts[0].0, addr);
+        assert_eq!(accounts[0].1, 999_000_000_000_000_000_000);
+        assert_eq!(accounts[0].2, 42);
+    }
+
+    #[test]
+    fn test_compute_state_root_empty_is_zero() {
+        let temp_dir = TempDir::new().unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
+        let root = db.compute_state_root().unwrap();
+        assert_eq!(root, [0u8; 32]);
+    }
+
+    #[test]
+    fn test_compute_state_root_deterministic() {
+        let temp_dir = TempDir::new().unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
+
+        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1_000_000).unwrap();
+        db.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 2_000_000).unwrap();
+
+        let root1 = db.compute_state_root().unwrap();
+        let root2 = db.compute_state_root().unwrap();
+        assert_eq!(root1, root2);
+        assert_ne!(root1, [0u8; 32]);
+    }
+
+    #[test]
+    fn test_compute_state_root_changes_on_balance_update() {
+        let temp_dir = TempDir::new().unwrap();
+        let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
+
+        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1_000_000).unwrap();
+        let root_before = db.compute_state_root().unwrap();
+
+        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 2_000_000).unwrap();
+        let root_after = db.compute_state_root().unwrap();
+
+        assert_ne!(root_before, root_after);
+    }
+
+    #[test]
+    fn test_compute_state_root_order_independent_via_sort() {
+        let temp_dir1 = TempDir::new().unwrap();
+        let db1 = StateDB::open(temp_dir1.path().join("state.redb")).unwrap();
+        db1.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100).unwrap();
+        db1.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200).unwrap();
+
+        let temp_dir2 = TempDir::new().unwrap();
+        let db2 = StateDB::open(temp_dir2.path().join("state.redb")).unwrap();
+        db2.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200).unwrap();
+        db2.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100).unwrap();
+
+        assert_eq!(db1.compute_state_root().unwrap(), db2.compute_state_root().unwrap());
     }
 }
