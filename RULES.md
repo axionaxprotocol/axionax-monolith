@@ -200,14 +200,16 @@ docs(deai): update worker_config.toml field descriptions
 
 | Area | Status | Priority |
 |---|---|---|
-| `state_root` — still SHA3 heuristic, not full Merkle state root | Placeholder | 🔴 High |
-| `gas_used = 0` in locally produced blocks | Placeholder | 🟡 Medium |
-| Worker registration / result submission | Mock (awaiting smart contract deploy) | 🔴 High |
-| Smart contract deployment on testnet | Not deployed | 🔴 High |
-| `NetworkManager::shutdown()` — commented out | Incomplete | 🟢 Low |
+| ~~`state_root` — SHA3 heuristic~~ | ✅ **Done** — real Blake2s-256 Merkle root (`state/src/merkle.rs`) | — |
+| ~~`gas_used = 0` in locally produced blocks~~ | ✅ **Done** — sum of `tx.gas_limit` per block | — |
+| ~~Worker registration / result submission~~ | ✅ **Done** — `ContractManager` live mode + `JobMarketplaceStandalone.sol` + deploy script | — |
+| ~~`NetworkManager::shutdown()` — commented out~~ | ✅ **Done** — `shutdown()` implemented and wired into `AxionaxNode::shutdown()` | — |
+| Smart contract deployment on testnet | Pending — run `ops/scripts/deploy_marketplace.py` after testnet is live | � Medium |
+| Blockscout `SECRET_KEY_BASE` | Replace placeholder in `ops/deploy/.../explorer.env` before deploying | 🟡 Medium |
+| Validator selection — fallback to `peer_id` hash | Should be VRF-based in production (currently round-robin over sorted validators) | � Medium |
 
 > **When working on any of the above areas:** check with the team before changing the interface, as downstream code depends on the current behavior.
 
 ---
 
-*Last updated: 2026-03-30 | Version: 2.0 | Aligned with Core v1.9.0*
+*Last updated: 2026-03-31 | Version: 2.1 | Aligned with Core v1.10.0*
