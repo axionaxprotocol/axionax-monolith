@@ -5,26 +5,29 @@
 //! and block production (when running as a validator).
 
 use std::net::SocketAddr;
-use std::sync::Arc;
 use std::path::Path;
+use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
 use tokio::task::JoinHandle;
-use tracing::{info, warn, error, debug};
+use tracing::{debug, error, info, warn};
 
-use blockchain::{Block, Transaction, TransactionPool, PoolConfig, PoolError, ValidationConfig};
-use network::{NetworkManager, NetworkConfig, NetworkMessage};
-use network::protocol::{BlockMessage, TransactionMessage, BlockConfirmationMessage};
-use state::StateDB;
-use rpc::start_rpc_server_full;
-use staking::Staking;
+use blockchain::{Block, PoolConfig, PoolError, Transaction, TransactionPool, ValidationConfig};
 use governance::Governance;
 use jsonrpsee::server::ServerHandle;
+use network::protocol::{BlockConfirmationMessage, BlockMessage, TransactionMessage};
+use network::{NetworkConfig, NetworkManager, NetworkMessage};
+use rpc::start_rpc_server_full;
+use staking::Staking;
+use state::StateDB;
 
 /// Convert hex string to [u8; 32] hash
 fn hex_to_hash(hex: &str) -> Result<[u8; 32], String> {
     let hex = hex.strip_prefix("0x").unwrap_or(hex);
     if hex.len() != 64 {
-        return Err(format!("Invalid hash length: expected 64, got {}", hex.len()));
+        return Err(format!(
+            "Invalid hash length: expected 64, got {}",
+            hex.len()
+        ));
     }
     let bytes = hex::decode(hex).map_err(|e| e.to_string())?;
     let mut hash = [0u8; 32];
@@ -109,7 +112,8 @@ impl FinalityTracker {
         if self.finalized.contains(block_hash) {
             return false;
         }
-        self.block_numbers.insert(block_hash.to_string(), block_number);
+        self.block_numbers
+            .insert(block_hash.to_string(), block_number);
         let votes = self.votes.entry(block_hash.to_string()).or_default();
         votes.insert(validator.to_string());
         let threshold = (active_count * 2).div_ceil(3).max(1);
@@ -169,7 +173,10 @@ impl AxionaxNode {
             state.store_block(&genesis_block)?;
             let g = genesis::GenesisGenerator::mainnet();
             state.seed_genesis_balances(&g.config.balances)?;
-            info!("Genesis block and {} balances seeded", g.config.balances.len());
+            info!(
+                "Genesis block and {} balances seeded",
+                g.config.balances.len()
+            );
         }
 
         // Initialize network manager
@@ -190,7 +197,9 @@ impl AxionaxNode {
 
         // Initialize staking and governance modules
         let staking = Arc::new(RwLock::new(Staking::new(staking::StakingConfig::default())));
-        let governance = Arc::new(RwLock::new(Governance::new(governance::GovernanceConfig::default())));
+        let governance = Arc::new(RwLock::new(Governance::new(
+            governance::GovernanceConfig::default(),
+        )));
         info!("Staking and governance modules initialized");
 
         let stats = Arc::new(RwLock::new(NodeStats::default()));
@@ -240,7 +249,8 @@ impl AxionaxNode {
             Some(self.event_bus.clone()),
             Some(self.staking.clone()),
             Some((self.governance.clone(), self.staking.clone())),
-        ).await?;
+        )
+        .await?;
         self.rpc_handle = Some(rpc_handle);
         info!("RPC server started on {}", self.config.rpc_addr);
 
@@ -268,14 +278,18 @@ impl AxionaxNode {
         // Start block producer for validator role
         if role == "validator" {
             let block_time = self.config.network.block_time_seconds;
-            let handle = self.start_block_producer(
-                block_time,
-                self.staking.clone(),
-                self.config.validator_address.clone(),
-            ).await;
+            let handle = self
+                .start_block_producer(
+                    block_time,
+                    self.staking.clone(),
+                    self.config.validator_address.clone(),
+                )
+                .await;
             self.producer_handle = Some(handle);
-            info!("Block producer started (interval={}s, address={:?})",
-                block_time, self.config.validator_address);
+            info!(
+                "Block producer started (interval={}s, address={:?})",
+                block_time, self.config.validator_address
+            );
         }
 
         info!("✅ axionax node fully operational!");
@@ -296,8 +310,10 @@ impl AxionaxNode {
         let local_peer_id = self.local_peer_id;
 
         tokio::spawn(async move {
-            info!("Block producer running (every {}s, validator={:?})...",
-                block_time_secs, validator_address);
+            info!(
+                "Block producer running (every {}s, validator={:?})...",
+                block_time_secs, validator_address
+            );
 
             let interval = tokio::time::Duration::from_secs(block_time_secs);
             let mut round_count = 0u64;
@@ -310,8 +326,12 @@ impl AxionaxNode {
                 // This is deterministic and consistent across all peers.
                 let active_validators = {
                     let s = staking.read().await;
-                    let mut v: Vec<String> = s.get_active_validators().await
-                        .into_iter().map(|vi| vi.address).collect();
+                    let mut v: Vec<String> = s
+                        .get_active_validators()
+                        .await
+                        .into_iter()
+                        .map(|vi| vi.address)
+                        .collect();
                     v.sort();
                     v
                 };
@@ -320,7 +340,10 @@ impl AxionaxNode {
 
                 // Determine slot based on our validator_address position, or fallback to peer_id hash
                 let my_slot = if let Some(ref addr) = validator_address {
-                    active_validators.iter().position(|a| a == addr).map(|i| i as u64)
+                    active_validators
+                        .iter()
+                        .position(|a| a == addr)
+                        .map(|i| i as u64)
                 } else {
                     None
                 };
@@ -338,12 +361,17 @@ impl AxionaxNode {
                 };
 
                 if !should_produce {
-                    debug!("Skipping block production (not my turn, round={}, validators={})",
-                        round_count, validator_count);
+                    debug!(
+                        "Skipping block production (not my turn, round={}, validators={})",
+                        round_count, validator_count
+                    );
                     continue;
                 }
 
-                debug!("My turn to produce block (round={}, slot={:?})", round_count, my_slot);
+                debug!(
+                    "My turn to produce block (round={}, slot={:?})",
+                    round_count, my_slot
+                );
 
                 // Step 1 (async): Get pending transactions from mempool
                 let pending_txs = mempool.get_pending_transactions(100).await;
@@ -379,10 +407,12 @@ impl AxionaxNode {
                         [0u8; 32]
                     });
 
-                    let proposer = validator_address.clone()
+                    let proposer = validator_address
+                        .clone()
                         .unwrap_or_else(|| "unknown".to_string());
 
-                    let gas_used: u64 = pending_txs.iter()
+                    let gas_used: u64 = pending_txs
+                        .iter()
                         .map(|tx| tx.gas_limit)
                         .fold(0u64, |acc, g| acc.saturating_add(g));
 
@@ -414,7 +444,8 @@ impl AxionaxNode {
                         s.blocks_stored = new_number;
                     }
 
-                    info!("⛏ Produced block #{} (txs={}, hash=0x{})",
+                    info!(
+                        "⛏ Produced block #{} (txs={}, hash=0x{})",
                         new_number,
                         block.transactions.len(),
                         hex::encode(&block_hash[..4]),
@@ -426,7 +457,9 @@ impl AxionaxNode {
                         parent_hash: hash_to_hex(&block.parent_hash),
                         timestamp: block.timestamp,
                         proposer: block.proposer.clone(),
-                        transactions: block.transactions.iter()
+                        transactions: block
+                            .transactions
+                            .iter()
                             .map(|tx| hash_to_hex(&tx.hash))
                             .collect(),
                         state_root: hash_to_hex(&block.state_root),
@@ -444,13 +477,11 @@ impl AxionaxNode {
 
                     // Broadcast our own finality confirmation
                     if let Some(ref addr) = validator_address {
-                        let conf = NetworkMessage::BlockConfirmation(
-                            BlockConfirmationMessage {
-                                block_hash: hash_to_hex(&block_hash),
-                                block_number: new_number,
-                                validator_address: addr.clone(),
-                            }
-                        );
+                        let conf = NetworkMessage::BlockConfirmation(BlockConfirmationMessage {
+                            block_hash: hash_to_hex(&block_hash),
+                            block_number: new_number,
+                            validator_address: addr.clone(),
+                        });
                         if let Ok(mut net) = network.try_lock() {
                             let _ = net.publish(conf);
                         }
@@ -614,7 +645,11 @@ impl AxionaxNode {
 
         // Store block
         state.store_block(&block)?;
-        info!("✅ Stored block #{} (hash: {})", block.number, hex::encode(&block.hash[..8]));
+        info!(
+            "✅ Stored block #{} (hash: {})",
+            block.number,
+            hex::encode(&block.hash[..8])
+        );
 
         // Update stats
         {
@@ -628,11 +663,14 @@ impl AxionaxNode {
     /// Calculate total gas used by transactions
     fn calculate_gas_used(transactions: &[Transaction]) -> u64 {
         // Simple gas calculation: 21000 base + 68 per data byte
-        transactions.iter().map(|tx| {
-            let base_gas = 21_000u64;
-            let data_gas = tx.data.len() as u64 * 68;
-            base_gas + data_gas
-        }).sum()
+        transactions
+            .iter()
+            .map(|tx| {
+                let base_gas = 21_000u64;
+                let data_gas = tx.data.len() as u64 * 68;
+                base_gas + data_gas
+            })
+            .sum()
     }
 
     /// Handle incoming transaction message from network
@@ -650,8 +688,8 @@ impl AxionaxNode {
         }
 
         // Convert hash from hex string to [u8; 32]
-        let hash = hex_to_hash(&tx_msg.hash)
-            .map_err(|e| anyhow::anyhow!("Invalid tx hash: {}", e))?;
+        let hash =
+            hex_to_hash(&tx_msg.hash).map_err(|e| anyhow::anyhow!("Invalid tx hash: {}", e))?;
 
         // Skip if already in state DB (confirmed)
         if state.get_transaction(&hash).is_ok() {
@@ -703,7 +741,9 @@ impl AxionaxNode {
             parent_hash: hash_to_hex(&block.parent_hash),
             timestamp: block.timestamp,
             proposer: block.proposer.clone(),
-            transactions: block.transactions.iter()
+            transactions: block
+                .transactions
+                .iter()
                 .map(|tx| hash_to_hex(&tx.hash))
                 .collect(),
             state_root: hash_to_hex(&block.state_root),
@@ -717,7 +757,10 @@ impl AxionaxNode {
 
     /// Publish a transaction to the network
     pub async fn publish_transaction(&self, tx: &Transaction) -> anyhow::Result<()> {
-        debug!("Publishing transaction to network: {}", hex::encode(&tx.hash[..8]));
+        debug!(
+            "Publishing transaction to network: {}",
+            hex::encode(&tx.hash[..8])
+        );
 
         // Convert Transaction to TransactionMessage with all fields for full propagation
         let tx_msg = TransactionMessage {
@@ -870,7 +913,7 @@ mod tests {
         // Same validator voting twice must not double-count
         ft.record_vote("0xhash1", 1, "val1", 3);
         ft.record_vote("0xhash1", 1, "val1", 3); // duplicate
-        // threshold=2; still needs val2
+                                                 // threshold=2; still needs val2
         let result = ft.record_vote("0xhash1", 1, "val2", 3);
         assert!(result);
     }

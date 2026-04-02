@@ -18,7 +18,7 @@ use tracing::info;
 pub enum StakingRpcError {
     #[error("Staking error: {0}")]
     StakingError(String),
-    
+
     #[error("Invalid parameters: {0}")]
     InvalidParams(String),
 
@@ -96,19 +96,43 @@ pub trait StakingRpc {
     /// Stake tokens. Requires `signature` and `public_key` for authentication.
     /// The server derives the caller address from the public key and verifies the signature.
     #[method(name = "staking_stake")]
-    async fn stake(&self, address: String, amount: String, signature: String, public_key: String) -> RpcResult<bool>;
+    async fn stake(
+        &self,
+        address: String,
+        amount: String,
+        signature: String,
+        public_key: String,
+    ) -> RpcResult<bool>;
 
     /// Initiate unstaking. Requires signature authentication.
     #[method(name = "staking_unstake")]
-    async fn unstake(&self, address: String, amount: String, signature: String, public_key: String) -> RpcResult<bool>;
+    async fn unstake(
+        &self,
+        address: String,
+        amount: String,
+        signature: String,
+        public_key: String,
+    ) -> RpcResult<bool>;
 
     /// Delegate to validator. Requires signature authentication.
     #[method(name = "staking_delegate")]
-    async fn delegate(&self, delegator: String, validator: String, amount: String, signature: String, public_key: String) -> RpcResult<bool>;
+    async fn delegate(
+        &self,
+        delegator: String,
+        validator: String,
+        amount: String,
+        signature: String,
+        public_key: String,
+    ) -> RpcResult<bool>;
 
     /// Claim staking rewards. Requires signature authentication.
     #[method(name = "staking_claimRewards")]
-    async fn claim_rewards(&self, address: String, signature: String, public_key: String) -> RpcResult<String>;
+    async fn claim_rewards(
+        &self,
+        address: String,
+        signature: String,
+        public_key: String,
+    ) -> RpcResult<String>;
 }
 
 /// Staking RPC Server Implementation
@@ -134,7 +158,10 @@ impl StakingRpcServer for StakingRpcServerImpl {
     async fn get_active_validators(&self) -> RpcResult<Vec<ValidatorResponse>> {
         let staking = self.staking.read().await;
         let validators = staking.get_active_validators().await;
-        Ok(validators.into_iter().map(ValidatorResponse::from).collect())
+        Ok(validators
+            .into_iter()
+            .map(ValidatorResponse::from)
+            .collect())
     }
 
     async fn get_total_staked(&self) -> RpcResult<String> {
@@ -147,7 +174,7 @@ impl StakingRpcServer for StakingRpcServerImpl {
         let staking = self.staking.read().await;
         let total_staked = staking.get_total_staked().await;
         let validators = staking.get_active_validators().await;
-        
+
         Ok(StakingStatsResponse {
             total_staked: format!("0x{:x}", total_staked),
             total_validators: validators.len() as u64,
@@ -156,56 +183,89 @@ impl StakingRpcServer for StakingRpcServerImpl {
         })
     }
 
-    async fn stake(&self, address: String, amount: String, signature: String, public_key: String) -> RpcResult<bool> {
+    async fn stake(
+        &self,
+        address: String,
+        amount: String,
+        signature: String,
+        public_key: String,
+    ) -> RpcResult<bool> {
         let verified_addr = verify_signed_request(&address, "stake", &signature, &public_key)
             .map_err(StakingRpcError::AuthError)?;
-        let amount = parse_hex_u128(&amount)
-            .map_err(StakingRpcError::InvalidParams)?;
-        
+        let amount = parse_hex_u128(&amount).map_err(StakingRpcError::InvalidParams)?;
+
         let staking = self.staking.read().await;
-        staking.stake(verified_addr.clone(), amount).await
+        staking
+            .stake(verified_addr.clone(), amount)
+            .await
             .map_err(|e| StakingRpcError::StakingError(e.to_string()))?;
-        
+
         info!("RPC: Staked {} for {}", amount, verified_addr);
         Ok(true)
     }
 
-    async fn unstake(&self, address: String, amount: String, signature: String, public_key: String) -> RpcResult<bool> {
+    async fn unstake(
+        &self,
+        address: String,
+        amount: String,
+        signature: String,
+        public_key: String,
+    ) -> RpcResult<bool> {
         let verified_addr = verify_signed_request(&address, "unstake", &signature, &public_key)
             .map_err(StakingRpcError::AuthError)?;
-        let amount = parse_hex_u128(&amount)
-            .map_err(StakingRpcError::InvalidParams)?;
-        
+        let amount = parse_hex_u128(&amount).map_err(StakingRpcError::InvalidParams)?;
+
         let staking = self.staking.read().await;
-        staking.unstake(verified_addr.clone(), amount).await
+        staking
+            .unstake(verified_addr.clone(), amount)
+            .await
             .map_err(|e| StakingRpcError::StakingError(e.to_string()))?;
-        
+
         info!("RPC: Unstaked {} for {}", amount, verified_addr);
         Ok(true)
     }
 
-    async fn delegate(&self, delegator: String, validator: String, amount: String, signature: String, public_key: String) -> RpcResult<bool> {
+    async fn delegate(
+        &self,
+        delegator: String,
+        validator: String,
+        amount: String,
+        signature: String,
+        public_key: String,
+    ) -> RpcResult<bool> {
         let verified_addr = verify_signed_request(&delegator, "delegate", &signature, &public_key)
             .map_err(StakingRpcError::AuthError)?;
-        let amount = parse_hex_u128(&amount)
-            .map_err(StakingRpcError::InvalidParams)?;
-        
+        let amount = parse_hex_u128(&amount).map_err(StakingRpcError::InvalidParams)?;
+
         let staking = self.staking.read().await;
-        staking.delegate(verified_addr.clone(), validator.clone(), amount).await
+        staking
+            .delegate(verified_addr.clone(), validator.clone(), amount)
+            .await
             .map_err(|e| StakingRpcError::StakingError(e.to_string()))?;
-        
-        info!("RPC: Delegated {} from {} to {}", amount, verified_addr, validator);
+
+        info!(
+            "RPC: Delegated {} from {} to {}",
+            amount, verified_addr, validator
+        );
         Ok(true)
     }
 
-    async fn claim_rewards(&self, address: String, signature: String, public_key: String) -> RpcResult<String> {
-        let verified_addr = verify_signed_request(&address, "claimRewards", &signature, &public_key)
-            .map_err(StakingRpcError::AuthError)?;
+    async fn claim_rewards(
+        &self,
+        address: String,
+        signature: String,
+        public_key: String,
+    ) -> RpcResult<String> {
+        let verified_addr =
+            verify_signed_request(&address, "claimRewards", &signature, &public_key)
+                .map_err(StakingRpcError::AuthError)?;
 
         let staking = self.staking.read().await;
-        let rewards = staking.claim_rewards(verified_addr.clone()).await
+        let rewards = staking
+            .claim_rewards(verified_addr.clone())
+            .await
             .map_err(|e| StakingRpcError::StakingError(e.to_string()))?;
-        
+
         info!("RPC: Claimed {} rewards for {}", rewards, verified_addr);
         Ok(format!("0x{:x}", rewards))
     }

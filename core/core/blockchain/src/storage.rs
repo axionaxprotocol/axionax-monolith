@@ -3,9 +3,9 @@
 //! Uses `redb` (pure-Rust embedded database) for block storage.
 //! Blocks are serialized with `postcard` for efficient storage.
 
+use redb::{Database, TableDefinition};
 use std::path::Path;
 use thiserror::Error;
-use redb::{Database, TableDefinition};
 
 use crate::Block;
 
@@ -126,8 +126,7 @@ impl RedbBlockStore {
 
     /// Creates a temporary in-memory store (for testing)
     pub fn open_temp() -> StorageResult<Self> {
-        let db = Database::builder()
-            .create_with_backend(redb::backends::InMemoryBackend::new())?;
+        let db = Database::builder().create_with_backend(redb::backends::InMemoryBackend::new())?;
         let tx = db.begin_write()?;
         tx.open_table(BLOCKS)?;
         tx.open_table(META)?;
@@ -163,7 +162,8 @@ impl BlockStore for RedbBlockStore {
         let table = tx.open_table(BLOCKS)?;
         match table.get(number)? {
             Some(data) => {
-                let block: Block = postcard::from_bytes(data.value()).map_err(StorageError::from)?;
+                let block: Block =
+                    postcard::from_bytes(data.value()).map_err(StorageError::from)?;
                 Ok(Some(block))
             }
             None => Ok(None),

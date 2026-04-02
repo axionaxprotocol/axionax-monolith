@@ -2,9 +2,8 @@
 
 use futures::StreamExt;
 use libp2p::{
-    gossipsub, mdns,
-    identity::Keypair, multiaddr::Protocol, swarm::SwarmEvent, Multiaddr, PeerId, Swarm,
-    SwarmBuilder,
+    gossipsub, identity::Keypair, mdns, multiaddr::Protocol, swarm::SwarmEvent, Multiaddr, PeerId,
+    Swarm, SwarmBuilder,
 };
 use std::path::Path;
 use tokio::sync::mpsc;
@@ -49,23 +48,28 @@ impl NetworkManager {
     /// Load a persisted keypair from `path`, or generate a new one and save it.
     fn load_or_generate_keypair(path: &Path) -> Result<Keypair> {
         if path.exists() {
-            let bytes = std::fs::read(path)
-                .map_err(|e| NetworkError::InitializationError(format!("Cannot read key file: {}", e)))?;
-            let kp = Keypair::from_protobuf_encoding(&bytes)
-                .map_err(|e| NetworkError::InitializationError(format!("Invalid key file: {}", e)))?;
+            let bytes = std::fs::read(path).map_err(|e| {
+                NetworkError::InitializationError(format!("Cannot read key file: {}", e))
+            })?;
+            let kp = Keypair::from_protobuf_encoding(&bytes).map_err(|e| {
+                NetworkError::InitializationError(format!("Invalid key file: {}", e))
+            })?;
             info!("Loaded node identity from {}", path.display());
             return Ok(kp);
         }
 
         let kp = Keypair::generate_ed25519();
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| NetworkError::InitializationError(format!("Cannot create key dir: {}", e)))?;
+            std::fs::create_dir_all(parent).map_err(|e| {
+                NetworkError::InitializationError(format!("Cannot create key dir: {}", e))
+            })?;
         }
-        let encoded = kp.to_protobuf_encoding()
-            .map_err(|e| NetworkError::InitializationError(format!("Cannot encode keypair: {}", e)))?;
-        std::fs::write(path, &encoded)
-            .map_err(|e| NetworkError::InitializationError(format!("Cannot write key file: {}", e)))?;
+        let encoded = kp.to_protobuf_encoding().map_err(|e| {
+            NetworkError::InitializationError(format!("Cannot encode keypair: {}", e))
+        })?;
+        std::fs::write(path, &encoded).map_err(|e| {
+            NetworkError::InitializationError(format!("Cannot write key file: {}", e))
+        })?;
 
         #[cfg(unix)]
         {
@@ -73,7 +77,10 @@ impl NetworkManager {
             let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600));
         }
 
-        info!("Generated and saved new node identity to {}", path.display());
+        info!(
+            "Generated and saved new node identity to {}",
+            path.display()
+        );
         Ok(kp)
     }
 
@@ -343,7 +350,10 @@ impl NetworkManager {
                 match NetworkMessage::from_bytes(&message.data) {
                     Ok(net_msg) => {
                         if self.event_tx.try_send(net_msg).is_err() {
-                            warn!("Inbound event channel full; dropping message {}", message_id);
+                            warn!(
+                                "Inbound event channel full; dropping message {}",
+                                message_id
+                            );
                         }
                     }
                     Err(e) => {

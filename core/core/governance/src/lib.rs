@@ -63,16 +63,16 @@ pub type Result<T> = std::result::Result<T, GovernanceError>;
 pub struct GovernanceConfig {
     /// Minimum stake to create a proposal
     pub min_proposal_stake: u128,
-    
+
     /// Voting period in blocks (~7 days @ 2.5s/block)
     pub voting_period_blocks: u64,
-    
+
     /// Execution delay after voting ends (blocks)
     pub execution_delay_blocks: u64,
-    
+
     /// Quorum percentage (basis points, e.g., 3000 = 30%)
     pub quorum_bps: u16,
-    
+
     /// Pass threshold percentage (basis points, e.g., 5000 = 50%)
     pub pass_threshold_bps: u16,
 }
@@ -86,14 +86,18 @@ impl Default for GovernanceConfig {
 impl GovernanceConfig {
     /// Create a config dynamically adapting block counts based on the target block time
     pub fn with_block_time(block_time_sec: u64) -> Self {
-        let block_time = if block_time_sec == 0 { 1 } else { block_time_sec };
+        let block_time = if block_time_sec == 0 {
+            1
+        } else {
+            block_time_sec
+        };
         let blocks_per_day = (24 * 3600) / block_time;
         Self {
             min_proposal_stake: 100_000 * 10_u128.pow(18), // 100,000 AXX
-            voting_period_blocks: blocks_per_day * 7,       // 7 days
-            execution_delay_blocks: blocks_per_day * 2,     // 2 days
-            quorum_bps: 3000,                               // 30% quorum
-            pass_threshold_bps: 5000,                       // 50%+1 to pass
+            voting_period_blocks: blocks_per_day * 7,      // 7 days
+            execution_delay_blocks: blocks_per_day * 2,    // 2 days
+            quorum_bps: 3000,                              // 30% quorum
+            pass_threshold_bps: 5000,                      // 50%+1 to pass
         }
     }
 }
@@ -139,37 +143,37 @@ pub enum ProposalType {
 pub struct Proposal {
     /// Unique proposal ID
     pub id: u64,
-    
+
     /// Proposer address
     pub proposer: String,
-    
+
     /// Proposal title
     pub title: String,
-    
+
     /// Proposal description
     pub description: String,
-    
+
     /// Proposal type
     pub proposal_type: ProposalType,
-    
+
     /// Block when voting started
     pub start_block: u64,
-    
+
     /// Block when voting ends
     pub end_block: u64,
-    
+
     /// Current status
     pub status: ProposalStatus,
-    
+
     /// Total votes FOR
     pub votes_for: u128,
-    
+
     /// Total votes AGAINST
     pub votes_against: u128,
-    
+
     /// Total votes ABSTAIN  
     pub votes_abstain: u128,
-    
+
     /// Proposer's stake snapshot
     pub proposer_stake: u128,
 }
@@ -181,28 +185,28 @@ impl Proposal {
             .saturating_add(self.votes_against)
             .saturating_add(self.votes_abstain)
     }
-    
+
     /// Check if proposal passed
     pub fn is_passed(&self, total_staked: u128, quorum_bps: u16, pass_threshold_bps: u16) -> bool {
         // Check quorum
         let quorum_required = total_staked
             .saturating_mul(quorum_bps as u128)
             .saturating_div(10_000);
-        
+
         if self.total_votes() < quorum_required {
             return false;
         }
-        
+
         // Check threshold (FOR > threshold of FOR + AGAINST)
         let votes_counted = self.votes_for.saturating_add(self.votes_against);
         if votes_counted == 0 {
             return false;
         }
-        
+
         let threshold = votes_counted
             .saturating_mul(pass_threshold_bps as u128)
             .saturating_div(10_000);
-        
+
         self.votes_for > threshold
     }
 }
@@ -248,11 +252,17 @@ impl Governance {
         proposal_type: ProposalType,
     ) -> Result<u64> {
         if title.len() > 256 {
-            return Err(GovernanceError::TitleTooLong { len: title.len(), max: 256 });
+            return Err(GovernanceError::TitleTooLong {
+                len: title.len(),
+                max: 256,
+            });
         }
 
         if description.len() > 10_000 {
-            return Err(GovernanceError::DescriptionTooLong { len: description.len(), max: 10_000 });
+            return Err(GovernanceError::DescriptionTooLong {
+                len: description.len(),
+                max: 10_000,
+            });
         }
 
         if proposer_stake < self.config.min_proposal_stake {
@@ -301,7 +311,8 @@ impl Governance {
         let mut votes = self.votes.write().await;
         let current_block = *self.current_block.read().await;
 
-        let proposal = proposals.get_mut(&proposal_id)
+        let proposal = proposals
+            .get_mut(&proposal_id)
             .ok_or(GovernanceError::ProposalNotFound(proposal_id))?;
 
         // Check voting period
@@ -322,28 +333,43 @@ impl Governance {
         // Record vote
         match vote {
             VoteOption::For => proposal.votes_for = proposal.votes_for.saturating_add(vote_weight),
-            VoteOption::Against => proposal.votes_against = proposal.votes_against.saturating_add(vote_weight),
-            VoteOption::Abstain => proposal.votes_abstain = proposal.votes_abstain.saturating_add(vote_weight),
+            VoteOption::Against => {
+                proposal.votes_against = proposal.votes_against.saturating_add(vote_weight)
+            }
+            VoteOption::Abstain => {
+                proposal.votes_abstain = proposal.votes_abstain.saturating_add(vote_weight)
+            }
         }
 
-        votes.insert(vote_key, VoteRecord {
-            voter: voter.clone(),
-            proposal_id,
-            vote,
-            weight: vote_weight,
-            block: current_block,
-        });
+        votes.insert(
+            vote_key,
+            VoteRecord {
+                voter: voter.clone(),
+                proposal_id,
+                vote,
+                weight: vote_weight,
+                block: current_block,
+            },
+        );
 
-        debug!("Vote {:?} by {} on proposal {} with weight {}", vote, voter, proposal_id, vote_weight);
+        debug!(
+            "Vote {:?} by {} on proposal {} with weight {}",
+            vote, voter, proposal_id, vote_weight
+        );
         Ok(())
     }
 
     /// Finalize voting and determine outcome
-    pub async fn finalize_proposal(&self, proposal_id: u64, total_staked: u128) -> Result<ProposalStatus> {
+    pub async fn finalize_proposal(
+        &self,
+        proposal_id: u64,
+        total_staked: u128,
+    ) -> Result<ProposalStatus> {
         let mut proposals = self.proposals.write().await;
         let current_block = *self.current_block.read().await;
 
-        let proposal = proposals.get_mut(&proposal_id)
+        let proposal = proposals
+            .get_mut(&proposal_id)
             .ok_or(GovernanceError::ProposalNotFound(proposal_id))?;
 
         if proposal.status != ProposalStatus::Active {
@@ -355,7 +381,11 @@ impl Governance {
         }
 
         // Determine outcome
-        if proposal.is_passed(total_staked, self.config.quorum_bps, self.config.pass_threshold_bps) {
+        if proposal.is_passed(
+            total_staked,
+            self.config.quorum_bps,
+            self.config.pass_threshold_bps,
+        ) {
             proposal.status = ProposalStatus::Passed;
             info!("Proposal {} passed", proposal_id);
         } else {
@@ -371,7 +401,8 @@ impl Governance {
         let mut proposals = self.proposals.write().await;
         let current_block = *self.current_block.read().await;
 
-        let proposal = proposals.get_mut(&proposal_id)
+        let proposal = proposals
+            .get_mut(&proposal_id)
             .ok_or(GovernanceError::ProposalNotFound(proposal_id))?;
 
         if proposal.status == ProposalStatus::Executed {
@@ -414,7 +445,8 @@ impl Governance {
     pub async fn cancel_proposal(&self, proposal_id: u64, caller: &str) -> Result<()> {
         let mut proposals = self.proposals.write().await;
 
-        let proposal = proposals.get_mut(&proposal_id)
+        let proposal = proposals
+            .get_mut(&proposal_id)
             .ok_or(GovernanceError::ProposalNotFound(proposal_id))?;
 
         if proposal.proposer != caller {
@@ -452,7 +484,11 @@ impl Governance {
 
     /// Get vote record
     pub async fn get_vote(&self, proposal_id: u64, voter: &str) -> Option<VoteRecord> {
-        self.votes.read().await.get(&(proposal_id, voter.to_string())).cloned()
+        self.votes
+            .read()
+            .await
+            .get(&(proposal_id, voter.to_string()))
+            .cloned()
     }
 
     /// Update current block
@@ -470,7 +506,7 @@ mod tests {
             min_proposal_stake: 1000,
             voting_period_blocks: 100,
             execution_delay_blocks: 10,
-            quorum_bps: 3000,      // 30%
+            quorum_bps: 3000,         // 30%
             pass_threshold_bps: 5000, // 50%
         }
     }
@@ -478,14 +514,17 @@ mod tests {
     #[tokio::test]
     async fn test_create_proposal() {
         let gov = Governance::new(test_config());
-        
-        let id = gov.create_proposal(
-            "proposer1".to_string(),
-            1000,
-            "Test Proposal".to_string(),
-            "This is a test".to_string(),
-            ProposalType::Text,
-        ).await.unwrap();
+
+        let id = gov
+            .create_proposal(
+                "proposer1".to_string(),
+                1000,
+                "Test Proposal".to_string(),
+                "This is a test".to_string(),
+                ProposalType::Text,
+            )
+            .await
+            .unwrap();
 
         assert_eq!(id, 1);
         let proposal = gov.get_proposal(1).await.unwrap();
@@ -495,32 +534,43 @@ mod tests {
     #[tokio::test]
     async fn test_insufficient_stake() {
         let gov = Governance::new(test_config());
-        
-        let result = gov.create_proposal(
-            "proposer1".to_string(),
-            500, // Below minimum
-            "Test".to_string(),
-            "Test".to_string(),
-            ProposalType::Text,
-        ).await;
 
-        assert!(matches!(result, Err(GovernanceError::InsufficientStake { .. })));
+        let result = gov
+            .create_proposal(
+                "proposer1".to_string(),
+                500, // Below minimum
+                "Test".to_string(),
+                "Test".to_string(),
+                ProposalType::Text,
+            )
+            .await;
+
+        assert!(matches!(
+            result,
+            Err(GovernanceError::InsufficientStake { .. })
+        ));
     }
 
     #[tokio::test]
     async fn test_vote() {
         let gov = Governance::new(test_config());
-        
+
         gov.create_proposal(
             "proposer1".to_string(),
             1000,
             "Test".to_string(),
             "Test".to_string(),
             ProposalType::Text,
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
 
-        gov.vote("voter1".to_string(), 1, VoteOption::For, 100).await.unwrap();
-        gov.vote("voter2".to_string(), 1, VoteOption::Against, 50).await.unwrap();
+        gov.vote("voter1".to_string(), 1, VoteOption::For, 100)
+            .await
+            .unwrap();
+        gov.vote("voter2".to_string(), 1, VoteOption::Against, 50)
+            .await
+            .unwrap();
 
         let proposal = gov.get_proposal(1).await.unwrap();
         assert_eq!(proposal.votes_for, 100);
@@ -530,17 +580,23 @@ mod tests {
     #[tokio::test]
     async fn test_double_vote() {
         let gov = Governance::new(test_config());
-        
+
         gov.create_proposal(
             "proposer1".to_string(),
             1000,
             "Test".to_string(),
             "Test".to_string(),
             ProposalType::Text,
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
 
-        gov.vote("voter1".to_string(), 1, VoteOption::For, 100).await.unwrap();
-        let result = gov.vote("voter1".to_string(), 1, VoteOption::Against, 100).await;
+        gov.vote("voter1".to_string(), 1, VoteOption::For, 100)
+            .await
+            .unwrap();
+        let result = gov
+            .vote("voter1".to_string(), 1, VoteOption::Against, 100)
+            .await;
 
         assert!(matches!(result, Err(GovernanceError::AlreadyVoted(_))));
     }
@@ -548,18 +604,24 @@ mod tests {
     #[tokio::test]
     async fn test_proposal_passes() {
         let gov = Governance::new(test_config());
-        
+
         gov.create_proposal(
             "proposer1".to_string(),
             1000,
             "Test".to_string(),
             "Test".to_string(),
             ProposalType::Text,
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
 
         // Total staked: 1000, quorum: 30% = 300
-        gov.vote("voter1".to_string(), 1, VoteOption::For, 400).await.unwrap();
-        gov.vote("voter2".to_string(), 1, VoteOption::Against, 100).await.unwrap();
+        gov.vote("voter1".to_string(), 1, VoteOption::For, 400)
+            .await
+            .unwrap();
+        gov.vote("voter2".to_string(), 1, VoteOption::Against, 100)
+            .await
+            .unwrap();
 
         // Advance past voting period
         gov.set_current_block(200).await;
@@ -571,17 +633,21 @@ mod tests {
     #[tokio::test]
     async fn test_proposal_fails_quorum() {
         let gov = Governance::new(test_config());
-        
+
         gov.create_proposal(
             "proposer1".to_string(),
             1000,
             "Test".to_string(),
             "Test".to_string(),
             ProposalType::Text,
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
 
         // Only 100 votes, quorum needs 300 (30% of 1000)
-        gov.vote("voter1".to_string(), 1, VoteOption::For, 100).await.unwrap();
+        gov.vote("voter1".to_string(), 1, VoteOption::For, 100)
+            .await
+            .unwrap();
 
         gov.set_current_block(200).await;
 
@@ -592,25 +658,29 @@ mod tests {
     #[tokio::test]
     async fn test_execute_proposal() {
         let gov = Governance::new(test_config());
-        
+
         gov.create_proposal(
             "proposer1".to_string(),
             1000,
             "Param Change".to_string(),
             "Change fee".to_string(),
-            ProposalType::ParameterChange { 
-                key: "base_fee".to_string(), 
-                value: "1000".to_string() 
+            ProposalType::ParameterChange {
+                key: "base_fee".to_string(),
+                value: "1000".to_string(),
             },
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
 
-        gov.vote("voter1".to_string(), 1, VoteOption::For, 400).await.unwrap();
+        gov.vote("voter1".to_string(), 1, VoteOption::For, 400)
+            .await
+            .unwrap();
         gov.set_current_block(200).await;
         gov.finalize_proposal(1, 1000).await.unwrap();
 
         // Wait for execution delay
         gov.set_current_block(220).await;
-        
+
         let data = gov.execute_proposal(1).await.unwrap();
         assert!(!data.is_empty());
 
@@ -621,14 +691,16 @@ mod tests {
     #[tokio::test]
     async fn test_cancel_proposal() {
         let gov = Governance::new(test_config());
-        
+
         gov.create_proposal(
             "proposer1".to_string(),
             1000,
             "Test".to_string(),
             "Test".to_string(),
             ProposalType::Text,
-        ).await.unwrap();
+        )
+        .await
+        .unwrap();
 
         gov.cancel_proposal(1, "proposer1").await.unwrap();
 
@@ -641,15 +713,20 @@ mod tests {
         let gov = Governance::new(test_config());
         let long_title = "A".repeat(257);
 
-        let result = gov.create_proposal(
-            "proposer1".to_string(),
-            1000,
-            long_title,
-            "Valid description".to_string(),
-            ProposalType::Text,
-        ).await;
+        let result = gov
+            .create_proposal(
+                "proposer1".to_string(),
+                1000,
+                long_title,
+                "Valid description".to_string(),
+                ProposalType::Text,
+            )
+            .await;
 
-        assert!(matches!(result, Err(GovernanceError::TitleTooLong { len: 257, max: 256 })));
+        assert!(matches!(
+            result,
+            Err(GovernanceError::TitleTooLong { len: 257, max: 256 })
+        ));
     }
 
     #[tokio::test]
@@ -657,13 +734,15 @@ mod tests {
         let gov = Governance::new(test_config());
         let title = "A".repeat(256);
 
-        let result = gov.create_proposal(
-            "proposer1".to_string(),
-            1000,
-            title,
-            "Valid description".to_string(),
-            ProposalType::Text,
-        ).await;
+        let result = gov
+            .create_proposal(
+                "proposer1".to_string(),
+                1000,
+                title,
+                "Valid description".to_string(),
+                ProposalType::Text,
+            )
+            .await;
 
         assert!(result.is_ok());
     }
@@ -673,15 +752,23 @@ mod tests {
         let gov = Governance::new(test_config());
         let long_desc = "B".repeat(10_001);
 
-        let result = gov.create_proposal(
-            "proposer1".to_string(),
-            1000,
-            "Valid title".to_string(),
-            long_desc,
-            ProposalType::Text,
-        ).await;
+        let result = gov
+            .create_proposal(
+                "proposer1".to_string(),
+                1000,
+                "Valid title".to_string(),
+                long_desc,
+                ProposalType::Text,
+            )
+            .await;
 
-        assert!(matches!(result, Err(GovernanceError::DescriptionTooLong { len: 10_001, max: 10_000 })));
+        assert!(matches!(
+            result,
+            Err(GovernanceError::DescriptionTooLong {
+                len: 10_001,
+                max: 10_000
+            })
+        ));
     }
 
     #[tokio::test]
@@ -689,13 +776,15 @@ mod tests {
         let gov = Governance::new(test_config());
         let desc = "B".repeat(10_000);
 
-        let result = gov.create_proposal(
-            "proposer1".to_string(),
-            1000,
-            "Valid title".to_string(),
-            desc,
-            ProposalType::Text,
-        ).await;
+        let result = gov
+            .create_proposal(
+                "proposer1".to_string(),
+                1000,
+                "Valid title".to_string(),
+                desc,
+                ProposalType::Text,
+            )
+            .await;
 
         assert!(result.is_ok());
     }

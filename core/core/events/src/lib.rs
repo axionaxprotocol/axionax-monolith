@@ -236,7 +236,10 @@ impl EventBus {
         {
             let subs = self.subscriptions.read().await;
             if subs.len() >= self.max_subscriptions {
-                tracing::warn!("Max subscriptions ({}) reached, rejecting", self.max_subscriptions);
+                tracing::warn!(
+                    "Max subscriptions ({}) reached, rejecting",
+                    self.max_subscriptions
+                );
                 return None;
             }
         }
@@ -436,13 +439,10 @@ mod tests {
         )
         .await;
 
-        let event = tokio::time::timeout(
-            std::time::Duration::from_millis(100),
-            sub.recv(),
-        )
-        .await
-        .unwrap()
-        .unwrap();
+        let event = tokio::time::timeout(std::time::Duration::from_millis(100), sub.recv())
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(event.event_type, EventType::NewBlock);
         assert_eq!(event.block_number, Some(1));
@@ -455,18 +455,17 @@ mod tests {
         let mut sub = bus.subscribe(vec![EventType::Stake]).await.unwrap();
 
         // This should NOT be received
-        bus.emit_new_block(1, "0x".to_string(), "0x".to_string(), 0, "0x".to_string()).await;
+        bus.emit_new_block(1, "0x".to_string(), "0x".to_string(), 0, "0x".to_string())
+            .await;
 
         // This SHOULD be received
-        bus.emit_stake("0xval".to_string(), "1000".to_string()).await;
+        bus.emit_stake("0xval".to_string(), "1000".to_string())
+            .await;
 
-        let event = tokio::time::timeout(
-            std::time::Duration::from_millis(100),
-            sub.recv(),
-        )
-        .await
-        .unwrap()
-        .unwrap();
+        let event = tokio::time::timeout(std::time::Duration::from_millis(100), sub.recv())
+            .await
+            .unwrap()
+            .unwrap();
 
         assert_eq!(event.event_type, EventType::Stake);
     }

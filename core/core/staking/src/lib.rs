@@ -48,19 +48,19 @@ pub type Result<T> = std::result::Result<T, StakingError>;
 pub struct StakingConfig {
     /// Minimum stake to become a validator (in base units)
     pub min_validator_stake: u128,
-    
+
     /// Minimum delegation amount
     pub min_delegation: u128,
-    
+
     /// Unstaking lock period in blocks
     pub unstaking_lock_blocks: u64,
-    
+
     /// Reward rate per epoch (basis points, e.g., 500 = 5%)
     pub epoch_reward_rate_bps: u16,
-    
+
     /// Blocks per epoch
     pub blocks_per_epoch: u64,
-    
+
     /// Maximum slash rate (basis points)
     pub max_slash_rate_bps: u16,
 }
@@ -74,15 +74,19 @@ impl Default for StakingConfig {
 impl StakingConfig {
     /// Create a config dynamically adapting block counts based on the target block time
     pub fn with_block_time(block_time_sec: u64) -> Self {
-        let block_time = if block_time_sec == 0 { 1 } else { block_time_sec };
+        let block_time = if block_time_sec == 0 {
+            1
+        } else {
+            block_time_sec
+        };
         let blocks_per_day = (24 * 3600) / block_time;
         Self {
             min_validator_stake: 10_000 * 10_u128.pow(18), // 10,000 AXX
-            min_delegation: 100 * 10_u128.pow(18),          // 100 AXX
-            unstaking_lock_blocks: blocks_per_day * 21,      // 21 days
-            epoch_reward_rate_bps: 50,                       // 0.5% per epoch (~6% APY)
-            blocks_per_epoch: blocks_per_day / 2,            // 12 hours
-            max_slash_rate_bps: 5000,                        // 50% max slash
+            min_delegation: 100 * 10_u128.pow(18),         // 100 AXX
+            unstaking_lock_blocks: blocks_per_day * 21,    // 21 days
+            epoch_reward_rate_bps: 50,                     // 0.5% per epoch (~6% APY)
+            blocks_per_epoch: blocks_per_day / 2,          // 12 hours
+            max_slash_rate_bps: 5000,                      // 50% max slash
         }
     }
 }
@@ -92,31 +96,31 @@ impl StakingConfig {
 pub struct ValidatorInfo {
     /// Validator address
     pub address: String,
-    
+
     /// Self-staked amount
     pub stake: u128,
-    
+
     /// Total delegated amount
     pub delegated: u128,
-    
+
     /// Block when stake can be withdrawn (0 if not unstaking)
     pub unlock_block: u64,
-    
+
     /// Total rewards earned
     pub total_rewards: u128,
-    
+
     /// Unclaimed rewards
     pub unclaimed_rewards: u128,
-    
+
     /// Is validator active
     pub is_active: bool,
-    
+
     /// Commission rate (basis points)
     pub commission_bps: u16,
-    
+
     /// Total blocks produced
     pub blocks_produced: u64,
-    
+
     /// Total slashed amount
     pub total_slashed: u128,
 
@@ -141,7 +145,7 @@ impl ValidatorInfo {
             pending_unstake: 0,
         }
     }
-    
+
     /// Total voting power (stake + delegations)
     pub fn voting_power(&self) -> u128 {
         self.stake.saturating_add(self.delegated)
@@ -153,16 +157,16 @@ impl ValidatorInfo {
 pub struct Delegation {
     /// Delegator address
     pub delegator: String,
-    
+
     /// Validator address
     pub validator: String,
-    
+
     /// Delegated amount
     pub amount: u128,
-    
+
     /// Accumulated rewards
     pub rewards: u128,
-    
+
     /// Block when delegation can be withdrawn (0 if not undelegating)
     pub unlock_block: u64,
 }
@@ -225,7 +229,8 @@ impl Staking {
         let mut validators = self.validators.write().await;
         let current_block = *self.current_block.read().await;
 
-        let validator = validators.get_mut(&address)
+        let validator = validators
+            .get_mut(&address)
             .ok_or_else(|| StakingError::ValidatorNotFound(address.clone()))?;
 
         if amount > validator.stake {
@@ -237,7 +242,11 @@ impl Staking {
 
         // Check if has delegations
         let delegations = self.delegations.read().await;
-        if delegations.get(&address).map(|d| !d.is_empty()).unwrap_or(false) {
+        if delegations
+            .get(&address)
+            .map(|d| !d.is_empty())
+            .unwrap_or(false)
+        {
             return Err(StakingError::HasActiveDelegations);
         }
 
@@ -264,11 +273,14 @@ impl Staking {
         let mut total = self.total_staked.write().await;
         let current_block = *self.current_block.read().await;
 
-        let validator = validators.get_mut(&address)
+        let validator = validators
+            .get_mut(&address)
             .ok_or_else(|| StakingError::ValidatorNotFound(address.clone()))?;
 
         if validator.pending_unstake == 0 {
-            return Err(StakingError::InvalidAmount("No pending unstake".to_string()));
+            return Err(StakingError::InvalidAmount(
+                "No pending unstake".to_string(),
+            ));
         }
 
         if current_block < validator.unlock_block {
@@ -304,7 +316,8 @@ impl Staking {
         let mut delegations = self.delegations.write().await;
         let mut total = self.total_staked.write().await;
 
-        let validator = validators.get_mut(&validator_addr)
+        let validator = validators
+            .get_mut(&validator_addr)
             .ok_or_else(|| StakingError::ValidatorNotFound(validator_addr.clone()))?;
 
         if !validator.is_active {
@@ -339,7 +352,8 @@ impl Staking {
     pub async fn claim_rewards(&self, address: String) -> Result<u128> {
         let mut validators = self.validators.write().await;
 
-        let validator = validators.get_mut(&address)
+        let validator = validators
+            .get_mut(&address)
             .ok_or_else(|| StakingError::ValidatorNotFound(address.clone()))?;
 
         let rewards = validator.unclaimed_rewards;
@@ -361,10 +375,12 @@ impl Staking {
         let mut validators = self.validators.write().await;
         let mut total = self.total_staked.write().await;
 
-        let validator = validators.get_mut(&address)
+        let validator = validators
+            .get_mut(&address)
             .ok_or_else(|| StakingError::ValidatorNotFound(address.clone()))?;
 
-        let slash_amount = validator.stake
+        let slash_amount = validator
+            .stake
             .saturating_mul(penalty_bps as u128)
             .saturating_div(10_000);
 
@@ -437,14 +453,18 @@ impl Staking {
             }
 
             // Calculate reward share based on voting power
-            let share = validator.voting_power()
+            let share = validator
+                .voting_power()
                 .saturating_mul(total_rewards)
                 .saturating_div(total_staked);
 
             validator.unclaimed_rewards = validator.unclaimed_rewards.saturating_add(share);
             validator.total_rewards = validator.total_rewards.saturating_add(share);
 
-            debug!("Distributed {} rewards to validator {}", share, validator.address);
+            debug!(
+                "Distributed {} rewards to validator {}",
+                share, validator.address
+            );
         }
 
         info!("Distributed {} total epoch rewards", total_rewards);
@@ -481,7 +501,10 @@ mod tests {
     async fn test_stake_insufficient() {
         let staking = Staking::new(default_config());
         let result = staking.stake("validator1".to_string(), 500).await;
-        assert!(matches!(result, Err(StakingError::InsufficientStake { .. })));
+        assert!(matches!(
+            result,
+            Err(StakingError::InsufficientStake { .. })
+        ));
     }
 
     #[tokio::test]
@@ -489,11 +512,9 @@ mod tests {
         let staking = Staking::new(default_config());
         staking.stake("validator1".to_string(), 1000).await.unwrap();
 
-        let result = staking.delegate(
-            "delegator1".to_string(),
-            "validator1".to_string(),
-            100,
-        ).await;
+        let result = staking
+            .delegate("delegator1".to_string(), "validator1".to_string(), 100)
+            .await;
         assert!(result.is_ok());
 
         let validator = staking.get_validator("validator1").await.unwrap();
@@ -506,7 +527,10 @@ mod tests {
         let staking = Staking::new(default_config());
         staking.stake("validator1".to_string(), 1000).await.unwrap();
 
-        staking.unstake("validator1".to_string(), 1000).await.unwrap();
+        staking
+            .unstake("validator1".to_string(), 1000)
+            .await
+            .unwrap();
 
         // Should fail - still locked
         let result = staking.withdraw("validator1".to_string()).await;
@@ -546,8 +570,8 @@ mod tests {
         let v2 = staking.get_validator("validator2").await.unwrap();
 
         // Rewards should be proportional to stake
-        assert_eq!(v1.unclaimed_rewards, 250);  // 25% of 1000
-        assert_eq!(v2.unclaimed_rewards, 750);  // 75% of 1000
+        assert_eq!(v1.unclaimed_rewards, 250); // 25% of 1000
+        assert_eq!(v2.unclaimed_rewards, 750); // 75% of 1000
     }
 
     #[tokio::test]
@@ -556,7 +580,10 @@ mod tests {
         staking.stake("validator1".to_string(), 1000).await.unwrap();
         staking.distribute_rewards(1000).await;
 
-        let claimed = staking.claim_rewards("validator1".to_string()).await.unwrap();
+        let claimed = staking
+            .claim_rewards("validator1".to_string())
+            .await
+            .unwrap();
         assert_eq!(claimed, 1000);
 
         let validator = staking.get_validator("validator1").await.unwrap();
@@ -569,7 +596,10 @@ mod tests {
         staking.stake("validator1".to_string(), 5000).await.unwrap();
 
         // Partial unstake of 2000
-        staking.unstake("validator1".to_string(), 2000).await.unwrap();
+        staking
+            .unstake("validator1".to_string(), 2000)
+            .await
+            .unwrap();
 
         let validator = staking.get_validator("validator1").await.unwrap();
         // Stake should be reduced by the unstaked amount
@@ -631,7 +661,10 @@ mod tests {
         staking.record_block_produced("validator1", 1000).await;
 
         // Accumulated reward should be claimable via claim_rewards
-        let claimed = staking.claim_rewards("validator1".to_string()).await.unwrap();
+        let claimed = staking
+            .claim_rewards("validator1".to_string())
+            .await
+            .unwrap();
         assert_eq!(claimed, 1000);
 
         let v = staking.get_validator("validator1").await.unwrap();

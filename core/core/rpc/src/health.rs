@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use state::StateDB;
 use metrics;
+use state::StateDB;
 
 /// Health status response
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -94,9 +94,7 @@ impl HealthChecker {
 
         // Database and sync are critical; network (peer count) is non-critical
         // for a starting/isolated node so we don't let it bring overall status down.
-        let overall_status = if db_health.status == "healthy"
-            && sync_health.status == "healthy"
-        {
+        let overall_status = if db_health.status == "healthy" && sync_health.status == "healthy" {
             "healthy".to_string()
         } else {
             "unhealthy".to_string()

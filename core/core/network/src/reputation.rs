@@ -264,7 +264,10 @@ impl ReputationManager {
         let scores = self.scores.read().await;
         let total = scores.len();
         let banned = scores.values().filter(|p| p.is_banned).count();
-        let priority = scores.values().filter(|p| p.score >= self.config.priority_threshold).count();
+        let priority = scores
+            .values()
+            .filter(|p| p.score >= self.config.priority_threshold)
+            .count();
         let avg_score = if total > 0 {
             scores.values().map(|p| p.score as i64).sum::<i64>() / total as i64
         } else {
@@ -315,7 +318,8 @@ mod tests {
     #[tokio::test]
     async fn test_register_peer() {
         let mgr = ReputationManager::new(test_config());
-        mgr.register_peer("peer1", "/ip4/1.2.3.4/tcp/30303".to_string()).await;
+        mgr.register_peer("peer1", "/ip4/1.2.3.4/tcp/30303".to_string())
+            .await;
 
         let score = mgr.get_score("peer1").await;
         assert_eq!(score, Some(DEFAULT_REPUTATION));

@@ -102,7 +102,13 @@ mod tests {
     #[test]
     fn test_large_tree_deterministic() {
         let leaves: Vec<[u8; 32]> = (0u64..100)
-            .map(|i| account_leaf(&format!("0x{:040x}", i), (i as u128) * 1_000_000_000_000_000_000, i))
+            .map(|i| {
+                account_leaf(
+                    &format!("0x{:040x}", i),
+                    (i as u128) * 1_000_000_000_000_000_000,
+                    i,
+                )
+            })
             .collect();
         let root1 = merkle_root(leaves.clone());
         let root2 = merkle_root(leaves);

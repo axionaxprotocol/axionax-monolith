@@ -6,8 +6,8 @@
 //! - Anti-collusion through org/ASN quota limits
 //! - Newcomer exploration boost
 
-use rand::{Rng, SeedableRng};
 use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
 use std::collections::HashMap;
@@ -26,7 +26,10 @@ pub enum ASRError {
     WorkerNotFound(String),
 
     #[error("Quota exceeded for {entity_type}: {entity_id}")]
-    QuotaExceeded { entity_type: String, entity_id: String },
+    QuotaExceeded {
+        entity_type: String,
+        entity_id: String,
+    },
 
     #[error("Invalid job requirements: {0}")]
     InvalidRequirements(String),
@@ -66,9 +69,9 @@ impl Default for ASRConfig {
     fn default() -> Self {
         Self {
             top_k: 64,
-            max_quota: 0.125, // 12.5%
+            max_quota: 0.125,       // 12.5%
             exploration_rate: 0.05, // 5%
-            newcomer_boost: 0.1, // 10%
+            newcomer_boost: 0.1,    // 10%
             performance_window_epochs: 30,
             ewma_alpha: 0.3,
             anti_collusion_enabled: true,
@@ -271,8 +274,10 @@ impl ASR {
     /// Register a worker
     pub async fn register_worker(&self, worker: Worker) -> Result<()> {
         let mut workers = self.workers.write().await;
-        info!("Registered worker: {} (org={}, region={})",
-            worker.id, worker.org_id, worker.region);
+        info!(
+            "Registered worker: {} (org={}, region={})",
+            worker.id, worker.org_id, worker.region
+        );
         workers.insert(worker.id.clone(), worker);
         Ok(())
     }
@@ -325,15 +330,18 @@ impl ASR {
 
         // Update EWMA score
         let new_score = if success { 1.0 } else { 0.0 };
-        perf.ewma_score = self.config.ewma_alpha * new_score
-            + (1.0 - self.config.ewma_alpha) * perf.ewma_score;
+        perf.ewma_score =
+            self.config.ewma_alpha * new_score + (1.0 - self.config.ewma_alpha) * perf.ewma_score;
 
         // Update newcomer status
         if total_jobs >= 10 {
             worker.is_newcomer = false;
         }
 
-        debug!("Updated performance for {}: score={:.3}", worker_id, perf.ewma_score);
+        debug!(
+            "Updated performance for {}: score={:.3}",
+            worker_id, perf.ewma_score
+        );
         Ok(())
     }
 
@@ -364,7 +372,10 @@ impl ASR {
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
 
-        let top_k = eligible.into_iter().take(self.config.top_k).collect::<Vec<_>>();
+        let top_k = eligible
+            .into_iter()
+            .take(self.config.top_k)
+            .collect::<Vec<_>>();
 
         // Generate VRF output
         let vrf_proof = self.compute_vrf(job_id, &vrf_seed);
@@ -388,7 +399,10 @@ impl ASR {
 
         info!(
             "Selected worker {} for job {} (score={:.3}, explore={})",
-            selected.id, job_id, selected.selection_score(&self.config), is_exploration
+            selected.id,
+            job_id,
+            selected.selection_score(&self.config),
+            is_exploration
         );
 
         Ok(SelectionResult {
@@ -424,7 +438,11 @@ impl ASR {
 
         // Framework check
         if let Some(ref framework) = req.framework {
-            if !cap.frameworks.iter().any(|f| f.eq_ignore_ascii_case(framework)) {
+            if !cap
+                .frameworks
+                .iter()
+                .any(|f| f.eq_ignore_ascii_case(framework))
+            {
                 return false;
             }
         }
@@ -434,7 +452,10 @@ impl ASR {
 
     /// Weighted random selection
     fn weighted_select<'a>(&self, workers: &'a [Worker], rng: &mut StdRng) -> &'a Worker {
-        let total_score: f64 = workers.iter().map(|w| w.selection_score(&self.config)).sum();
+        let total_score: f64 = workers
+            .iter()
+            .map(|w| w.selection_score(&self.config))
+            .sum();
         let mut threshold = rng.gen::<f64>() * total_score;
 
         for worker in workers {
@@ -508,10 +529,17 @@ impl ASR {
     /// Get ASR stats
     pub async fn get_stats(&self) -> ASRStats {
         let workers = self.workers.read().await;
-        let active = workers.values().filter(|w| w.status == WorkerStatus::Active).count();
+        let active = workers
+            .values()
+            .filter(|w| w.status == WorkerStatus::Active)
+            .count();
         let newcomers = workers.values().filter(|w| w.is_newcomer).count();
         let avg_score = if !workers.is_empty() {
-            workers.values().map(|w| w.performance.ewma_score).sum::<f64>() / workers.len() as f64
+            workers
+                .values()
+                .map(|w| w.performance.ewma_score)
+                .sum::<f64>()
+                / workers.len() as f64
         } else {
             0.0
         };
@@ -575,8 +603,12 @@ mod tests {
     async fn test_select_worker() {
         let asr = ASR::new(ASRConfig::default());
 
-        asr.register_worker(create_test_worker("worker1")).await.unwrap();
-        asr.register_worker(create_test_worker("worker2")).await.unwrap();
+        asr.register_worker(create_test_worker("worker1"))
+            .await
+            .unwrap();
+        asr.register_worker(create_test_worker("worker2"))
+            .await
+            .unwrap();
 
         let result = asr
             .select_worker("job1", &JobRequirements::default(), [0u8; 32])
@@ -589,7 +621,9 @@ mod tests {
     #[tokio::test]
     async fn test_requirements_filter() {
         let asr = ASR::new(ASRConfig::default());
-        asr.register_worker(create_test_worker("worker1")).await.unwrap();
+        asr.register_worker(create_test_worker("worker1"))
+            .await
+            .unwrap();
 
         // Require more than available
         let req = JobRequirements {
@@ -604,10 +638,14 @@ mod tests {
     #[tokio::test]
     async fn test_performance_update() {
         let asr = ASR::new(ASRConfig::default());
-        asr.register_worker(create_test_worker("worker1")).await.unwrap();
+        asr.register_worker(create_test_worker("worker1"))
+            .await
+            .unwrap();
 
         // Successful job
-        asr.update_performance("worker1", true, 5.0, 1.0).await.unwrap();
+        asr.update_performance("worker1", true, 5.0, 1.0)
+            .await
+            .unwrap();
 
         let worker = asr.get_worker("worker1").await.unwrap();
         assert_eq!(worker.performance.jobs_completed, 1);

@@ -66,7 +66,7 @@ impl Default for DAConfig {
     fn default() -> Self {
         Self {
             erasure_coding_rate: 1.5,
-            chunk_size: 256 * 1024, // 256 KB
+            chunk_size: 256 * 1024,           // 256 KB
             availability_window_seconds: 300, // 5 minutes
             replication_factor: 3,
             live_audit_enabled: true,
@@ -183,7 +183,8 @@ impl DA {
 
         // Calculate chunks needed
         let data_chunks = data_size.div_ceil(chunk_size);
-        let parity_chunks = ((data_chunks as f64 * (self.config.erasure_coding_rate - 1.0)).ceil()) as usize;
+        let parity_chunks =
+            ((data_chunks as f64 * (self.config.erasure_coding_rate - 1.0)).ceil()) as usize;
         let total_chunks = data_chunks + parity_chunks;
 
         // Check storage capacity
@@ -252,7 +253,7 @@ impl DA {
         chunk_size: usize,
     ) -> Vec<u8> {
         let mut parity = vec![0u8; chunk_size];
-        
+
         // XOR all data chunks together (simplified)
         for (i, chunk_id) in chunk_ids.iter().enumerate() {
             if let Some(chunk) = chunks.get(chunk_id) {
@@ -267,7 +268,7 @@ impl DA {
                 }
             }
         }
-        
+
         parity
     }
 
@@ -294,7 +295,10 @@ impl DA {
                 .ok_or_else(|| DAError::ChunkNotFound(chunk_id.clone()))?;
 
             if !chunk.verify() {
-                return Err(DAError::AuditFailed(format!("Chunk {} corrupted", chunk_id)));
+                return Err(DAError::AuditFailed(format!(
+                    "Chunk {} corrupted",
+                    chunk_id
+                )));
             }
 
             data.extend_from_slice(&chunk.data);
@@ -358,9 +362,15 @@ impl DA {
         };
 
         if passed {
-            info!("Audit passed for {}: {}/{} chunks valid", id, chunks_valid, entry.total_chunks);
+            info!(
+                "Audit passed for {}: {}/{} chunks valid",
+                id, chunks_valid, entry.total_chunks
+            );
         } else {
-            warn!("Audit FAILED for {}: {}/{} chunks valid", id, chunks_valid, entry.total_chunks);
+            warn!(
+                "Audit FAILED for {}: {}/{} chunks valid",
+                id, chunks_valid, entry.total_chunks
+            );
         }
 
         Ok(result)

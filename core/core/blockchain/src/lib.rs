@@ -173,8 +173,7 @@ pub struct PersistentBlockchain {
 impl PersistentBlockchain {
     /// Opens a persistent blockchain at the configured path
     pub fn open(config: BlockchainConfig) -> Result<Self> {
-        let path = config.db_path.as_deref()
-            .unwrap_or("./axionax_data");
+        let path = config.db_path.as_deref().unwrap_or("./axionax_data");
 
         let store = SledBlockStore::open(path)?;
         Ok(Self { store, config })
@@ -277,7 +276,6 @@ impl Blockchain {
         Ok(())
     }
 
-
     /// Gets a block by number
     pub async fn get_block(&self, number: u64) -> Option<Block> {
         let blocks = self.blocks.read().await;
@@ -306,7 +304,8 @@ impl Blockchain {
         Ok(Block {
             number: g.number,
             hash: parse_hex_hash(&g.hash).map_err(BlockchainError::TransactionValidation)?,
-            parent_hash: parse_hex_hash(&g.parent_hash).map_err(BlockchainError::TransactionValidation)?,
+            parent_hash: parse_hex_hash(&g.parent_hash)
+                .map_err(BlockchainError::TransactionValidation)?,
             timestamp: g.timestamp,
             proposer: g
                 .config
@@ -315,7 +314,8 @@ impl Blockchain {
                 .map(|v| v.address.clone())
                 .unwrap_or_else(|| "axionaxius".to_string()),
             transactions: vec![],
-            state_root: parse_hex_hash(&g.state_root).map_err(BlockchainError::TransactionValidation)?,
+            state_root: parse_hex_hash(&g.state_root)
+                .map_err(BlockchainError::TransactionValidation)?,
             gas_used: 0,
             gas_limit: 30_000_000,
         })
@@ -326,7 +326,10 @@ impl Blockchain {
 fn parse_hex_hash(s: &str) -> std::result::Result<[u8; 32], String> {
     let s = s.strip_prefix("0x").unwrap_or(s);
     if s.len() != 64 {
-        return Err(format!("genesis hash must be 64 hex chars, got {}", s.len()));
+        return Err(format!(
+            "genesis hash must be 64 hex chars, got {}",
+            s.len()
+        ));
     }
     let bytes = hex::decode(s).map_err(|e| e.to_string())?;
     let mut arr = [0u8; 32];
@@ -406,11 +409,7 @@ mod tests {
     async fn test_block_with_transactions() {
         let blockchain = Blockchain::new(BlockchainConfig::default());
 
-        let transactions = vec![
-            create_test_tx(1),
-            create_test_tx(2),
-            create_test_tx(3),
-        ];
+        let transactions = vec![create_test_tx(1), create_test_tx(2), create_test_tx(3)];
 
         let block = Block {
             number: 1,
@@ -511,25 +510,26 @@ mod tests {
         let blockchain = Arc::new(Blockchain::new(BlockchainConfig::default()));
 
         // Add a block first
-        blockchain.add_block(Block {
-            number: 1,
-            hash: [1u8; 32],
-            parent_hash: [0u8; 32],
-            timestamp: 100,
-            proposer: "validator1".to_string(),
-            transactions: vec![],
-            state_root: [1u8; 32],
-            gas_used: 0,
-            gas_limit: 30_000_000,
-        }).await.unwrap();
+        blockchain
+            .add_block(Block {
+                number: 1,
+                hash: [1u8; 32],
+                parent_hash: [0u8; 32],
+                timestamp: 100,
+                proposer: "validator1".to_string(),
+                transactions: vec![],
+                state_root: [1u8; 32],
+                gas_used: 0,
+                gas_limit: 30_000_000,
+            })
+            .await
+            .unwrap();
 
         // Spawn multiple concurrent read tasks
         let mut handles = vec![];
         for _ in 0..10 {
             let bc = Arc::clone(&blockchain);
-            handles.push(tokio::spawn(async move {
-                bc.get_block(1).await
-            }));
+            handles.push(tokio::spawn(async move { bc.get_block(1).await }));
         }
 
         // All reads should succeed

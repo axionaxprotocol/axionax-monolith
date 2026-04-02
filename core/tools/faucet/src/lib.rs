@@ -16,9 +16,7 @@
 /// callers that need to reject it (e.g. the faucet handler) must add that
 /// check themselves.
 pub fn is_valid_address(addr: &str) -> bool {
-    addr.starts_with("0x")
-        && addr.len() == 42
-        && addr[2..].chars().all(|c| c.is_ascii_hexdigit())
+    addr.starts_with("0x") && addr.len() == 42 && addr[2..].chars().all(|c| c.is_ascii_hexdigit())
 }
 
 /// Normalize an address to lowercase.
@@ -92,11 +90,17 @@ mod tests {
     #[test]
     fn test_valid_address() {
         // Standard 42-char address (0x + 40 hex digits)
-        assert!(is_valid_address("0x1234567890123456789012345678901234567890"));
+        assert!(is_valid_address(
+            "0x1234567890123456789012345678901234567890"
+        ));
         // All-lowercase hex body
-        assert!(is_valid_address("0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"));
+        assert!(is_valid_address(
+            "0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"
+        ));
         // Zero address is structurally valid; callers enforce business rules
-        assert!(is_valid_address("0x0000000000000000000000000000000000000000"));
+        assert!(is_valid_address(
+            "0x0000000000000000000000000000000000000000"
+        ));
     }
 
     #[test]
@@ -114,13 +118,17 @@ mod tests {
     #[test]
     fn test_invalid_address_too_long() {
         // 43 characters total (one extra byte at the end)
-        assert!(!is_valid_address("0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb00"));
+        assert!(!is_valid_address(
+            "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb00"
+        ));
     }
 
     #[test]
     fn test_invalid_address_non_hex() {
         // Correct length but body contains non-hex characters ('Z')
-        assert!(!is_valid_address("0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"));
+        assert!(!is_valid_address(
+            "0xZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
+        ));
     }
 
     // ── Normalize ─────────────────────────────────────────────────────────────

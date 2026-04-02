@@ -12,7 +12,7 @@ use sha3::{Digest, Sha3_256};
 
 // VRF module using schnorrkel (production-grade)
 pub mod vrf;
-pub use vrf::{ECVRF, VrfResult, VrfOutput, VrfProofBytes};
+pub use vrf::{VrfOutput, VrfProofBytes, VrfResult, ECVRF};
 
 // Re-export commonly used KDF functions
 pub use kdf::{derive_key, hash_password, verify_password};

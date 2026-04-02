@@ -9,7 +9,7 @@ use tokio::sync::RwLock;
 // Import axionax core modules
 use blockchain::{Block, Blockchain};
 use consensus::{Challenge, ConsensusEngine, Validator};
-use crypto::{ECVRF, VrfResult};
+use crypto::{VrfResult, ECVRF};
 
 mod simple_wrapper;
 use simple_wrapper::{default_blockchain_config, default_consensus_config};
@@ -271,7 +271,8 @@ impl PyBlockchain {
         let chain_clone = chain.clone();
         runtime.block_on(async move {
             let bc = chain_clone.read().await;
-            bc.init_with_genesis().await
+            bc.init_with_genesis()
+                .await
                 .map_err(|e| PyValueError::new_err(format!("Genesis init failed: {}", e)))
         })?;
 
@@ -317,8 +318,8 @@ fn axionax_python(m: &pyo3::Bound<'_, PyModule>) -> PyResult<()> {
 // ─────────────────────────────────────────────────────────────────────────────
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::simple_wrapper::{default_blockchain_config, default_consensus_config};
+    use super::*;
 
     // ── Config helpers ────────────────────────────────────────────────────────
 

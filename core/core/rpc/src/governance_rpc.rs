@@ -2,13 +2,15 @@
 //!
 //! JSON-RPC methods for governance operations
 
+use governance::{
+    Governance, GovernanceConfig, Proposal, ProposalStatus, ProposalType, VoteOption,
+};
 use jsonrpsee::{
     core::{async_trait, RpcResult},
     proc_macros::rpc,
     types::ErrorObjectOwned,
 };
 use serde::{Deserialize, Serialize};
-use governance::{Governance, GovernanceConfig, Proposal, ProposalStatus, ProposalType, VoteOption};
 use staking::Staking;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -30,8 +32,12 @@ pub enum GovernanceRpcError {
 impl From<GovernanceRpcError> for ErrorObjectOwned {
     fn from(error: GovernanceRpcError) -> Self {
         match error {
-            GovernanceRpcError::GovernanceError(msg) => ErrorObjectOwned::owned(-32000, msg, None::<()>),
-            GovernanceRpcError::InvalidParams(msg) => ErrorObjectOwned::owned(-32602, msg, None::<()>),
+            GovernanceRpcError::GovernanceError(msg) => {
+                ErrorObjectOwned::owned(-32000, msg, None::<()>)
+            }
+            GovernanceRpcError::InvalidParams(msg) => {
+                ErrorObjectOwned::owned(-32602, msg, None::<()>)
+            }
             GovernanceRpcError::AuthError(msg) => ErrorObjectOwned::owned(-32003, msg, None::<()>),
         }
     }
@@ -59,7 +65,9 @@ impl From<Proposal> for ProposalResponse {
         let proposal_type = match &p.proposal_type {
             ProposalType::Text => "text".to_string(),
             ProposalType::ParameterChange { key, value } => format!("parameter:{}={}", key, value),
-            ProposalType::TreasurySpend { recipient, amount } => format!("treasury:{}:{}", recipient, amount),
+            ProposalType::TreasurySpend { recipient, amount } => {
+                format!("treasury:{}:{}", recipient, amount)
+            }
             ProposalType::ProtocolUpgrade { version, .. } => format!("upgrade:{}", version),
         };
 
@@ -165,7 +173,11 @@ impl GovernanceRpcServerImpl {
         staking: Arc<RwLock<Staking>>,
         config: GovernanceConfig,
     ) -> Self {
-        Self { governance, staking, config }
+        Self {
+            governance,
+            staking,
+            config,
+        }
     }
 }
 
@@ -207,24 +219,37 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
         signature: String,
         public_key: String,
     ) -> RpcResult<u64> {
-        let verified_addr = verify_signed_request(&proposer, "createProposal", &signature, &public_key)
-            .map_err(GovernanceRpcError::AuthError)?;
+        let verified_addr =
+            verify_signed_request(&proposer, "createProposal", &signature, &public_key)
+                .map_err(GovernanceRpcError::AuthError)?;
 
         // Look up actual stake from the staking module
         let staking = self.staking.read().await;
-        let actual_stake = staking.get_validator(&verified_addr).await
+        let actual_stake = staking
+            .get_validator(&verified_addr)
+            .await
             .map(|v| v.voting_power())
             .unwrap_or(0);
 
-        let ptype = parse_proposal_type(&proposal_type)
-            .map_err(GovernanceRpcError::InvalidParams)?;
+        let ptype =
+            parse_proposal_type(&proposal_type).map_err(GovernanceRpcError::InvalidParams)?;
 
         let gov = self.governance.read().await;
-        let id = gov.create_proposal(verified_addr.clone(), actual_stake, title.clone(), description, ptype)
+        let id = gov
+            .create_proposal(
+                verified_addr.clone(),
+                actual_stake,
+                title.clone(),
+                description,
+                ptype,
+            )
             .await
             .map_err(|e| GovernanceRpcError::GovernanceError(e.to_string()))?;
 
-        info!("RPC: Created proposal {} by {}: {}", id, verified_addr, title);
+        info!(
+            "RPC: Created proposal {} by {}: {}",
+            id, verified_addr, title
+        );
         Ok(id)
     }
 
@@ -241,31 +266,46 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
 
         // Look up actual vote weight from the staking module
         let staking = self.staking.read().await;
-        let actual_weight = staking.get_validator(&verified_addr).await
+        let actual_weight = staking
+            .get_validator(&verified_addr)
+            .await
             .map(|v| v.voting_power())
             .unwrap_or(0);
 
         if actual_weight == 0 {
             return Err(GovernanceRpcError::InvalidParams(
-                "Voter has no stake — cannot vote".to_string()
-            ).into());
+                "Voter has no stake — cannot vote".to_string(),
+            )
+            .into());
         }
 
         let vote_option = match vote.to_lowercase().as_str() {
             "for" | "yes" | "1" => VoteOption::For,
             "against" | "no" | "0" => VoteOption::Against,
             "abstain" | "2" => VoteOption::Abstain,
-            _ => return Err(GovernanceRpcError::InvalidParams(
-                format!("Invalid vote option: {}", vote)
-            ).into()),
+            _ => {
+                return Err(GovernanceRpcError::InvalidParams(format!(
+                    "Invalid vote option: {}",
+                    vote
+                ))
+                .into())
+            }
         };
 
         let gov = self.governance.read().await;
-        gov.vote(verified_addr.clone(), proposal_id, vote_option, actual_weight)
-            .await
-            .map_err(|e| GovernanceRpcError::GovernanceError(e.to_string()))?;
+        gov.vote(
+            verified_addr.clone(),
+            proposal_id,
+            vote_option,
+            actual_weight,
+        )
+        .await
+        .map_err(|e| GovernanceRpcError::GovernanceError(e.to_string()))?;
 
-        info!("RPC: Vote {:?} by {} on proposal {} with weight {}", vote_option, verified_addr, proposal_id, actual_weight);
+        info!(
+            "RPC: Vote {:?} by {} on proposal {} with weight {}",
+            vote_option, verified_addr, proposal_id, actual_weight
+        );
         Ok(true)
     }
 
@@ -285,7 +325,8 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
         let staked = staking.get_total_staked().await;
 
         let gov = self.governance.read().await;
-        let status = gov.finalize_proposal(proposal_id, staked)
+        let status = gov
+            .finalize_proposal(proposal_id, staked)
             .await
             .map_err(|e| GovernanceRpcError::GovernanceError(e.to_string()))?;
 
@@ -301,7 +342,8 @@ impl GovernanceRpcServer for GovernanceRpcServerImpl {
 
     async fn execute_proposal(&self, proposal_id: u64) -> RpcResult<String> {
         let gov = self.governance.read().await;
-        let data = gov.execute_proposal(proposal_id)
+        let data = gov
+            .execute_proposal(proposal_id)
             .await
             .map_err(|e| GovernanceRpcError::GovernanceError(e.to_string()))?;
 
@@ -364,7 +406,8 @@ fn parse_proposal_type(s: &str) -> Result<ProposalType, String> {
     if let Some(rest) = s.strip_prefix("treasury:") {
         let parts: Vec<&str> = rest.splitn(2, ':').collect();
         if parts.len() == 2 {
-            let amount = parts[1].parse::<u128>()
+            let amount = parts[1]
+                .parse::<u128>()
                 .map_err(|_| format!("Invalid treasury amount: {}", parts[1]))?;
             return Ok(ProposalType::TreasurySpend {
                 recipient: parts[0].to_string(),
@@ -389,7 +432,10 @@ mod tests {
 
     #[test]
     fn test_parse_proposal_type() {
-        assert!(matches!(parse_proposal_type("text").unwrap(), ProposalType::Text));
+        assert!(matches!(
+            parse_proposal_type("text").unwrap(),
+            ProposalType::Text
+        ));
 
         let param = parse_proposal_type("parameter:base_fee=1000").unwrap();
         assert!(matches!(param, ProposalType::ParameterChange { .. }));

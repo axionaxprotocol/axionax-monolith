@@ -104,7 +104,10 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             let height = rpc_call(&client, &cli.rpc, "eth_blockNumber", vec![]).await?;
             let chain_id = rpc_call(&client, &cli.rpc, "eth_chainId", vec![]).await?;
 
-            println!("Chain ID:     {}", chain_id.as_str().unwrap_or("unknown").green());
+            println!(
+                "Chain ID:     {}",
+                chain_id.as_str().unwrap_or("unknown").green()
+            );
             println!("Block Height: {}", height.as_str().unwrap_or("0").green());
             println!("RPC Endpoint: {}", cli.rpc.yellow());
             println!("{}", "Status: Online".green().bold());
@@ -131,17 +134,41 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
             } else {
                 println!("{}", "Block Details".cyan().bold());
                 println!("{}", "=".repeat(40));
-                println!("Number:      {}", result["number"].as_str().unwrap_or("").green());
-                println!("Hash:        {}", result["hash"].as_str().unwrap_or("").yellow());
-                println!("Parent:      {}", result["parent_hash"].as_str().unwrap_or(""));
+                println!(
+                    "Number:      {}",
+                    result["number"].as_str().unwrap_or("").green()
+                );
+                println!(
+                    "Hash:        {}",
+                    result["hash"].as_str().unwrap_or("").yellow()
+                );
+                println!(
+                    "Parent:      {}",
+                    result["parent_hash"].as_str().unwrap_or("")
+                );
                 println!("Proposer:    {}", result["proposer"].as_str().unwrap_or(""));
-                println!("Timestamp:   {}", result["timestamp"].as_str().unwrap_or(""));
-                println!("Txns:        {}", result["transactions"].as_array().map(|a| a.len()).unwrap_or(0));
+                println!(
+                    "Timestamp:   {}",
+                    result["timestamp"].as_str().unwrap_or("")
+                );
+                println!(
+                    "Txns:        {}",
+                    result["transactions"]
+                        .as_array()
+                        .map(|a| a.len())
+                        .unwrap_or(0)
+                );
             }
         }
 
         Commands::Tx { hash } => {
-            let result = rpc_call(&client, &cli.rpc, "eth_getTransactionByHash", vec![serde_json::json!(hash)]).await?;
+            let result = rpc_call(
+                &client,
+                &cli.rpc,
+                "eth_getTransactionByHash",
+                vec![serde_json::json!(hash)],
+            )
+            .await?;
 
             if result.is_null() {
                 println!("{}", "Transaction not found".red());
@@ -157,7 +184,8 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
         Commands::Staking(cmd) => match cmd {
             StakingCommands::Validators => {
-                let result = rpc_call(&client, &cli.rpc, "staking_getActiveValidators", vec![]).await?;
+                let result =
+                    rpc_call(&client, &cli.rpc, "staking_getActiveValidators", vec![]).await?;
 
                 println!("{}", "Active Validators".cyan().bold());
                 println!("{}", "=".repeat(60));
@@ -168,7 +196,11 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                             "{} | Stake: {} | Active: {}",
                             v["address"].as_str().unwrap_or("").green(),
                             v["stake"].as_str().unwrap_or("0"),
-                            if v["is_active"].as_bool().unwrap_or(false) { "✓".green() } else { "✗".red() }
+                            if v["is_active"].as_bool().unwrap_or(false) {
+                                "✓".green()
+                            } else {
+                                "✗".red()
+                            }
                         );
                     }
                     println!("\nTotal: {} validators", validators.len());
@@ -180,26 +212,57 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
 
                 println!("{}", "Staking Statistics".cyan().bold());
                 println!("{}", "=".repeat(40));
-                println!("Total Staked:      {}", result["total_staked"].as_str().unwrap_or("0").green());
+                println!(
+                    "Total Staked:      {}",
+                    result["total_staked"].as_str().unwrap_or("0").green()
+                );
                 println!("Total Validators:  {}", result["total_validators"]);
                 println!("Active Validators: {}", result["active_validators"]);
-                println!("Min Stake:         {}", result["min_stake"].as_str().unwrap_or("0"));
+                println!(
+                    "Min Stake:         {}",
+                    result["min_stake"].as_str().unwrap_or("0")
+                );
             }
 
             StakingCommands::Validator { address } => {
-                let result = rpc_call(&client, &cli.rpc, "staking_getValidator", vec![serde_json::json!(address)]).await?;
+                let result = rpc_call(
+                    &client,
+                    &cli.rpc,
+                    "staking_getValidator",
+                    vec![serde_json::json!(address)],
+                )
+                .await?;
 
                 if result.is_null() {
                     println!("{}", "Validator not found".red());
                 } else {
                     println!("{}", "Validator Details".cyan().bold());
                     println!("{}", "=".repeat(40));
-                    println!("Address:    {}", result["address"].as_str().unwrap_or("").green());
+                    println!(
+                        "Address:    {}",
+                        result["address"].as_str().unwrap_or("").green()
+                    );
                     println!("Stake:      {}", result["stake"].as_str().unwrap_or("0"));
-                    println!("Delegated:  {}", result["delegated"].as_str().unwrap_or("0"));
-                    println!("Power:      {}", result["voting_power"].as_str().unwrap_or("0"));
-                    println!("Active:     {}", if result["is_active"].as_bool().unwrap_or(false) { "Yes".green() } else { "No".red() });
-                    println!("Rewards:    {}", result["unclaimed_rewards"].as_str().unwrap_or("0"));
+                    println!(
+                        "Delegated:  {}",
+                        result["delegated"].as_str().unwrap_or("0")
+                    );
+                    println!(
+                        "Power:      {}",
+                        result["voting_power"].as_str().unwrap_or("0")
+                    );
+                    println!(
+                        "Active:     {}",
+                        if result["is_active"].as_bool().unwrap_or(false) {
+                            "Yes".green()
+                        } else {
+                            "No".red()
+                        }
+                    );
+                    println!(
+                        "Rewards:    {}",
+                        result["unclaimed_rewards"].as_str().unwrap_or("0")
+                    );
                 }
             }
         },
@@ -230,28 +293,58 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 println!("{}", "Governance Statistics".cyan().bold());
                 println!("{}", "=".repeat(40));
                 println!("Active Proposals:    {}", result["active_proposals"]);
-                println!("Voting Period:       {} blocks", result["voting_period_blocks"]);
-                println!("Execution Delay:     {} blocks", result["execution_delay_blocks"]);
+                println!(
+                    "Voting Period:       {} blocks",
+                    result["voting_period_blocks"]
+                );
+                println!(
+                    "Execution Delay:     {} blocks",
+                    result["execution_delay_blocks"]
+                );
                 println!("Quorum:              {} bps", result["quorum_bps"]);
                 println!("Pass Threshold:      {} bps", result["pass_threshold_bps"]);
-                println!("Min Proposal Stake:  {}", result["min_proposal_stake"].as_str().unwrap_or("0"));
+                println!(
+                    "Min Proposal Stake:  {}",
+                    result["min_proposal_stake"].as_str().unwrap_or("0")
+                );
             }
 
             GovCommands::Proposal { id } => {
-                let result = rpc_call(&client, &cli.rpc, "gov_getProposal", vec![serde_json::json!(id)]).await?;
+                let result = rpc_call(
+                    &client,
+                    &cli.rpc,
+                    "gov_getProposal",
+                    vec![serde_json::json!(id)],
+                )
+                .await?;
 
                 if result.is_null() {
                     println!("{}", "Proposal not found".red());
                 } else {
                     println!("{}", format!("Proposal #{}", id).cyan().bold());
                     println!("{}", "=".repeat(40));
-                    println!("Title:       {}", result["title"].as_str().unwrap_or("").green());
+                    println!(
+                        "Title:       {}",
+                        result["title"].as_str().unwrap_or("").green()
+                    );
                     println!("Proposer:    {}", result["proposer"].as_str().unwrap_or(""));
-                    println!("Type:        {}", result["proposal_type"].as_str().unwrap_or(""));
+                    println!(
+                        "Type:        {}",
+                        result["proposal_type"].as_str().unwrap_or("")
+                    );
                     println!("Status:      {}", result["status"].as_str().unwrap_or(""));
-                    println!("Votes For:   {}", result["votes_for"].as_str().unwrap_or("0").green());
-                    println!("Votes Against: {}", result["votes_against"].as_str().unwrap_or("0").red());
-                    println!("Votes Abstain: {}", result["votes_abstain"].as_str().unwrap_or("0"));
+                    println!(
+                        "Votes For:   {}",
+                        result["votes_for"].as_str().unwrap_or("0").green()
+                    );
+                    println!(
+                        "Votes Against: {}",
+                        result["votes_against"].as_str().unwrap_or("0").red()
+                    );
+                    println!(
+                        "Votes Abstain: {}",
+                        result["votes_abstain"].as_str().unwrap_or("0")
+                    );
                 }
             }
         },
