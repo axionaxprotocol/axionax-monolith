@@ -33,7 +33,9 @@ pub struct HttpHealthConfig {
 impl Default for HttpHealthConfig {
     fn default() -> Self {
         Self {
-            addr: "127.0.0.1:8080".parse().unwrap_or_else(|_| std::net::SocketAddr::from(([127, 0, 0, 1], 8080))),
+            addr: "127.0.0.1:8080"
+                .parse()
+                .unwrap_or_else(|_| std::net::SocketAddr::from(([127, 0, 0, 1], 8080))),
             ready_path: "/ready".to_string(),
             live_path: "/health".to_string(),
             metrics_path: "/metrics".to_string(),
@@ -147,10 +149,22 @@ impl HttpHealthServer {
     /// Start HTTP health server
     pub async fn start(&self) -> anyhow::Result<()> {
         let listener = TcpListener::bind(self.config.addr).await?;
-        info!("HTTP Health server listening on http://{}", self.config.addr);
-        info!("  Liveness:  http://{}{}", self.config.addr, self.config.live_path);
-        info!("  Readiness: http://{}{}", self.config.addr, self.config.ready_path);
-        info!("  Metrics:   http://{}{}", self.config.addr, self.config.metrics_path);
+        info!(
+            "HTTP Health server listening on http://{}",
+            self.config.addr
+        );
+        info!(
+            "  Liveness:  http://{}{}",
+            self.config.addr, self.config.live_path
+        );
+        info!(
+            "  Readiness: http://{}{}",
+            self.config.addr, self.config.ready_path
+        );
+        info!(
+            "  Metrics:   http://{}{}",
+            self.config.addr, self.config.metrics_path
+        );
 
         let state = self.state.clone();
         let ready_path = self.config.ready_path.clone();
@@ -229,9 +243,16 @@ async fn handle_request(
                         .map(|d| d.as_secs())
                         .unwrap_or(0),
                 };
-                ("200 OK", serde_json::to_string(&response).unwrap_or_else(|_| r#"{"status":"ok"}"#.to_string()))
+                (
+                    "200 OK",
+                    serde_json::to_string(&response)
+                        .unwrap_or_else(|_| r#"{"status":"ok"}"#.to_string()),
+                )
             } else {
-                ("503 Service Unavailable", r#"{"status":"unhealthy"}"#.to_string())
+                (
+                    "503 Service Unavailable",
+                    r#"{"status":"unhealthy"}"#.to_string(),
+                )
             }
         } else if path == ready_path || path == "/readyz" {
             // Readiness probe
@@ -252,19 +273,29 @@ async fn handle_request(
             } else {
                 "503 Service Unavailable"
             };
-            (status_code, serde_json::to_string(&response).unwrap_or_else(|_| r#"{"ready":false}"#.to_string()))
+            (
+                status_code,
+                serde_json::to_string(&response)
+                    .unwrap_or_else(|_| r#"{"ready":false}"#.to_string()),
+            )
         } else if path == metrics_path {
             let mut body = metrics::export();
 
             // Basic metrics
             body.push_str("# HELP axionax_up Node is up\n");
             body.push_str("# TYPE axionax_up gauge\n");
-            body.push_str(&format!("axionax_up {}\n", if state.is_alive() { 1 } else { 0 }));
+            body.push_str(&format!(
+                "axionax_up {}\n",
+                if state.is_alive() { 1 } else { 0 }
+            ));
 
             // Network metrics
             body.push_str("# HELP axionax_peers_connected Number of connected peers\n");
             body.push_str("# TYPE axionax_peers_connected gauge\n");
-            body.push_str(&format!("axionax_peers_connected {}\n", state.peers_connected));
+            body.push_str(&format!(
+                "axionax_peers_connected {}\n",
+                state.peers_connected
+            ));
 
             // Blockchain metrics
             body.push_str("# HELP axionax_block_height Current block height\n");
@@ -274,11 +305,17 @@ async fn handle_request(
             // Health check metrics
             body.push_str("# HELP axionax_database_ok Database connectivity status\n");
             body.push_str("# TYPE axionax_database_ok gauge\n");
-            body.push_str(&format!("axionax_database_ok {}\n", if state.database_ok { 1 } else { 0 }));
+            body.push_str(&format!(
+                "axionax_database_ok {}\n",
+                if state.database_ok { 1 } else { 0 }
+            ));
 
             body.push_str("# HELP axionax_sync_ok Blockchain sync status\n");
             body.push_str("# TYPE axionax_sync_ok gauge\n");
-            body.push_str(&format!("axionax_sync_ok {}\n", if state.sync_ok { 1 } else { 0 }));
+            body.push_str(&format!(
+                "axionax_sync_ok {}\n",
+                if state.sync_ok { 1 } else { 0 }
+            ));
 
             // Performance metrics
             body.push_str("# HELP axionax_min_peers Minimum required peers\n");
@@ -291,10 +328,16 @@ async fn handle_request(
                 version: env!("CARGO_PKG_VERSION").to_string(),
                 commit: option_env!("GIT_COMMIT").unwrap_or("unknown").to_string(),
                 build_time: option_env!("BUILD_TIME").unwrap_or("unknown").to_string(),
-                rust_version: option_env!("RUSTC_VERSION").unwrap_or("unknown").to_string(),
+                rust_version: option_env!("RUSTC_VERSION")
+                    .unwrap_or("unknown")
+                    .to_string(),
                 chain_id: "86137".to_string(),
             };
-            ("200 OK", serde_json::to_string(&response).unwrap_or_else(|_| r#"{"version":"unknown"}"#.to_string()))
+            (
+                "200 OK",
+                serde_json::to_string(&response)
+                    .unwrap_or_else(|_| r#"{"version":"unknown"}"#.to_string()),
+            )
         } else {
             ("404 Not Found", r#"{"error":"Not found"}"#.to_string())
         }
@@ -332,9 +375,11 @@ mod tests {
 
     #[test]
     fn test_is_ready() {
-        let mut state = HealthState::default();
-        state.min_peers = 1;
-        state.peers_connected = 0;
+        let mut state = HealthState {
+            min_peers: 1,
+            peers_connected: 0,
+            ..Default::default()
+        };
 
         // Not ready - no peers
         assert!(!state.is_ready());

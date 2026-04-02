@@ -85,7 +85,11 @@ impl MerkleTree {
         let mut level_size = padded_count;
 
         while level_size > 1 {
-            let sibling_idx = if idx.is_multiple_of(2) { idx + 1 } else { idx - 1 };
+            let sibling_idx = if idx.is_multiple_of(2) {
+                idx + 1
+            } else {
+                idx - 1
+            };
             let is_left = !idx.is_multiple_of(2);
 
             if level_start + sibling_idx < level_start + level_size {
@@ -125,10 +129,7 @@ pub fn verify_merkle_proof(proof: &MerkleProof, expected_root: &Hash) -> bool {
 }
 
 /// Verifies multiple proofs (for PoPC sample verification)
-pub fn verify_sample_proofs(
-    proofs: &[MerkleProof],
-    expected_root: &Hash,
-) -> bool {
+pub fn verify_sample_proofs(proofs: &[MerkleProof], expected_root: &Hash) -> bool {
     proofs.iter().all(|p| verify_merkle_proof(p, expected_root))
 }
 
@@ -156,10 +157,10 @@ pub fn hash_pair(left: &Hash, right: &Hash) -> Hash {
 /// Serialize multiple proofs for transmission
 pub fn serialize_proofs(proofs: &[MerkleProof]) -> Vec<u8> {
     let mut data = Vec::new();
-    
+
     // Number of proofs (4 bytes)
     data.extend_from_slice(&(proofs.len() as u32).to_le_bytes());
-    
+
     for proof in proofs {
         // Leaf hash (32 bytes)
         data.extend_from_slice(&proof.leaf_hash);
@@ -176,7 +177,7 @@ pub fn serialize_proofs(proofs: &[MerkleProof]) -> Vec<u8> {
             data.push(if *pos { 1 } else { 0 });
         }
     }
-    
+
     data
 }
 
@@ -185,7 +186,7 @@ pub fn deserialize_proofs(data: &[u8]) -> Option<Vec<MerkleProof>> {
     if data.len() < 4 {
         return None;
     }
-    
+
     let mut offset = 0;
     let num_proofs = u32::from_le_bytes(data[offset..offset + 4].try_into().ok()?) as usize;
     offset += 4;
@@ -193,23 +194,23 @@ pub fn deserialize_proofs(data: &[u8]) -> Option<Vec<MerkleProof>> {
     if num_proofs > 10_000 {
         return None;
     }
-    
+
     let mut proofs = Vec::with_capacity(num_proofs);
-    
+
     for _ in 0..num_proofs {
         if offset + 44 > data.len() {
             return None;
         }
-        
+
         // Leaf hash
         let mut leaf_hash = [0u8; 32];
         leaf_hash.copy_from_slice(&data[offset..offset + 32]);
         offset += 32;
-        
+
         // Leaf index
         let leaf_index = u64::from_le_bytes(data[offset..offset + 8].try_into().ok()?) as usize;
         offset += 8;
-        
+
         // Number of siblings
         let num_siblings = u32::from_le_bytes(data[offset..offset + 4].try_into().ok()?) as usize;
         offset += 4;
@@ -217,7 +218,7 @@ pub fn deserialize_proofs(data: &[u8]) -> Option<Vec<MerkleProof>> {
         if num_siblings > 64 {
             return None;
         }
-        
+
         // Siblings
         let mut siblings = Vec::with_capacity(num_siblings);
         for _ in 0..num_siblings {
@@ -229,7 +230,7 @@ pub fn deserialize_proofs(data: &[u8]) -> Option<Vec<MerkleProof>> {
             siblings.push(sibling);
             offset += 32;
         }
-        
+
         // Positions
         if offset + num_siblings > data.len() {
             return None;
@@ -239,7 +240,7 @@ pub fn deserialize_proofs(data: &[u8]) -> Option<Vec<MerkleProof>> {
             positions.push(data[offset] == 1);
             offset += 1;
         }
-        
+
         proofs.push(MerkleProof {
             leaf_hash,
             leaf_index,
@@ -247,7 +248,7 @@ pub fn deserialize_proofs(data: &[u8]) -> Option<Vec<MerkleProof>> {
             positions,
         });
     }
-    
+
     Some(proofs)
 }
 
@@ -259,34 +260,31 @@ mod tests {
     fn test_single_leaf() {
         let leaves = [b"hello".as_slice()];
         let tree = MerkleTree::from_leaves(&leaves);
-        
+
         let proof = tree.prove(0).unwrap();
         assert!(verify_merkle_proof(&proof, &tree.root()));
     }
 
     #[test]
     fn test_multiple_leaves() {
-        let leaves: Vec<&[u8]> = vec![
-            b"leaf0",
-            b"leaf1",
-            b"leaf2",
-            b"leaf3",
-        ];
+        let leaves: Vec<&[u8]> = vec![b"leaf0", b"leaf1", b"leaf2", b"leaf3"];
         let tree = MerkleTree::from_leaves(&leaves);
-        
+
         for i in 0..4 {
             let proof = tree.prove(i).unwrap();
-            assert!(verify_merkle_proof(&proof, &tree.root()), "Proof {} failed", i);
+            assert!(
+                verify_merkle_proof(&proof, &tree.root()),
+                "Proof {} failed",
+                i
+            );
         }
     }
 
     #[test]
     fn test_non_power_of_two_leaves() {
-        let leaves: Vec<&[u8]> = vec![
-            b"a", b"b", b"c",
-        ];
+        let leaves: Vec<&[u8]> = vec![b"a", b"b", b"c"];
         let tree = MerkleTree::from_leaves(&leaves);
-        
+
         for i in 0..3 {
             let proof = tree.prove(i).unwrap();
             assert!(verify_merkle_proof(&proof, &tree.root()));
@@ -297,10 +295,10 @@ mod tests {
     fn test_wrong_root_fails() {
         let leaves: Vec<&[u8]> = vec![b"a", b"b", b"c", b"d"];
         let tree = MerkleTree::from_leaves(&leaves);
-        
+
         let proof = tree.prove(0).unwrap();
         let wrong_root = [1u8; 32];
-        
+
         assert!(!verify_merkle_proof(&proof, &wrong_root));
     }
 
@@ -308,10 +306,10 @@ mod tests {
     fn test_tampered_proof_fails() {
         let leaves: Vec<&[u8]> = vec![b"a", b"b", b"c", b"d"];
         let tree = MerkleTree::from_leaves(&leaves);
-        
+
         let mut proof = tree.prove(0).unwrap();
         proof.siblings[0] = [0u8; 32]; // Tamper with sibling
-        
+
         assert!(!verify_merkle_proof(&proof, &tree.root()));
     }
 
@@ -319,14 +317,12 @@ mod tests {
     fn test_serialization_roundtrip() {
         let leaves: Vec<&[u8]> = vec![b"a", b"b", b"c", b"d"];
         let tree = MerkleTree::from_leaves(&leaves);
-        
-        let proofs: Vec<MerkleProof> = (0..4)
-            .map(|i| tree.prove(i).unwrap())
-            .collect();
-        
+
+        let proofs: Vec<MerkleProof> = (0..4).map(|i| tree.prove(i).unwrap()).collect();
+
         let serialized = serialize_proofs(&proofs);
         let deserialized = deserialize_proofs(&serialized).unwrap();
-        
+
         assert_eq!(proofs.len(), deserialized.len());
         for (orig, deser) in proofs.iter().zip(deserialized.iter()) {
             assert_eq!(orig.leaf_hash, deser.leaf_hash);
@@ -339,13 +335,10 @@ mod tests {
     fn test_verify_sample_proofs() {
         let leaves: Vec<&[u8]> = vec![b"a", b"b", b"c", b"d", b"e", b"f", b"g", b"h"];
         let tree = MerkleTree::from_leaves(&leaves);
-        
+
         // Sample indices 0, 3, 5
-        let proofs: Vec<MerkleProof> = vec![0, 3, 5]
-            .iter()
-            .map(|&i| tree.prove(i).unwrap())
-            .collect();
-        
+        let proofs: Vec<MerkleProof> = [0, 3, 5].iter().map(|&i| tree.prove(i).unwrap()).collect();
+
         assert!(verify_sample_proofs(&proofs, &tree.root()));
     }
 

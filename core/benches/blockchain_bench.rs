@@ -1,8 +1,8 @@
-use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
-use blockchain::{
-    Block, Blockchain, BlockchainConfig, Transaction, TransactionPool, PoolConfig, ValidationConfig,
-};
 use blockchain::validation::BlockValidator;
+use blockchain::{
+    Block, Blockchain, BlockchainConfig, PoolConfig, Transaction, TransactionPool, ValidationConfig,
+};
+use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
 
 fn make_block(number: u64) -> Block {
     Block {
@@ -40,9 +40,8 @@ fn benchmark_block_validation(c: &mut Criterion) {
 
     c.bench_function("validate_block", |b| {
         b.iter(|| {
-            black_box(
-                validator.validate_block(black_box(&block), black_box(Some(&parent))),
-            );
+            let _ =
+                black_box(validator.validate_block(black_box(&block), black_box(Some(&parent))));
         });
     });
 }

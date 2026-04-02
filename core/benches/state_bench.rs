@@ -2,9 +2,9 @@
 //!
 //! Benchmarks for RocksDB state storage operations
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion, BatchSize};
-use state::StateDB;
 use blockchain::{Block, Transaction};
+use criterion::{black_box, criterion_group, criterion_main, BatchSize, Criterion};
+use state::StateDB;
 use tempfile::TempDir;
 
 fn create_test_block(number: u64) -> Block {
@@ -52,7 +52,8 @@ fn benchmark_store_block(c: &mut Criterion) {
                 (temp_dir, db, block)
             },
             |(_temp_dir, db, block)| {
-                black_box(db.store_block(&block).unwrap());
+                db.store_block(&block).unwrap();
+                black_box(());
             },
             BatchSize::SmallInput,
         );
@@ -86,7 +87,8 @@ fn benchmark_store_transaction(c: &mut Criterion) {
                 (temp_dir, db, tx, block_hash)
             },
             |(_temp_dir, db, tx, block_hash)| {
-                black_box(db.store_transaction(&tx, &block_hash).unwrap());
+                db.store_transaction(&tx, &block_hash).unwrap();
+                black_box(());
             },
             BatchSize::SmallInput,
         );
@@ -100,7 +102,8 @@ fn benchmark_get_transaction(c: &mut Criterion) {
     // Pre-populate with transactions
     let block_hash = [1u8; 32];
     for i in 0..100 {
-        db.store_transaction(&create_test_tx(i), &block_hash).unwrap();
+        db.store_transaction(&create_test_tx(i), &block_hash)
+            .unwrap();
     }
 
     let tx_hash = {
@@ -127,7 +130,8 @@ fn benchmark_batch_store_blocks(c: &mut Criterion) {
             },
             |(_temp_dir, db, blocks)| {
                 for block in blocks {
-                    black_box(db.store_block(&block).unwrap());
+                    db.store_block(&block).unwrap();
+                    black_box(());
                 }
             },
             BatchSize::SmallInput,
