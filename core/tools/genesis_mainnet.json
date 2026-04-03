@@ -1,7 +1,7 @@
 {
   "config": {
-    "chainId": 86137,
-    "chainName": "Axionax Testnet",
+    "chainId": 86150,
+    "chainName": "Axionax Mainnet",
     "homesteadBlock": 0,
     "eip150Block": 0,
     "eip155Block": 0,
