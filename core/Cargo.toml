@@ -115,9 +115,7 @@ blake2 = "0.10"
 rand = "0.8"
 hex = "0.4"
 
-# Database
-rocksdb = "0.22"
-sled = "0.34"
+# Database (crates use redb directly; sled and rocksdb removed as unused)
 
 # Logging & Tracing
 tracing = "0.1"
