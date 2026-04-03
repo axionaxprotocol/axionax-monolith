@@ -5,6 +5,7 @@
 //! --chain_id flags. Use --help for full options.
 
 use clap::{Parser, ValueEnum};
+use config as proto_cfg;
 use node::{AxionaxNode, NodeConfig};
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -12,7 +13,6 @@ use std::time::Instant;
 use tokio::time::{sleep, Duration};
 use tracing::{info, warn, Level};
 use tracing_subscriber::fmt;
-use config as proto_cfg;
 
 #[derive(Debug, Clone, ValueEnum)]
 enum NodeRole {
@@ -111,13 +111,23 @@ async fn main() -> anyhow::Result<()> {
         match proto_cfg::ProtocolConfig::from_yaml(cfg_path.to_str().unwrap_or("")) {
             Ok(pc) => {
                 info!("Protocol config loaded from {}", cfg_path.display());
-                info!("  PoPC sample_size={} min_confidence={}", pc.popc.sample_size, pc.popc.min_confidence);
-                info!("  ASR top_k={} exploration_rate={}", pc.asr.top_k, pc.asr.exploration_rate);
+                info!(
+                    "  PoPC sample_size={} min_confidence={}",
+                    pc.popc.sample_size, pc.popc.min_confidence
+                );
+                info!(
+                    "  ASR top_k={} exploration_rate={}",
+                    pc.asr.top_k, pc.asr.exploration_rate
+                );
                 info!("  PPC target_utilization={}", pc.ppc.target_utilization);
                 pc
             }
             Err(e) => {
-                warn!("Could not load protocol config from {}: {} — using defaults", cfg_path.display(), e);
+                warn!(
+                    "Could not load protocol config from {}: {} — using defaults",
+                    cfg_path.display(),
+                    e
+                );
                 proto_cfg::ProtocolConfig::testnet()
             }
         }
@@ -128,7 +138,10 @@ async fn main() -> anyhow::Result<()> {
             _ => proto_cfg::ProtocolConfig::default(),
         }
     };
-    info!("Protocol: PoPC sample_size={} ASR top_k={}", protocol_config.popc.sample_size, protocol_config.asr.top_k);
+    info!(
+        "Protocol: PoPC sample_size={} ASR top_k={}",
+        protocol_config.popc.sample_size, protocol_config.asr.top_k
+    );
 
     // Only override block_time from protocol config if not already set by CLI/genesis
     if args.block_time.is_none() && args.chain.is_none() {
@@ -139,7 +152,8 @@ async fn main() -> anyhow::Result<()> {
     if let Some(ref chain_path) = args.chain {
         if let Ok(contents) = std::fs::read_to_string(chain_path) {
             if let Ok(json) = serde_json::from_str::<serde_json::Value>(&contents) {
-                if let Some(bt) = json.get("config")
+                if let Some(bt) = json
+                    .get("config")
                     .and_then(|c| c.get("axionax"))
                     .and_then(|a| a.get("blockTime"))
                     .and_then(|v| v.as_u64())
@@ -162,7 +176,8 @@ async fn main() -> anyhow::Result<()> {
     config.network.chain_id = chain_id;
 
     // Validator address: CLI arg > env variable
-    config.validator_address = args.validator_address
+    config.validator_address = args
+        .validator_address
         .or_else(|| std::env::var("AXIONAX_VALIDATOR_ADDRESS").ok());
     if let Some(ref addr) = config.validator_address {
         info!("Validator address: {}", addr);
@@ -186,7 +201,10 @@ async fn main() -> anyhow::Result<()> {
             .collect();
         if !nodes.is_empty() {
             config.network.bootstrap_nodes = nodes;
-            info!("Bootstrap nodes from env: {} node(s)", config.network.bootstrap_nodes.len());
+            info!(
+                "Bootstrap nodes from env: {} node(s)",
+                config.network.bootstrap_nodes.len()
+            );
         }
     }
 
@@ -220,7 +238,12 @@ async fn main() -> anyhow::Result<()> {
         metrics::PEERS_CONNECTED.set(peers as i64);
         metrics::UPTIME_SECONDS.set(start.elapsed().as_secs() as i64);
 
-        info!("blocks={} peers={} uptime={}s", stats.blocks_stored, peers, start.elapsed().as_secs());
+        info!(
+            "blocks={} peers={} uptime={}s",
+            stats.blocks_stored,
+            peers,
+            start.elapsed().as_secs()
+        );
     }
 }
 

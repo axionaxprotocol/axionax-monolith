@@ -5,7 +5,7 @@
 //! - Ed25519-based VRF
 //! - Prevents front-running and manipulation
 
-use ed25519_dalek::{Signer, SigningKey, Verifier, VerifyingKey, Signature};
+use ed25519_dalek::{Signature, Signer, SigningKey, Verifier, VerifyingKey};
 use rand::rngs::OsRng;
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Sha3_256};
@@ -192,7 +192,9 @@ impl VRF {
         output_bytes.copy_from_slice(&output);
 
         (
-            VRFOutput { value: output_bytes },
+            VRFOutput {
+                value: output_bytes,
+            },
             VRFProof {
                 proof: signature.to_bytes().to_vec(),
                 public_key: keypair.public_key_bytes(),
@@ -467,14 +469,11 @@ mod tests {
 
     #[test]
     fn test_output_conversion() {
-        let output = VRFOutput {
-            value: [255u8; 32],
-        };
+        let output = VRFOutput { value: [255u8; 32] };
 
         let f = output.to_f64();
-        assert!(f >= 0.0 && f <= 1.0); // Can equal 1.0 at max value
+        assert!((0.0..=1.0).contains(&f)); // Can equal 1.0 at max value
     }
-
 
     #[tokio::test]
     async fn test_generate_seed() {

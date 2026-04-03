@@ -2,13 +2,16 @@
 //!
 //! Manages pending transactions before they are included in blocks
 
-use std::collections::{HashMap, BTreeMap};
+use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
-use tokio::sync::RwLock;
 use thiserror::Error;
+use tokio::sync::RwLock;
 use tracing::{debug, info};
 
-use crate::{Transaction, validation::{TransactionValidator, ValidationConfig}};
+use crate::{
+    validation::{TransactionValidator, ValidationConfig},
+    Transaction,
+};
 
 /// Transaction pool errors
 #[derive(Error, Debug)]
@@ -148,7 +151,8 @@ impl TransactionPool {
     pub async fn add_transaction(&self, tx: Transaction) -> Result<()> {
         debug!("Adding transaction {:?} to pool", &tx.hash[..8]);
 
-        self.validator.validate_signed_transaction(&tx)
+        self.validator
+            .validate_signed_transaction(&tx)
             .map_err(|e| PoolError::ValidationFailed(e.to_string()))?;
 
         let mut accounts = self.accounts.write().await;
@@ -169,7 +173,8 @@ impl TransactionPool {
 
         // Get or create account queue
         let account = tx.from.clone();
-        let queue = accounts.entry(account.clone())
+        let queue = accounts
+            .entry(account.clone())
             .or_insert_with(|| AccountQueue::new(tx.nonce));
 
         // Check per-account limit
@@ -179,7 +184,8 @@ impl TransactionPool {
         }
 
         // Check nonce
-        let expected_nonce = queue.current_nonce
+        let expected_nonce = queue
+            .current_nonce
             .checked_add(queue.pending.len() as u64)
             .ok_or(PoolError::NonceTooHigh {
                 expected: queue.current_nonce,
@@ -227,12 +233,8 @@ impl TransactionPool {
         // Update stats
         stats.total_added += 1;
         stats.total_transactions = tx_to_account.len();
-        stats.pending_transactions = accounts.values()
-            .map(|q| q.pending.len())
-            .sum();
-        stats.queued_transactions = accounts.values()
-            .map(|q| q.queued.len())
-            .sum();
+        stats.pending_transactions = accounts.values().map(|q| q.pending.len()).sum();
+        stats.queued_transactions = accounts.values().map(|q| q.queued.len()).sum();
 
         info!("Transaction {:?} added to pool", &tx.hash[..8]);
         Ok(())
@@ -245,18 +247,20 @@ impl TransactionPool {
         let mut stats = self.stats.write().await;
 
         // Find account
-        let account = tx_to_account.remove(tx_hash)
-            .ok_or(PoolError::NotFound)?;
+        let account = tx_to_account.remove(tx_hash).ok_or(PoolError::NotFound)?;
 
         // Find and remove transaction
-        let queue = accounts.get_mut(&account)
-            .ok_or(PoolError::NotFound)?;
+        let queue = accounts.get_mut(&account).ok_or(PoolError::NotFound)?;
 
-        let tx = queue.pending.iter()
+        let tx = queue
+            .pending
+            .iter()
             .find(|(_, ptx)| ptx.transaction.hash == *tx_hash)
             .map(|(nonce, ptx)| (*nonce, ptx.transaction.clone()))
             .or_else(|| {
-                queue.queued.iter()
+                queue
+                    .queued
+                    .iter()
                     .find(|(_, ptx)| ptx.transaction.hash == *tx_hash)
                     .map(|(nonce, ptx)| (*nonce, ptx.transaction.clone()))
             })
@@ -282,9 +286,12 @@ impl TransactionPool {
         let accounts = self.accounts.read().await;
 
         let mut transactions = Vec::new();
-        let mut pending: Vec<_> = accounts.values()
+        let mut pending: Vec<_> = accounts
+            .values()
             .flat_map(|queue| {
-                queue.pending.values()
+                queue
+                    .pending
+                    .values()
                     .map(|ptx| (ptx.gas_price, ptx.clone()))
             })
             .collect();
@@ -309,7 +316,9 @@ impl TransactionPool {
             queue.current_nonce = new_nonce;
 
             // Collect transaction hashes to remove from mapping
-            let removed_hashes: Vec<[u8; 32]> = queue.pending.iter()
+            let removed_hashes: Vec<[u8; 32]> = queue
+                .pending
+                .iter()
                 .filter(|(&nonce, _)| nonce < new_nonce)
                 .map(|(_, ptx)| ptx.transaction.hash)
                 .collect();
@@ -323,7 +332,9 @@ impl TransactionPool {
             }
 
             // Also remove old queued transactions
-            let removed_queued: Vec<[u8; 32]> = queue.queued.iter()
+            let removed_queued: Vec<[u8; 32]> = queue
+                .queued
+                .iter()
                 .filter(|(&nonce, _)| nonce < new_nonce)
                 .map(|(_, ptx)| ptx.transaction.hash)
                 .collect();
@@ -335,7 +346,9 @@ impl TransactionPool {
             }
 
             // Promote queued transactions to pending
-            let to_promote: Vec<_> = queue.queued.iter()
+            let to_promote: Vec<_> = queue
+                .queued
+                .iter()
                 .filter(|(&nonce, _)| nonce == new_nonce + queue.pending.len() as u64)
                 .map(|(&nonce, ptx)| (nonce, ptx.clone()))
                 .collect();
@@ -362,7 +375,9 @@ impl TransactionPool {
         let account = tx_to_account.get(tx_hash)?;
         let queue = accounts.get(account)?;
 
-        queue.pending.values()
+        queue
+            .pending
+            .values()
             .chain(queue.queued.values())
             .find(|ptx| ptx.transaction.hash == *tx_hash)
             .map(|ptx| ptx.transaction.clone())
@@ -468,9 +483,15 @@ mod tests {
         let pool = TransactionPool::new(PoolConfig::default(), ValidationConfig::default());
         let acct = TestAccount::new();
 
-        pool.add_transaction(acct.tx(0, 10_000_000_000)).await.unwrap();
-        pool.add_transaction(acct.tx(1, 30_000_000_000)).await.unwrap();
-        pool.add_transaction(acct.tx(2, 20_000_000_000)).await.unwrap();
+        pool.add_transaction(acct.tx(0, 10_000_000_000))
+            .await
+            .unwrap();
+        pool.add_transaction(acct.tx(1, 30_000_000_000))
+            .await
+            .unwrap();
+        pool.add_transaction(acct.tx(2, 20_000_000_000))
+            .await
+            .unwrap();
 
         let pending = pool.get_pending_transactions(10).await;
         assert_eq!(pending.len(), 3);
@@ -497,13 +518,19 @@ mod tests {
 
     #[tokio::test]
     async fn test_pool_size_limit() {
-        let mut config = PoolConfig::default();
-        config.max_pool_size = 2;
+        let config = PoolConfig {
+            max_pool_size: 2,
+            ..Default::default()
+        };
         let pool = TransactionPool::new(config, ValidationConfig::default());
         let acct = TestAccount::new();
 
-        pool.add_transaction(acct.tx(0, 20_000_000_000)).await.unwrap();
-        pool.add_transaction(acct.tx(1, 20_000_000_000)).await.unwrap();
+        pool.add_transaction(acct.tx(0, 20_000_000_000))
+            .await
+            .unwrap();
+        pool.add_transaction(acct.tx(1, 20_000_000_000))
+            .await
+            .unwrap();
 
         let result = pool.add_transaction(acct.tx(2, 20_000_000_000)).await;
         assert!(matches!(result, Err(PoolError::PoolFull(_))));

@@ -8,12 +8,12 @@
 //! - Publicly verifiable proofs
 //! - Unpredictable outputs without the secret key
 
+use rand::rngs::OsRng;
 use schnorrkel::{
+    signing_context,
     vrf::{VRFInOut, VRFPreOut, VRFProof},
     Keypair, PublicKey,
-    signing_context,
 };
-use rand::rngs::OsRng;
 
 /// VRF output type (32 bytes)
 pub type VrfOutput = [u8; 32];
@@ -92,23 +92,24 @@ impl ECVRF {
         input: &[u8],
         proof_bytes: &VrfProofBytes,
     ) -> Result<VrfOutput, String> {
-        let public = PublicKey::from_bytes(public_key)
-            .map_err(|e| format!("Invalid public key: {}", e))?;
+        let public =
+            PublicKey::from_bytes(public_key).map_err(|e| format!("Invalid public key: {}", e))?;
 
         // Extract preout (32 bytes) and proof (64 bytes)
         let mut preout_bytes = [0u8; 32];
         preout_bytes.copy_from_slice(&proof_bytes[..32]);
-        let preout = VRFPreOut::from_bytes(&preout_bytes)
-            .map_err(|e| format!("Invalid preout: {}", e))?;
+        let preout =
+            VRFPreOut::from_bytes(&preout_bytes).map_err(|e| format!("Invalid preout: {}", e))?;
 
         let mut raw_proof = [0u8; 64];
         raw_proof.copy_from_slice(&proof_bytes[32..]);
-        let proof = VRFProof::from_bytes(&raw_proof)
-            .map_err(|e| format!("Invalid proof: {}", e))?;
+        let proof =
+            VRFProof::from_bytes(&raw_proof).map_err(|e| format!("Invalid proof: {}", e))?;
 
         let ctx = signing_context(VRF_CONTEXT);
 
-        let (inout, _) = public.vrf_verify(ctx.bytes(input), &preout, &proof)
+        let (inout, _) = public
+            .vrf_verify(ctx.bytes(input), &preout, &proof)
             .map_err(|e| format!("Verification failed: {}", e))?;
 
         Ok(Self::inout_to_bytes(&inout))

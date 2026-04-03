@@ -63,7 +63,9 @@ pub struct TransactionMessage {
     pub signer_public_key: Vec<u8>,
 }
 
-fn default_gas_limit() -> u64 { 21_000 }
+fn default_gas_limit() -> u64 {
+    21_000
+}
 
 /// Consensus-related messages
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -32,29 +32,29 @@ pub const GENESIS_TIMESTAMP: u64 = 1_775_001_600;
 // Allocation percentages (basis points, 10_000 = 100%)
 // ---------------------------------------------------------------------------
 
-pub const ALLOC_CREATOR_BPS: u16 = 1_000;       // 10%
-pub const ALLOC_ECOSYSTEM_BPS: u16 = 3_000;     // 30%
-pub const ALLOC_FOUNDATION_BPS: u16 = 2_000;    // 20%
-pub const ALLOC_COMMUNITY_BPS: u16 = 1_500;     // 15%
-pub const ALLOC_TEAM_BPS: u16 = 1_000;          // 10%
-pub const ALLOC_VALIDATORS_BPS: u16 = 500;      //  5%
-pub const ALLOC_PUBLIC_SALE_BPS: u16 = 500;     //  5%
-pub const ALLOC_FAUCET_BPS: u16 = 300;          //  3%
-pub const ALLOC_RESERVE_BPS: u16 = 200;         //  2%
+pub const ALLOC_CREATOR_BPS: u16 = 1_000; // 10%
+pub const ALLOC_ECOSYSTEM_BPS: u16 = 3_000; // 30%
+pub const ALLOC_FOUNDATION_BPS: u16 = 2_000; // 20%
+pub const ALLOC_COMMUNITY_BPS: u16 = 1_500; // 15%
+pub const ALLOC_TEAM_BPS: u16 = 1_000; // 10%
+pub const ALLOC_VALIDATORS_BPS: u16 = 500; //  5%
+pub const ALLOC_PUBLIC_SALE_BPS: u16 = 500; //  5%
+pub const ALLOC_FAUCET_BPS: u16 = 300; //  3%
+pub const ALLOC_RESERVE_BPS: u16 = 200; //  2%
 
 // ---------------------------------------------------------------------------
 // Well-known addresses
 // ---------------------------------------------------------------------------
 
 // EVM-compatible addresses (deterministic from sha256 seeds, matches core/tools/create_genesis.py)
-pub const ADDR_CREATOR: &str     = "0xb9e3968de4ec06c75ecb3c8ca151b446939aec7f";
-pub const ADDR_ECOSYSTEM: &str   = "0x866740f77e808b381bcb8622015b4a31cc3ca935";
-pub const ADDR_FOUNDATION: &str  = "0xa77f117ff23b672cf484b1d05cc48b5e7c03909d";
-pub const ADDR_COMMUNITY: &str   = "0x776b0130e806cb70003744a4691238052c0b972a";
-pub const ADDR_TEAM: &str        = "0x6af7d73fdcc0bf711ccada1422774ab1fdff9ae4";
+pub const ADDR_CREATOR: &str = "0xb9e3968de4ec06c75ecb3c8ca151b446939aec7f";
+pub const ADDR_ECOSYSTEM: &str = "0x866740f77e808b381bcb8622015b4a31cc3ca935";
+pub const ADDR_FOUNDATION: &str = "0xa77f117ff23b672cf484b1d05cc48b5e7c03909d";
+pub const ADDR_COMMUNITY: &str = "0x776b0130e806cb70003744a4691238052c0b972a";
+pub const ADDR_TEAM: &str = "0x6af7d73fdcc0bf711ccada1422774ab1fdff9ae4";
 pub const ADDR_PUBLIC_SALE: &str = "0x58abb3d4e75f232b4177bfd6061972a210f4c9e6";
-pub const ADDR_FAUCET: &str      = "0x59927b9ed220aa6bf2f0ef46bc6efefaf935109f";
-pub const ADDR_RESERVE: &str     = "0xa61e8cb3ec1e6246a852ca0493f7e8c9c44006cd";
+pub const ADDR_FAUCET: &str = "0x59927b9ed220aa6bf2f0ef46bc6efefaf935109f";
+pub const ADDR_RESERVE: &str = "0xa61e8cb3ec1e6246a852ca0493f7e8c9c44006cd";
 
 pub const ADDR_VALIDATOR_EU: &str = "0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326";
 pub const ADDR_VALIDATOR_AU: &str = "0x26e714016c6a91b791bb440ca8db6cd7c4d1e6cb";
@@ -198,10 +198,10 @@ impl Default for GovernanceGenesisConfig {
     fn default() -> Self {
         Self {
             min_proposal_stake: 100_000 * 10_u128.pow(18),
-            voting_period_blocks: 241_920, // ~7 days
+            voting_period_blocks: 241_920,  // ~7 days
             execution_delay_blocks: 69_120, // ~2 days
-            quorum_bps: 3000,              // 30%
-            pass_threshold_bps: 5000,      // 50%
+            quorum_bps: 3000,               // 30%
+            pass_threshold_bps: 5000,       // 50%
         }
     }
 }
@@ -338,16 +338,38 @@ impl GenesisGenerator {
             balances: HashMap::new(),
         };
 
-        config.balances.insert(ADDR_CREATOR.to_string(),     Self::alloc(ALLOC_CREATOR_BPS));
-        config.balances.insert(ADDR_ECOSYSTEM.to_string(),   Self::alloc(ALLOC_ECOSYSTEM_BPS));
-        config.balances.insert(ADDR_FOUNDATION.to_string(),  Self::alloc(ALLOC_FOUNDATION_BPS));
-        config.balances.insert(ADDR_COMMUNITY.to_string(),   Self::alloc(ALLOC_COMMUNITY_BPS));
-        config.balances.insert(ADDR_TEAM.to_string(),        Self::alloc(ALLOC_TEAM_BPS));
-        config.balances.insert(ADDR_VALIDATOR_EU.to_string(), validator_half);
-        config.balances.insert(ADDR_VALIDATOR_AU.to_string(), validator_half);
-        config.balances.insert(ADDR_PUBLIC_SALE.to_string(), Self::alloc(ALLOC_PUBLIC_SALE_BPS));
-        config.balances.insert(ADDR_FAUCET.to_string(),      Self::alloc(ALLOC_FAUCET_BPS));
-        config.balances.insert(ADDR_RESERVE.to_string(),     Self::alloc(ALLOC_RESERVE_BPS));
+        config
+            .balances
+            .insert(ADDR_CREATOR.to_string(), Self::alloc(ALLOC_CREATOR_BPS));
+        config
+            .balances
+            .insert(ADDR_ECOSYSTEM.to_string(), Self::alloc(ALLOC_ECOSYSTEM_BPS));
+        config.balances.insert(
+            ADDR_FOUNDATION.to_string(),
+            Self::alloc(ALLOC_FOUNDATION_BPS),
+        );
+        config
+            .balances
+            .insert(ADDR_COMMUNITY.to_string(), Self::alloc(ALLOC_COMMUNITY_BPS));
+        config
+            .balances
+            .insert(ADDR_TEAM.to_string(), Self::alloc(ALLOC_TEAM_BPS));
+        config
+            .balances
+            .insert(ADDR_VALIDATOR_EU.to_string(), validator_half);
+        config
+            .balances
+            .insert(ADDR_VALIDATOR_AU.to_string(), validator_half);
+        config.balances.insert(
+            ADDR_PUBLIC_SALE.to_string(),
+            Self::alloc(ALLOC_PUBLIC_SALE_BPS),
+        );
+        config
+            .balances
+            .insert(ADDR_FAUCET.to_string(), Self::alloc(ALLOC_FAUCET_BPS));
+        config
+            .balances
+            .insert(ADDR_RESERVE.to_string(), Self::alloc(ALLOC_RESERVE_BPS));
 
         Self::generate(config)
     }
@@ -378,10 +400,9 @@ impl GenesisGenerator {
         ];
 
         for account in dev_accounts {
-            config.balances.insert(
-                account.to_string(),
-                10_000 * ONE_AXX,
-            );
+            config
+                .balances
+                .insert(account.to_string(), 10_000 * ONE_AXX);
         }
 
         Self::generate(config)

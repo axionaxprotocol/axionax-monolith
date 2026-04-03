@@ -1,25 +1,25 @@
+use axum::http::HeaderValue;
 use axum::{
-    extract::{ConnectInfo, State, Json},
+    extract::{ConnectInfo, Json, State},
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
     Router,
 };
-use serde::{Deserialize, Serialize};
-use std::sync::Arc;
-use std::net::SocketAddr;
-use std::env;
-use std::time::{SystemTime, UNIX_EPOCH};
-use reqwest::Client;
-use tower_http::cors::{CorsLayer, AllowOrigin};
-use axum::http::HeaderValue;
-use tracing::{info, error, warn};
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use dashmap::DashMap;
+use reqwest::Client;
+use serde::{Deserialize, Serialize};
+use std::env;
+use std::net::SocketAddr;
+use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
+use tower_http::cors::{AllowOrigin, CorsLayer};
+use tracing::{error, info, warn};
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use blockchain::Transaction;
 use crypto::hash;
 use ed25519_dalek::SigningKey;
-use blockchain::Transaction;
 
 #[derive(Clone)]
 struct AppState {
@@ -31,9 +31,9 @@ struct AppState {
     amount_per_request: u128,
     /// Must be >= chain min gas price (default 1 Gwei in blockchain validation).
     gas_price: u128,
-    addr_limiter: Arc<DashMap<String, u64>>,  // address -> timestamp
-    ip_limiter: Arc<DashMap<String, u64>>,    // IP -> timestamp
-    cooldown_secs: u64,                       // configurable cooldown (default 86400)
+    addr_limiter: Arc<DashMap<String, u64>>, // address -> timestamp
+    ip_limiter: Arc<DashMap<String, u64>>,   // IP -> timestamp
+    cooldown_secs: u64,                      // configurable cooldown (default 86400)
 }
 
 #[derive(Deserialize)]
@@ -80,22 +80,30 @@ async fn main() -> anyhow::Result<()> {
     // Load environment variables
     dotenvy::dotenv().ok();
     let rpc_url = env::var("RPC_URL").unwrap_or_else(|_| "http://localhost:8545".to_string());
-    let chain_id = env::var("CHAIN_ID").unwrap_or_else(|_| "86137".to_string()).parse::<u64>()?;
+    let chain_id = env::var("CHAIN_ID")
+        .unwrap_or_else(|_| "86137".to_string())
+        .parse::<u64>()?;
     let private_key_hex = env::var("FAUCET_PRIVATE_KEY").expect("FAUCET_PRIVATE_KEY must be set");
-    let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string()).parse::<u16>()?;
+    let port = env::var("PORT")
+        .unwrap_or_else(|_| "3000".to_string())
+        .parse::<u16>()?;
 
     // Load private key
     // Assuming private key is 32 bytes hex
-    let pk_bytes = hex::decode(private_key_hex.strip_prefix("0x").unwrap_or(&private_key_hex))
-        .map_err(|e| anyhow::anyhow!("FAUCET_PRIVATE_KEY contains invalid hex: {e}"))?;
-    
-    // We need to construct SigningKey from bytes. 
+    let pk_bytes = hex::decode(
+        private_key_hex
+            .strip_prefix("0x")
+            .unwrap_or(&private_key_hex),
+    )
+    .map_err(|e| anyhow::anyhow!("FAUCET_PRIVATE_KEY contains invalid hex: {e}"))?;
+
+    // We need to construct SigningKey from bytes.
     // Since crypto::signature::generate_keypair() returns SigningKey, and we want to load one,
     // we might need to use ed25519_dalek directly if crypto doesn't expose `from_bytes`.
     // Checking crypto lib.rs, SigningKey is re-exported from ed25519_dalek.
-    // But `crypto::signature` doesn't expose `from_bytes`. 
+    // But `crypto::signature` doesn't expose `from_bytes`.
     // However, `crypto::VRF` does: `SigningKey::from_bytes`.
-    // Since we depend on `crypto`, and `SigningKey` is public there (via use ed25519_dalek::SigningKey), 
+    // Since we depend on `crypto`, and `SigningKey` is public there (via use ed25519_dalek::SigningKey),
     // we can use ed25519_dalek methods if we import it.
     // BUT we didn't add `ed25519-dalek` to our Cargo.toml, only `crypto`.
     // Wait, `crypto` re-exports `SigningKey`.
@@ -107,40 +115,41 @@ async fn main() -> anyhow::Result<()> {
     // So `SigningKey` might not be accessible outside unless re-exported.
     // `pub mod signature` uses `super::*`.
     // It returns `SigningKey` in `generate_keypair`. So `SigningKey` MUST be public.
-    
+
     // Assuming we can use `ed25519_dalek::SigningKey` via `crypto::signature`.
     // Let's assume `crypto` crate exposes it. If not, I'll need to add `ed25519-dalek` to Cargo.toml.
     // I'll add `ed25519-dalek` to Cargo.toml just in case.
     // Wait, I already wrote Cargo.toml.
-    
+
     // Let's try to trust `crypto` crate. If compilation fails, I'll fix it.
     // But `crypto::signature::generate_keypair()` returns `SigningKey`.
     // So `SigningKey` is definitely available.
-    
+
     // However, loading from bytes might need `ed25519_dalek::SigningKey::from_bytes(&bytes)`.
     // Since `crypto` doesn't export `from_bytes` wrapper, I might need direct access.
-    
-    // I'll just assume I can't load it easily without `ed25519-dalek`. 
+
+    // I'll just assume I can't load it easily without `ed25519-dalek`.
     // I will rewrite Cargo.toml to include it if needed.
-    
+
     // WORKAROUND: Generate a random key for now if we can't load it, OR better:
     // Rely on `crypto::signature::generate_keypair()` and print it on startup if we can't load.
     // But for a Faucet, we need persistence.
-    
+
     // Let's assume I need `ed25519-dalek` dependency.
     // I'll update Cargo.toml in next step if verification fails.
-    
-    let pk_array: [u8; 32] = pk_bytes.try_into()
-        .map_err(|v: Vec<u8>| anyhow::anyhow!("FAUCET_PRIVATE_KEY must be 32 bytes, got {}", v.len()))?;
+
+    let pk_array: [u8; 32] = pk_bytes.try_into().map_err(|v: Vec<u8>| {
+        anyhow::anyhow!("FAUCET_PRIVATE_KEY must be 32 bytes, got {}", v.len())
+    })?;
     let signing_key = ed25519_dalek::SigningKey::from_bytes(&pk_array);
     let verifying_key = signing_key.verifying_key();
-    
+
     // Derive address
     // Address = 0x + hex(keccak256(pubkey)[12..])
     let pub_bytes = verifying_key.to_bytes();
     let hash = hash::keccak256(&pub_bytes);
     let faucet_address = format!("0x{}", hex::encode(&hash[12..]));
-    
+
     info!("Faucet initialized");
     info!("Address: {}", faucet_address);
     info!("Chain ID: {}", chain_id);
@@ -162,7 +171,11 @@ async fn main() -> anyhow::Result<()> {
         .and_then(|v| v.parse::<u128>().ok())
         .unwrap_or(1_000_000_000); // 1 Gwei — matches core/blockchain validation default min
 
-    info!("Rate limit: {} seconds ({} hours)", cooldown_secs, cooldown_secs / 3600);
+    info!(
+        "Rate limit: {} seconds ({} hours)",
+        cooldown_secs,
+        cooldown_secs / 3600
+    );
     info!("Amount per request: {} AXX", amount);
     info!("Gas price (wei): {}", gas_price);
 
@@ -206,9 +219,13 @@ async fn main() -> anyhow::Result<()> {
 
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     info!("Listening on {}", addr);
-    
+
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app.into_make_service_with_connect_info::<SocketAddr>()).await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await?;
 
     Ok(())
 }
@@ -250,9 +267,12 @@ async fn request_handler(
             Json(Response {
                 status: "error".to_string(),
                 tx_hash: None,
-                message: Some("Invalid address: must be 0x + 40 hex chars, not zero address.".to_string()),
+                message: Some(
+                    "Invalid address: must be 0x + 40 hex chars, not zero address.".to_string(),
+                ),
             }),
-        ).into_response();
+        )
+            .into_response();
     }
     let address = if address.starts_with("0x") {
         address.to_string()
@@ -262,7 +282,10 @@ async fn request_handler(
     let client_ip = client_addr.ip().to_string();
     info!("Received request for {} from {}", address, client_ip);
 
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
     let cooldown = state.cooldown_secs;
 
     // Rate limit per IP
@@ -275,10 +298,14 @@ async fn request_handler(
                 Json(Response {
                     status: "error".to_string(),
                     tx_hash: None,
-                    message: Some(format!("Rate limit: 1 request per {}h per IP. Try again in {}m.",
-                        cooldown / 3600, remaining / 60 + 1)),
+                    message: Some(format!(
+                        "Rate limit: 1 request per {}h per IP. Try again in {}m.",
+                        cooldown / 3600,
+                        remaining / 60 + 1
+                    )),
                 }),
-            ).into_response();
+            )
+                .into_response();
         }
     }
 
@@ -286,16 +313,23 @@ async fn request_handler(
     if let Some(last) = state.addr_limiter.get(&address) {
         if now - *last < cooldown {
             let remaining = cooldown - (now - *last);
-            warn!("Address rate limited: {} ({}s remaining)", address, remaining);
+            warn!(
+                "Address rate limited: {} ({}s remaining)",
+                address, remaining
+            );
             return (
                 StatusCode::TOO_MANY_REQUESTS,
                 Json(Response {
                     status: "error".to_string(),
                     tx_hash: None,
-                    message: Some(format!("Rate limit: 1 request per {}h per address. Try again in {}m.",
-                        cooldown / 3600, remaining / 60 + 1)),
+                    message: Some(format!(
+                        "Rate limit: 1 request per {}h per address. Try again in {}m.",
+                        cooldown / 3600,
+                        remaining / 60 + 1
+                    )),
                 }),
-            ).into_response();
+            )
+                .into_response();
         }
     }
 
@@ -311,7 +345,8 @@ async fn request_handler(
                     tx_hash: None,
                     message: Some("Failed to get nonce from RPC".to_string()),
                 }),
-            ).into_response();
+            )
+                .into_response();
         }
     };
 
@@ -332,17 +367,21 @@ async fn request_handler(
     tx.compute_hash();
     let payload = tx.signing_payload();
     tx.signature = crypto::signature::sign(&state.signing_key, &payload);
-    
+
     // Serialize to JSON bytes
     // Since we defined `eth_sendRawTransaction` to take hex string of JSON bytes
     let tx_json = match serde_json::to_vec(&tx) {
         Ok(v) => v,
         Err(e) => {
-            return (StatusCode::INTERNAL_SERVER_ERROR, Json(Response {
-                status: "error".to_string(),
-                tx_hash: None,
-                message: Some(format!("Failed to serialize transaction: {e}")),
-            })).into_response();
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(Response {
+                    status: "error".to_string(),
+                    tx_hash: None,
+                    message: Some(format!("Failed to serialize transaction: {e}")),
+                }),
+            )
+                .into_response();
         }
     };
     let tx_hex = format!("0x{}", hex::encode(tx_json));
@@ -360,8 +399,9 @@ async fn request_handler(
                     tx_hash: Some(hash),
                     message: Some("Funds sent successfully".to_string()),
                 }),
-            ).into_response()
-        },
+            )
+                .into_response()
+        }
         Err(e) => {
             error!("Failed to send transaction: {}", e);
             (
@@ -371,7 +411,8 @@ async fn request_handler(
                     tx_hash: None,
                     message: Some(format!("Failed to send transaction: {}", e)),
                 }),
-            ).into_response()
+            )
+                .into_response()
         }
     }
 }
@@ -384,13 +425,10 @@ async fn get_nonce(client: &Client, rpc_url: &str, address: &str) -> anyhow::Res
         id: 1,
     };
 
-    let res = client.post(rpc_url)
-        .json(&request)
-        .send()
-        .await?;
+    let res = client.post(rpc_url).json(&request).send().await?;
 
     let body: JsonRpcResponse<String> = res.json().await?;
-    
+
     if let Some(err) = body.error {
         return Err(anyhow::anyhow!("RPC error: {}", err.message));
     }
@@ -403,7 +441,11 @@ async fn get_nonce(client: &Client, rpc_url: &str, address: &str) -> anyhow::Res
     }
 }
 
-async fn send_raw_transaction(client: &Client, rpc_url: &str, tx_hex: String) -> anyhow::Result<String> {
+async fn send_raw_transaction(
+    client: &Client,
+    rpc_url: &str,
+    tx_hex: String,
+) -> anyhow::Result<String> {
     let request = JsonRpcRequest {
         jsonrpc: "2.0".to_string(),
         method: "eth_sendRawTransaction".to_string(),
@@ -411,13 +453,10 @@ async fn send_raw_transaction(client: &Client, rpc_url: &str, tx_hex: String) ->
         id: 1,
     };
 
-    let res = client.post(rpc_url)
-        .json(&request)
-        .send()
-        .await?;
+    let res = client.post(rpc_url).json(&request).send().await?;
 
     let body: JsonRpcResponse<String> = res.json().await?;
-    
+
     if let Some(err) = body.error {
         return Err(anyhow::anyhow!("RPC error: {}", err.message));
     }

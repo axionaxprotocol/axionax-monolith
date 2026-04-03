@@ -52,7 +52,12 @@ impl LightValidator {
     /// Create a simulation validator with default laser array and detector.
     pub fn new_simulation() -> Self {
         Self {
-            laser_array: (0..32).map(|_| LaserSource { _wavelength_nm: 1550.0, _power_mw: 0.01 }).collect(),
+            laser_array: (0..32)
+                .map(|_| LaserSource {
+                    _wavelength_nm: 1550.0,
+                    _power_mw: 0.01,
+                })
+                .collect(),
             detector: Arc::new(SinglePhotonDetector { _efficiency: 0.95 }),
         }
     }
@@ -120,10 +125,7 @@ mod tests {
     fn test_validate_block_destructive_like() {
         let v = LightValidator::new_simulation();
         // Pattern that sums to ~π can yield Destructive
-        let mut hash = [0u8; 32];
-        for i in 0..32 {
-            hash[i] = 128; // 0.5 * 255 -> phase π per element -> sum ~ 16π
-        }
+        let hash = [128u8; 32]; // 0.5 * 255 -> phase π per element -> sum ~ 16π
         let block = BlockSim::new(hash);
         // Our sim: 32 * (128/255 * 2π) = large angle; mod TAU may land near π
         let valid = v.validate_block(&block);

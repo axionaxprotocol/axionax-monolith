@@ -17,20 +17,22 @@ use tracing::info;
 use blockchain::{Block, Transaction, TransactionPool};
 use state::StateDB;
 
-pub mod health;
-pub mod middleware;
-pub mod staking_rpc;
 pub mod governance_rpc;
-pub mod server;
+pub mod health;
 pub mod http_health;
+pub mod middleware;
+pub mod server;
+pub mod staking_rpc;
 
+pub use governance_rpc::{
+    GovernanceRpcServer, GovernanceRpcServerImpl, GovernanceStatsResponse, ProposalResponse,
+};
 pub use health::{HealthChecker, HealthStatus, NodeStatus};
+pub use http_health::{HealthState, HttpHealthConfig, HttpHealthServer};
 pub use middleware::{CorsConfig, RateLimitConfig, RateLimiter, RequestValidator};
-pub use staking_rpc::{StakingRpcServer, StakingRpcServerImpl, ValidatorResponse, StakingStatsResponse};
-pub use governance_rpc::{GovernanceRpcServer, GovernanceRpcServerImpl, ProposalResponse, GovernanceStatsResponse};
-pub use http_health::{HttpHealthServer, HttpHealthConfig, HealthState};
-
-
+pub use staking_rpc::{
+    StakingRpcServer, StakingRpcServerImpl, StakingStatsResponse, ValidatorResponse,
+};
 
 /// RPC server errors
 #[derive(Debug, thiserror::Error)]
@@ -186,7 +188,11 @@ pub struct AxionaxRpcServerImpl {
 impl AxionaxRpcServerImpl {
     /// Create new RPC server
     pub fn new(state: Arc<StateDB>, chain_id: u64) -> Self {
-        Self { state, mempool: None, chain_id }
+        Self {
+            state,
+            mempool: None,
+            chain_id,
+        }
     }
 
     /// Set mempool
@@ -259,19 +265,26 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
     }
 
     async fn get_balance(&self, address: String, _block: String) -> RpcResult<String> {
-        let balance = self.state.get_balance(address.as_str()).map_err(RpcError::from)?;
+        let balance = self
+            .state
+            .get_balance(address.as_str())
+            .map_err(RpcError::from)?;
         Ok(format!("0x{:x}", balance))
     }
 
     async fn get_transaction_count(&self, address: String, _block: String) -> RpcResult<String> {
-        let nonce = self.state.get_nonce(address.as_str()).map_err(RpcError::from)?;
+        let nonce = self
+            .state
+            .get_nonce(address.as_str())
+            .map_err(RpcError::from)?;
         Ok(format!("0x{:x}", nonce))
     }
 
     async fn send_raw_transaction(&self, tx_hex: String) -> RpcResult<String> {
-        let mempool = self.mempool.as_ref().ok_or_else(|| {
-            RpcError::InternalError("Mempool not available".to_string())
-        })?;
+        let mempool = self
+            .mempool
+            .as_ref()
+            .ok_or_else(|| RpcError::InternalError("Mempool not available".to_string()))?;
 
         let bytes = hex::decode(tx_hex.strip_prefix("0x").unwrap_or(&tx_hex))
             .map_err(|e| RpcError::InvalidParams(format!("Invalid hex: {}", e)))?;
@@ -283,13 +296,15 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
         if !tx.is_signed() {
             return Err(RpcError::InvalidParams(
                 "Transaction must include signature and signer_public_key".to_string(),
-            ).into());
+            )
+            .into());
         }
 
         if !tx.verify_signature() {
             return Err(RpcError::InvalidParams(
                 "Invalid transaction signature or signer address mismatch".to_string(),
-            ).into());
+            )
+            .into());
         }
 
         // Nonce validation — must match the sender's current nonce to prevent replays
@@ -298,7 +313,8 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
             return Err(RpcError::InvalidParams(format!(
                 "Nonce mismatch: expected {}, got {}",
                 expected_nonce, tx.nonce
-            )).into());
+            ))
+            .into());
         }
 
         if tx.hash == [0u8; 32] {
@@ -307,13 +323,17 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
 
         let tx_hash = format!("0x{}", hex::encode(tx.hash));
 
-        mempool.add_transaction(tx.clone())
+        mempool
+            .add_transaction(tx.clone())
             .await
             .map_err(|e| RpcError::InternalError(e.to_string()))?;
 
         // Apply transfer to state so balance/nonce update immediately (single-node / testnet).
         if let Err(e) = self.state.apply_transaction(&tx) {
-            tracing::warn!("apply_transaction after mempool add failed (tx may still be in pool): {}", e);
+            tracing::warn!(
+                "apply_transaction after mempool add failed (tx may still be in pool): {}",
+                e
+            );
         }
 
         Ok(tx_hash)
@@ -332,11 +352,10 @@ pub async fn start_rpc_server(
 
     // Build CORS layer — restrict origins in production, allow all in dev.
     let cors = {
-        use tower_http::cors::{CorsLayer, AllowOrigin, AllowMethods, AllowHeaders};
         use http::Method;
+        use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
 
-        let allowed_origins = std::env::var("AXIONAX_RPC_CORS_ORIGINS")
-            .unwrap_or_default();
+        let allowed_origins = std::env::var("AXIONAX_RPC_CORS_ORIGINS").unwrap_or_default();
 
         if allowed_origins.is_empty() || allowed_origins == "*" {
             CorsLayer::permissive()
@@ -359,13 +378,16 @@ pub async fn start_rpc_server(
 
     let middleware = tower::ServiceBuilder::new()
         .layer(tower::buffer::BufferLayer::new(1024))
-        .layer(tower::limit::RateLimitLayer::new(rate_limit_rps, std::time::Duration::from_secs(1)))
+        .layer(tower::limit::RateLimitLayer::new(
+            rate_limit_rps,
+            std::time::Duration::from_secs(1),
+        ))
         .layer(cors);
 
     let server = Server::builder()
         .set_http_middleware(middleware)
-        .max_request_body_size(1_048_576)    // 1 MB max request
-        .max_response_body_size(10_485_760)  // 10 MB max response
+        .max_request_body_size(1_048_576) // 1 MB max request
+        .max_response_body_size(10_485_760) // 10 MB max response
         .max_connections(1_000)
         .build(addr)
         .await?;
@@ -384,7 +406,10 @@ pub async fn start_rpc_server(
     }
 
     let handle = server.start(module);
-    info!("RPC server started (eth_* + system_* + events WS, rate_limit={}/s)", rate_limit_rps);
+    info!(
+        "RPC server started (eth_* + system_* + events WS, rate_limit={}/s)",
+        rate_limit_rps
+    );
     Ok(handle)
 }
 
@@ -396,14 +421,17 @@ pub async fn start_rpc_server_full(
     mempool: Option<Arc<TransactionPool>>,
     event_bus: Option<Arc<events::EventBus>>,
     staking: Option<Arc<tokio::sync::RwLock<staking::Staking>>>,
-    governance: Option<(Arc<tokio::sync::RwLock<governance::Governance>>, Arc<tokio::sync::RwLock<staking::Staking>>)>,
+    governance: Option<(
+        Arc<tokio::sync::RwLock<governance::Governance>>,
+        Arc<tokio::sync::RwLock<staking::Staking>>,
+    )>,
 ) -> anyhow::Result<ServerHandle> {
     info!("Starting full RPC server on {}", addr);
 
     // Build CORS layer
     let cors = {
-        use tower_http::cors::{CorsLayer, AllowOrigin, AllowMethods, AllowHeaders};
         use http::Method;
+        use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
         let allowed_origins = std::env::var("AXIONAX_RPC_CORS_ORIGINS").unwrap_or_default();
         if allowed_origins.is_empty() || allowed_origins == "*" {
             CorsLayer::permissive()
@@ -425,7 +453,10 @@ pub async fn start_rpc_server_full(
 
     let middleware = tower::ServiceBuilder::new()
         .layer(tower::buffer::BufferLayer::new(1024))
-        .layer(tower::limit::RateLimitLayer::new(rate_limit_rps, std::time::Duration::from_secs(1)))
+        .layer(tower::limit::RateLimitLayer::new(
+            rate_limit_rps,
+            std::time::Duration::from_secs(1),
+        ))
         .layer(cors);
 
     let server = Server::builder()
@@ -452,10 +483,7 @@ pub async fn start_rpc_server_full(
 
     // Merge staking RPC (staking_*)
     if let Some(staking_ref) = staking {
-        let staking_rpc = StakingRpcServerImpl::new(
-            staking_ref,
-            staking::StakingConfig::default(),
-        );
+        let staking_rpc = StakingRpcServerImpl::new(staking_ref, staking::StakingConfig::default());
         module.merge(staking_rpc.into_rpc())?;
         info!("Staking RPC methods registered");
     }
@@ -476,10 +504,7 @@ pub async fn start_rpc_server_full(
     Ok(handle)
 }
 
-fn build_system_module(
-    state: Arc<StateDB>,
-    chain_id: u64,
-) -> anyhow::Result<RpcModule<()>> {
+fn build_system_module(state: Arc<StateDB>, chain_id: u64) -> anyhow::Result<RpcModule<()>> {
     let mut module = RpcModule::new(());
     let state_for_status = state.clone();
     module.register_method("system_status", move |_, _, _| {
@@ -546,9 +571,7 @@ fn build_system_module(
 }
 
 /// Build the WebSocket events subscription module.
-fn build_events_module(
-    bus: Arc<events::EventBus>,
-) -> anyhow::Result<RpcModule<()>> {
+fn build_events_module(bus: Arc<events::EventBus>) -> anyhow::Result<RpcModule<()>> {
     use jsonrpsee::SubscriptionMessage;
 
     let mut module = RpcModule::new(());
@@ -558,7 +581,10 @@ fn build_events_module(
         "events_subscribe",
         "events_notification",
         "events_unsubscribe",
-        move |params: jsonrpsee::types::Params<'static>, pending: jsonrpsee::PendingSubscriptionSink, _ctx: std::sync::Arc<()>, _ext: jsonrpsee::Extensions| {
+        move |params: jsonrpsee::types::Params<'static>,
+              pending: jsonrpsee::PendingSubscriptionSink,
+              _ctx: std::sync::Arc<()>,
+              _ext: jsonrpsee::Extensions| {
             let bus = bus_for_sub.clone();
             async move {
                 let event_types: Vec<String> = params.parse()?;
@@ -582,7 +608,8 @@ fn build_events_module(
                             -32000,
                             "Max subscriptions reached",
                             None::<()>,
-                        ).into());
+                        )
+                        .into());
                     }
                 };
                 let sink = pending.accept().await?;

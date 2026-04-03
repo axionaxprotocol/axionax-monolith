@@ -18,8 +18,7 @@ pub use config::NetworkConfig;
 pub use error::{NetworkError, Result};
 pub use manager::NetworkManager;
 pub use protocol::{MessageType, NetworkMessage};
-pub use reputation::{ReputationConfig, ReputationManager, PeerScore};
-
+pub use reputation::{PeerScore, ReputationConfig, ReputationManager};
 
 #[cfg(test)]
 mod tests {

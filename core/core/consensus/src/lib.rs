@@ -10,7 +10,9 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-pub use merkle::{MerkleProof, MerkleTree, Hash, verify_merkle_proof, verify_sample_proofs, deserialize_proofs};
+pub use merkle::{
+    deserialize_proofs, verify_merkle_proof, verify_sample_proofs, Hash, MerkleProof, MerkleTree,
+};
 pub use proof_of_light::{BlockSim, FocusPoint, LightValidator};
 
 /// PoPC Validator represents a network validator
@@ -72,7 +74,7 @@ impl ConsensusEngine {
     }
 
     /// Generates a PoPC challenge
-    /// 
+    ///
     /// # Arguments
     /// * `job_id` - Unique identifier for the job
     /// * `output_size` - Number of output chunks to sample from
@@ -100,7 +102,7 @@ impl ConsensusEngine {
     }
 
     /// Verifies a proof against a challenge
-    /// 
+    ///
     /// Proof data must contain serialized Merkle proofs for each sampled position.
     /// Returns true only if all proofs are valid against the expected Merkle root.
     pub fn verify_proof(&self, challenge: &Challenge, proof_data: &[u8]) -> bool {
@@ -184,7 +186,11 @@ impl Default for ConsensusConfig {
 impl ConsensusConfig {
     /// Create a config dynamically adapting block counts based on the target block time
     pub fn with_block_time(block_time_sec: u64) -> Self {
-        let block_time = if block_time_sec == 0 { 1 } else { block_time_sec };
+        let block_time = if block_time_sec == 0 {
+            1
+        } else {
+            block_time_sec
+        };
         let fraud_window_blocks = 3600 / block_time; // ~1 hour
         Self {
             sample_size: 1000,              // Recommended: 600-1500 (ARCHITECTURE v1.5)
@@ -199,7 +205,7 @@ impl ConsensusConfig {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::merkle::{MerkleTree, serialize_proofs};
+    use crate::merkle::{serialize_proofs, MerkleTree};
 
     fn create_test_validator(address: &str, stake: u128) -> Validator {
         Validator {
@@ -242,7 +248,8 @@ mod tests {
     #[test]
     fn test_generate_challenge() {
         let engine = ConsensusEngine::new(ConsensusConfig::default());
-        let challenge = engine.generate_challenge("job-123".to_string(), 10000, [1u8; 32], dummy_root());
+        let challenge =
+            engine.generate_challenge("job-123".to_string(), 10000, [1u8; 32], dummy_root());
 
         assert_eq!(challenge.job_id, "job-123");
         assert_eq!(challenge.samples.len(), 1000);
@@ -264,9 +271,10 @@ mod tests {
     #[test]
     fn test_sample_size_capped_by_output_size() {
         let engine = ConsensusEngine::new(ConsensusConfig::default());
-        
+
         // Output size (100) is less than sample_size (1000)
-        let challenge = engine.generate_challenge("small-job".to_string(), 100, [42u8; 32], dummy_root());
+        let challenge =
+            engine.generate_challenge("small-job".to_string(), 100, [42u8; 32], dummy_root());
 
         // Sample size should be capped to output size
         assert_eq!(challenge.sample_size, 100);
@@ -278,8 +286,10 @@ mod tests {
         let engine = ConsensusEngine::new(ConsensusConfig::default());
         let seed = [123u8; 32];
 
-        let challenge1 = engine.generate_challenge("job-det".to_string(), 10000, seed, dummy_root());
-        let challenge2 = engine.generate_challenge("job-det".to_string(), 10000, seed, dummy_root());
+        let challenge1 =
+            engine.generate_challenge("job-det".to_string(), 10000, seed, dummy_root());
+        let challenge2 =
+            engine.generate_challenge("job-det".to_string(), 10000, seed, dummy_root());
 
         // Same seed should produce same samples
         assert_eq!(challenge1.samples, challenge2.samples);
@@ -289,8 +299,10 @@ mod tests {
     fn test_different_seeds_produce_different_samples() {
         let engine = ConsensusEngine::new(ConsensusConfig::default());
 
-        let challenge1 = engine.generate_challenge("job-1".to_string(), 10000, [1u8; 32], dummy_root());
-        let challenge2 = engine.generate_challenge("job-2".to_string(), 10000, [2u8; 32], dummy_root());
+        let challenge1 =
+            engine.generate_challenge("job-1".to_string(), 10000, [1u8; 32], dummy_root());
+        let challenge2 =
+            engine.generate_challenge("job-2".to_string(), 10000, [2u8; 32], dummy_root());
 
         // Different seeds should produce different samples
         assert_ne!(challenge1.samples, challenge2.samples);
@@ -314,7 +326,8 @@ mod tests {
     #[test]
     fn test_verify_proof_invalid_size() {
         let engine = ConsensusEngine::new(ConsensusConfig::default());
-        let challenge = engine.generate_challenge("job-verify".to_string(), 10000, [1u8; 32], dummy_root());
+        let challenge =
+            engine.generate_challenge("job-verify".to_string(), 10000, [1u8; 32], dummy_root());
 
         // Proof data too small
         let small_proof = vec![0u8; 2];
@@ -326,7 +339,7 @@ mod tests {
         // Create sample data (simulating job output chunks)
         let leaves: Vec<Vec<u8>> = (0..16).map(|i| vec![i as u8; 32]).collect();
         let leaf_refs: Vec<&[u8]> = leaves.iter().map(|v| v.as_slice()).collect();
-        
+
         // Build Merkle tree
         let tree = MerkleTree::from_leaves(&leaf_refs);
         let root = tree.root();
@@ -342,7 +355,9 @@ mod tests {
         let challenge = engine.generate_challenge("job-real".to_string(), 16, [1u8; 32], root);
 
         // Generate proofs for sampled positions
-        let proofs: Vec<MerkleProof> = challenge.samples.iter()
+        let proofs: Vec<MerkleProof> = challenge
+            .samples
+            .iter()
             .map(|&idx| tree.prove(idx).unwrap())
             .collect();
 
@@ -358,7 +373,7 @@ mod tests {
         // Create sample data
         let leaves: Vec<Vec<u8>> = (0..16).map(|i| vec![i as u8; 32]).collect();
         let leaf_refs: Vec<&[u8]> = leaves.iter().map(|v| v.as_slice()).collect();
-        
+
         let tree = MerkleTree::from_leaves(&leaf_refs);
         let wrong_root = [99u8; 32]; // Wrong root
 
@@ -369,10 +384,13 @@ mod tests {
         let engine = ConsensusEngine::new(config);
 
         // Challenge with WRONG root
-        let challenge = engine.generate_challenge("job-wrong".to_string(), 16, [1u8; 32], wrong_root);
+        let challenge =
+            engine.generate_challenge("job-wrong".to_string(), 16, [1u8; 32], wrong_root);
 
         // Generate proofs from real tree
-        let proofs: Vec<MerkleProof> = challenge.samples.iter()
+        let proofs: Vec<MerkleProof> = challenge
+            .samples
+            .iter()
             .map(|&idx| tree.prove(idx).unwrap())
             .collect();
         let proof_data = serialize_proofs(&proofs);
@@ -392,7 +410,8 @@ mod tests {
         };
 
         let engine = ConsensusEngine::new(config);
-        let challenge = engine.generate_challenge("job-custom".to_string(), 10000, [1u8; 32], dummy_root());
+        let challenge =
+            engine.generate_challenge("job-custom".to_string(), 10000, [1u8; 32], dummy_root());
 
         assert_eq!(challenge.sample_size, 500);
     }

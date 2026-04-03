@@ -72,7 +72,8 @@ impl From<redb::CommitError> for StateError {
 }
 
 const BLOCKS: TableDefinition<&str, &[u8]> = TableDefinition::new("blocks");
-const BLOCK_HASH_TO_NUMBER: TableDefinition<&[u8], u64> = TableDefinition::new("block_hash_to_number");
+const BLOCK_HASH_TO_NUMBER: TableDefinition<&[u8], u64> =
+    TableDefinition::new("block_hash_to_number");
 const TRANSACTIONS: TableDefinition<&[u8], &[u8]> = TableDefinition::new("transactions");
 const TX_TO_BLOCK: TableDefinition<&[u8], &[u8]> = TableDefinition::new("tx_to_block");
 const CHAIN_STATE: TableDefinition<&str, &[u8]> = TableDefinition::new("chain_state");
@@ -99,7 +100,8 @@ impl StateDB {
         };
         info!("Opening state database at {:?}", file_path);
 
-        let db = Database::create(&file_path).map_err(|e| StateError::DatabaseError(e.to_string()))?;
+        let db =
+            Database::create(&file_path).map_err(|e| StateError::DatabaseError(e.to_string()))?;
 
         {
             let write_txn = db.begin_write()?;
@@ -257,11 +259,10 @@ impl StateDB {
         match t.get("chain_height")? {
             Some(v) => {
                 let bytes: &[u8] = v.value();
-                let height = u64::from_be_bytes(
-                    bytes
-                        .try_into()
-                        .map_err(|_| StateError::DatabaseError("Invalid height format".to_string()))?,
-                );
+                let height =
+                    u64::from_be_bytes(bytes.try_into().map_err(|_| {
+                        StateError::DatabaseError("Invalid height format".to_string())
+                    })?);
                 Ok(height)
             }
             None => Ok(0),
@@ -286,9 +287,7 @@ impl StateDB {
         let read_txn = self.db.begin_read()?;
         let t = read_txn.open_table(CHAIN_STATE)?;
 
-        let root_val = t
-            .get(key.as_str())?
-            .ok_or(StateError::KeyNotFound(key))?;
+        let root_val = t.get(key.as_str())?.ok_or(StateError::KeyNotFound(key))?;
 
         String::from_utf8(root_val.value().to_vec())
             .map_err(|e| StateError::DatabaseError(e.to_string()))
@@ -656,9 +655,12 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
-        db.set_balance("0xcccccccccccccccccccccccccccccccccccccccc", 300).unwrap();
-        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100).unwrap();
-        db.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200).unwrap();
+        db.set_balance("0xcccccccccccccccccccccccccccccccccccccccc", 300)
+            .unwrap();
+        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100)
+            .unwrap();
+        db.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200)
+            .unwrap();
 
         let accounts = db.get_all_accounts().unwrap();
         assert_eq!(accounts.len(), 3);
@@ -695,8 +697,10 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
-        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1_000_000).unwrap();
-        db.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 2_000_000).unwrap();
+        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1_000_000)
+            .unwrap();
+        db.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 2_000_000)
+            .unwrap();
 
         let root1 = db.compute_state_root().unwrap();
         let root2 = db.compute_state_root().unwrap();
@@ -709,10 +713,12 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let db = StateDB::open(temp_dir.path().join("state.redb")).unwrap();
 
-        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1_000_000).unwrap();
+        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1_000_000)
+            .unwrap();
         let root_before = db.compute_state_root().unwrap();
 
-        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 2_000_000).unwrap();
+        db.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 2_000_000)
+            .unwrap();
         let root_after = db.compute_state_root().unwrap();
 
         assert_ne!(root_before, root_after);
@@ -722,14 +728,21 @@ mod tests {
     fn test_compute_state_root_order_independent_via_sort() {
         let temp_dir1 = TempDir::new().unwrap();
         let db1 = StateDB::open(temp_dir1.path().join("state.redb")).unwrap();
-        db1.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100).unwrap();
-        db1.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200).unwrap();
+        db1.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100)
+            .unwrap();
+        db1.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200)
+            .unwrap();
 
         let temp_dir2 = TempDir::new().unwrap();
         let db2 = StateDB::open(temp_dir2.path().join("state.redb")).unwrap();
-        db2.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200).unwrap();
-        db2.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100).unwrap();
+        db2.set_balance("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 200)
+            .unwrap();
+        db2.set_balance("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 100)
+            .unwrap();
 
-        assert_eq!(db1.compute_state_root().unwrap(), db2.compute_state_root().unwrap());
+        assert_eq!(
+            db1.compute_state_root().unwrap(),
+            db2.compute_state_root().unwrap()
+        );
     }
 }

@@ -19,7 +19,9 @@ const ORD: Ordering = Ordering::Relaxed;
 pub struct IntGauge(AtomicI64);
 
 impl Default for IntGauge {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl IntGauge {
@@ -37,7 +39,9 @@ impl IntGauge {
 pub struct IntCounter(AtomicU64);
 
 impl Default for IntCounter {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl IntCounter {
@@ -59,7 +63,9 @@ impl IntCounter {
 pub struct Gauge(AtomicU64);
 
 impl Default for Gauge {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Gauge {
@@ -116,10 +122,7 @@ fn atomic_f64_add(bits: &AtomicU64, v: f64) {
     loop {
         let cur = bits.load(ORD);
         let new_val = (f64::from_bits(cur) + v).to_bits();
-        if bits
-            .compare_exchange_weak(cur, new_val, ORD, ORD)
-            .is_ok()
-        {
+        if bits.compare_exchange_weak(cur, new_val, ORD, ORD).is_ok() {
             break;
         }
     }
@@ -159,13 +162,16 @@ impl IntCounterVec {
 
     pub fn with_label_values(&self, values: &[&str]) -> LabeledIntCounter {
         let key = values.join("\x00");
-        if let Some(val) = self.entries.read().unwrap_or_else(|e| e.into_inner()).get(&key) {
+        if let Some(val) = self
+            .entries
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(&key)
+        {
             return LabeledIntCounter(val.clone());
         }
         let mut w = self.entries.write().unwrap_or_else(|e| e.into_inner());
-        let val = w
-            .entry(key)
-            .or_insert_with(|| Arc::new(AtomicU64::new(0)));
+        let val = w.entry(key).or_insert_with(|| Arc::new(AtomicU64::new(0)));
         LabeledIntCounter(val.clone())
     }
 
@@ -203,7 +209,12 @@ impl GaugeVec {
 
     pub fn with_label_values(&self, values: &[&str]) -> LabeledGauge {
         let key = values.join("\x00");
-        if let Some(val) = self.entries.read().unwrap_or_else(|e| e.into_inner()).get(&key) {
+        if let Some(val) = self
+            .entries
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(&key)
+        {
             return LabeledGauge(val.clone());
         }
         let mut w = self.entries.write().unwrap_or_else(|e| e.into_inner());
@@ -249,14 +260,17 @@ impl HistogramVec {
 
     pub fn with_label_values(&self, values: &[&str]) -> LabeledHistogram {
         let key = values.join("\x00");
-        if let Some(val) = self.entries.read().unwrap_or_else(|e| e.into_inner()).get(&key) {
+        if let Some(val) = self
+            .entries
+            .read()
+            .unwrap_or_else(|e| e.into_inner())
+            .get(&key)
+        {
             return LabeledHistogram(val.clone());
         }
         let mut w = self.entries.write().unwrap_or_else(|e| e.into_inner());
         let ub = self.upper_bounds.clone();
-        let val = w
-            .entry(key)
-            .or_insert_with(|| Arc::new(Histogram::new(ub)));
+        let val = w.entry(key).or_insert_with(|| Arc::new(Histogram::new(ub)));
         LabeledHistogram(val.clone())
     }
 
@@ -360,44 +374,164 @@ pub fn export() -> String {
     let mut buf = String::with_capacity(4096);
 
     // Chain
-    fmt_int_gauge(&mut buf, "axionax_block_height", "Current block height", &BLOCK_HEIGHT);
-    fmt_counter(&mut buf, "axionax_transactions_total", "Total transactions processed", &TX_TOTAL);
-    fmt_f64_gauge(&mut buf, "axionax_tx_per_second", "Transactions per second", &TX_PER_SECOND);
-    fmt_histogram(&mut buf, "axionax_block_time_seconds", "Block time in seconds", &BLOCK_TIME);
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_block_height",
+        "Current block height",
+        &BLOCK_HEIGHT,
+    );
+    fmt_counter(
+        &mut buf,
+        "axionax_transactions_total",
+        "Total transactions processed",
+        &TX_TOTAL,
+    );
+    fmt_f64_gauge(
+        &mut buf,
+        "axionax_tx_per_second",
+        "Transactions per second",
+        &TX_PER_SECOND,
+    );
+    fmt_histogram(
+        &mut buf,
+        "axionax_block_time_seconds",
+        "Block time in seconds",
+        &BLOCK_TIME,
+    );
 
     // Consensus
-    fmt_int_gauge(&mut buf, "axionax_validators_active", "Number of active validators", &VALIDATORS_ACTIVE);
-    fmt_f64_gauge(&mut buf, "axionax_total_staked", "Total amount staked", &TOTAL_STAKED);
-    fmt_counter(&mut buf, "axionax_challenges_issued_total", "Total challenges issued", &CHALLENGES_ISSUED);
-    fmt_counter(&mut buf, "axionax_fraud_proofs_total", "Total fraud proofs submitted", &FRAUD_PROOFS);
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_validators_active",
+        "Number of active validators",
+        &VALIDATORS_ACTIVE,
+    );
+    fmt_f64_gauge(
+        &mut buf,
+        "axionax_total_staked",
+        "Total amount staked",
+        &TOTAL_STAKED,
+    );
+    fmt_counter(
+        &mut buf,
+        "axionax_challenges_issued_total",
+        "Total challenges issued",
+        &CHALLENGES_ISSUED,
+    );
+    fmt_counter(
+        &mut buf,
+        "axionax_fraud_proofs_total",
+        "Total fraud proofs submitted",
+        &FRAUD_PROOFS,
+    );
 
     // Network
-    fmt_int_gauge(&mut buf, "axionax_peers_connected", "Number of connected peers", &PEERS_CONNECTED);
-    fmt_counter_vec(&mut buf, "axionax_peer_messages_in_total", "Messages received from peers", &PEER_MESSAGES_IN);
-    fmt_counter_vec(&mut buf, "axionax_peer_messages_out_total", "Messages sent to peers", &PEER_MESSAGES_OUT);
-    fmt_gauge_vec(&mut buf, "axionax_peer_reputation", "Peer reputation scores", &PEER_REPUTATION);
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_peers_connected",
+        "Number of connected peers",
+        &PEERS_CONNECTED,
+    );
+    fmt_counter_vec(
+        &mut buf,
+        "axionax_peer_messages_in_total",
+        "Messages received from peers",
+        &PEER_MESSAGES_IN,
+    );
+    fmt_counter_vec(
+        &mut buf,
+        "axionax_peer_messages_out_total",
+        "Messages sent to peers",
+        &PEER_MESSAGES_OUT,
+    );
+    fmt_gauge_vec(
+        &mut buf,
+        "axionax_peer_reputation",
+        "Peer reputation scores",
+        &PEER_REPUTATION,
+    );
 
     // RPC
-    fmt_counter_vec(&mut buf, "axionax_rpc_requests_total", "Total RPC requests", &RPC_REQUESTS);
-    fmt_histogram_vec(&mut buf, "axionax_rpc_latency_seconds", "RPC request latency", &RPC_LATENCY);
-    fmt_counter_vec(&mut buf, "axionax_rpc_errors_total", "Total RPC errors", &RPC_ERRORS);
+    fmt_counter_vec(
+        &mut buf,
+        "axionax_rpc_requests_total",
+        "Total RPC requests",
+        &RPC_REQUESTS,
+    );
+    fmt_histogram_vec(
+        &mut buf,
+        "axionax_rpc_latency_seconds",
+        "RPC request latency",
+        &RPC_LATENCY,
+    );
+    fmt_counter_vec(
+        &mut buf,
+        "axionax_rpc_errors_total",
+        "Total RPC errors",
+        &RPC_ERRORS,
+    );
 
     // Mempool
-    fmt_int_gauge(&mut buf, "axionax_mempool_size", "Number of transactions in mempool", &MEMPOOL_SIZE);
-    fmt_int_gauge(&mut buf, "axionax_mempool_bytes", "Total bytes in mempool", &MEMPOOL_BYTES);
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_mempool_size",
+        "Number of transactions in mempool",
+        &MEMPOOL_SIZE,
+    );
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_mempool_bytes",
+        "Total bytes in mempool",
+        &MEMPOOL_BYTES,
+    );
 
     // State
-    fmt_int_gauge(&mut buf, "axionax_state_db_bytes", "State database size in bytes", &STATE_DB_SIZE);
-    fmt_counter(&mut buf, "axionax_state_reads_total", "Total state reads", &STATE_READS);
-    fmt_counter(&mut buf, "axionax_state_writes_total", "Total state writes", &STATE_WRITES);
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_state_db_bytes",
+        "State database size in bytes",
+        &STATE_DB_SIZE,
+    );
+    fmt_counter(
+        &mut buf,
+        "axionax_state_reads_total",
+        "Total state reads",
+        &STATE_READS,
+    );
+    fmt_counter(
+        &mut buf,
+        "axionax_state_writes_total",
+        "Total state writes",
+        &STATE_WRITES,
+    );
 
     // Governance
-    fmt_int_gauge(&mut buf, "axionax_gov_active_proposals", "Number of active governance proposals", &GOV_ACTIVE_PROPOSALS);
-    fmt_counter(&mut buf, "axionax_gov_votes_total", "Total governance votes cast", &GOV_VOTES_CAST);
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_gov_active_proposals",
+        "Number of active governance proposals",
+        &GOV_ACTIVE_PROPOSALS,
+    );
+    fmt_counter(
+        &mut buf,
+        "axionax_gov_votes_total",
+        "Total governance votes cast",
+        &GOV_VOTES_CAST,
+    );
 
     // System
-    fmt_int_gauge(&mut buf, "axionax_uptime_seconds", "Node uptime in seconds", &UPTIME_SECONDS);
-    fmt_int_gauge(&mut buf, "axionax_memory_bytes", "Memory usage in bytes", &MEMORY_BYTES);
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_uptime_seconds",
+        "Node uptime in seconds",
+        &UPTIME_SECONDS,
+    );
+    fmt_int_gauge(
+        &mut buf,
+        "axionax_memory_bytes",
+        "Memory usage in bytes",
+        &MEMORY_BYTES,
+    );
 
     buf
 }
@@ -429,7 +563,11 @@ fn fmt_histogram(buf: &mut String, name: &str, help: &str, h: &Histogram) {
     let _ = writeln!(buf, "# HELP {name} {help}");
     let _ = writeln!(buf, "# TYPE {name} histogram");
     for (i, ub) in snap.upper_bounds.iter().enumerate() {
-        let _ = writeln!(buf, "{name}_bucket{{le=\"{ub}\"}} {}", snap.bucket_counts[i]);
+        let _ = writeln!(
+            buf,
+            "{name}_bucket{{le=\"{ub}\"}} {}",
+            snap.bucket_counts[i]
+        );
     }
     let _ = writeln!(buf, "{name}_bucket{{le=\"+Inf\"}} {}", snap.count);
     let _ = writeln!(buf, "{name}_sum {}", snap.sum);
@@ -517,7 +655,9 @@ impl MetricsUpdater {
 
     pub fn record_rpc(method: &str, latency_secs: f64, is_error: bool) {
         RPC_REQUESTS.with_label_values(&[method]).inc();
-        RPC_LATENCY.with_label_values(&[method]).observe(latency_secs);
+        RPC_LATENCY
+            .with_label_values(&[method])
+            .observe(latency_secs);
         if is_error {
             RPC_ERRORS.with_label_values(&[method, "unknown"]).inc();
         }
@@ -593,7 +733,7 @@ mod tests {
     #[test]
     fn test_f64_gauge() {
         let g = Gauge::new();
-        g.set(3.14);
-        assert!((g.get() - 3.14).abs() < f64::EPSILON);
+        g.set(42.5);
+        assert!((g.get() - 42.5).abs() < f64::EPSILON);
     }
 }

@@ -17,8 +17,10 @@ import sys
 from pathlib import Path
 from datetime import datetime, timezone
 
-CHAIN_ID = 86137
-CHAIN_NAME = "Axionax Mainnet"
+CHAIN_ID_TESTNET = 86137
+CHAIN_ID_MAINNET = 86150
+CHAIN_ID = CHAIN_ID_TESTNET
+CHAIN_NAME = "Axionax Testnet"
 SYMBOL = "AXX"
 DECIMALS = 18
 ONE_AXX = 10 ** DECIMALS
@@ -95,6 +97,12 @@ def _get_allocations(faucet_address: str | None = None) -> dict:
                 "region": "AU",
                 "ip": "46.250.244.4",
             },
+            {
+                "address": _evm_addr("axionax_genesis_validator_us_mainnet"),
+                "label": "Validator-US-01",
+                "region": "US",
+                "ip": "0.0.0.0",
+            },
         ],
     },
     "public_sale": {
@@ -141,10 +149,12 @@ def build_alloc(allocations: dict):
         if key == "validators":
             n = len(spec["split"])
             per_validator = amount_axx // n
-            for v in spec["split"]:
-                entry = {"label": v["label"], "balance": _wei(per_validator)}
+            remainder = amount_axx - per_validator * n
+            for i, v in enumerate(spec["split"]):
+                val_amount = per_validator + (remainder if i == 0 else 0)
+                entry = {"label": v["label"], "balance": _wei(val_amount)}
                 alloc[v["address"]] = entry
-                running_total += per_validator * ONE_AXX
+                running_total += val_amount * ONE_AXX
         else:
             entry = {"label": spec["label"], "percent": f"{pct}%", "balance": str(amount_wei)}
             if "vesting" in spec:
@@ -162,15 +172,19 @@ def build_alloc(allocations: dict):
 
 def build_validators(allocations: dict):
     spec = allocations["validators"]
-    per_validator = (TOTAL_SUPPLY * spec["percent"] // 100) // len(spec["split"])
+    n = len(spec["split"])
+    total_axx = TOTAL_SUPPLY * spec["percent"] // 100
+    per_validator = total_axx // n
+    remainder = total_axx - per_validator * n
     validators = []
-    for v in spec["split"]:
+    for i, v in enumerate(spec["split"]):
+        val_amount = per_validator + (remainder if i == 0 else 0)
         validators.append({
             "address": v["address"],
             "name": v["label"],
             "region": v["region"],
             "ip": v["ip"],
-            "stake": _wei(per_validator),
+            "stake": _wei(val_amount),
             "commission": 0.1,
             "enode": f"enode://GENERATED@{v['ip']}:30303",
             "active": True,
@@ -282,7 +296,18 @@ def main():
     parser.add_argument("--out", default=None, help="Output path (default: genesis.json next to this script)")
     parser.add_argument("--verify", action="store_true", help="Run verification after generation")
     parser.add_argument("--faucet-address", default=None, help="Faucet EVM address (default: deterministic from seed)")
+    parser.add_argument("--chain-id", type=int, default=None, help="Chain ID (86137=testnet, 86150=mainnet)")
     args = parser.parse_args()
+
+    global CHAIN_ID, CHAIN_NAME
+    if args.chain_id is not None:
+        CHAIN_ID = args.chain_id
+    if CHAIN_ID == CHAIN_ID_MAINNET:
+        CHAIN_NAME = "Axionax Mainnet"
+    elif CHAIN_ID == CHAIN_ID_TESTNET:
+        CHAIN_NAME = "Axionax Testnet"
+    else:
+        CHAIN_NAME = f"Axionax Dev ({CHAIN_ID})"
 
     allocations = _get_allocations(args.faucet_address)
     genesis = build_genesis(args.faucet_address)

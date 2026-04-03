@@ -95,7 +95,14 @@ pub struct ResourceClass {
 }
 
 impl ResourceClass {
-    pub fn new(id: String, name: String, base_price: f64, min: f64, max: f64, capacity: u64) -> Self {
+    pub fn new(
+        id: String,
+        name: String,
+        base_price: f64,
+        min: f64,
+        max: f64,
+        capacity: u64,
+    ) -> Self {
         Self {
             id,
             name,
@@ -223,7 +230,8 @@ impl PPC {
             };
 
             // Calculate price adjustment
-            let adjustment = 1.0 + self.config.alpha * util_factor + self.config.beta * queue_factor;
+            let adjustment =
+                1.0 + self.config.alpha * util_factor + self.config.beta * queue_factor;
             let mut new_price = old_price * adjustment;
 
             // Clamp to bounds
@@ -287,10 +295,10 @@ mod tests {
         ResourceClass::new(
             "gpu-a100".to_string(),
             "NVIDIA A100".to_string(),
-            1.0,  // base price
-            0.5,  // min
-            5.0,  // max
-            100,  // capacity
+            1.0, // base price
+            0.5, // min
+            5.0, // max
+            100, // capacity
         )
     }
 
@@ -328,8 +336,6 @@ mod tests {
         assert!(updates[0].new_price > updates[0].old_price);
     }
 
-
-
     #[tokio::test]
     async fn test_price_decreases_on_low_utilization() {
         let ppc = PPC::new(PPCConfig {
@@ -351,7 +357,6 @@ mod tests {
         assert!(updates[0].new_price < updates[0].old_price);
     }
 
-
     #[tokio::test]
     async fn test_price_respects_bounds() {
         let ppc = PPC::new(PPCConfig {
@@ -371,7 +376,6 @@ mod tests {
         let price = ppc.get_price("gpu-a100").await.unwrap();
         assert!(price <= 5.0); // max bound
     }
-
 
     #[tokio::test]
     async fn test_estimate_cost() {
