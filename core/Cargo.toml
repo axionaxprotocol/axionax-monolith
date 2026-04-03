@@ -46,11 +46,24 @@ state = { path = "core/state" }
 crypto = { path = "core/crypto" }
 network = { path = "core/network" }
 metrics = { path = "core/metrics" }
+rpc = { path = "core/rpc" }
+staking = { path = "core/staking" }
+governance = { path = "core/governance" }
+da = { path = "core/da" }
 
 [dev-dependencies]
 criterion = { workspace = true }
 tempfile = "3.0"
 tokio = { workspace = true }
+
+# Test definitions (autotests = false requires explicit entries)
+[[test]]
+name = "integration_staking_governance"
+path = "tests/integration_staking_governance.rs"
+
+[[test]]
+name = "security_adversarial"
+path = "tests/security_adversarial.rs"
 
 # Benchmark definitions
 [[bench]]
