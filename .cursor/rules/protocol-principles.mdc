@@ -55,7 +55,7 @@ Transaction signing:   Ed25519, payload = from+to+value+gas_price+gas_limit+nonc
 Address format:        0x + 40 hex chars (Blake2s hash of Ed25519 public key)
 RPC port:              8545 (JSON-RPC 2.0)
 Health port:           8080 (HTTP)
-P2P port:              30333 (libp2p)
+P2P port:              30303 (libp2p)
 ```
 
 ---
