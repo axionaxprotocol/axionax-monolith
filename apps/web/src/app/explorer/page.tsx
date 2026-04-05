@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { RPC_URLS } from '@axionax/blockchain-utils';
 
 interface Block {
   number: number;
@@ -30,8 +29,8 @@ interface AddressInfo {
   nonce: number;
 }
 
-// RPC from centralized config or env
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || RPC_URLS.TESTNET[0];
+// Prefer same-origin RPC proxy to avoid CORS/TLS mismatches on public pages.
+const RPC_URL = '/api/rpc/eu';
 
 const fetchBlocks = async (): Promise<BlocksResponse> => {
   const response = await fetch('/api/blocks?page=1&pageSize=10');
@@ -51,6 +50,9 @@ const fetchAddressBalance = async (address: string): Promise<AddressInfo> => {
     }),
   });
   const data = await response.json();
+  if (!response.ok || data.error) {
+    throw new Error(data?.error?.message || 'RPC request failed');
+  }
   const balanceWei = BigInt(data.result || '0x0');
   const balanceEth = Number(balanceWei) / 1e18;
 
@@ -66,6 +68,9 @@ const fetchAddressBalance = async (address: string): Promise<AddressInfo> => {
     }),
   });
   const nonceData = await nonceRes.json();
+  if (!nonceRes.ok || nonceData.error) {
+    throw new Error(nonceData?.error?.message || 'RPC request failed');
+  }
 
   return {
     address,
@@ -86,6 +91,9 @@ const fetchTransaction = async (hash: string) => {
     }),
   });
   const data = await response.json();
+  if (!response.ok || data.error) {
+    throw new Error(data?.error?.message || 'RPC request failed');
+  }
   return data.result;
 };
 
@@ -202,7 +210,7 @@ export default function Explorer(): React.JSX.Element {
             <div className="text-2xl font-bold text-content font-mono mb-1">
               {isLoading ? '...' : blocksData?.total.toLocaleString() || '0'}
             </div>
-            <div className="text-xs text-muted">Since testnet launch</div>
+            <div className="text-xs text-muted">Since network launch</div>
           </div>
 
           <div className="rounded-lg border border-white/10 bg-black-hole/90 backdrop-blur-sm shadow-panel p-6">

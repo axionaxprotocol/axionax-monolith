@@ -6,17 +6,26 @@
 #  (ใช้หลังตั้งครั้งแรกด้วย vps-setup-from-git.sh แล้ว)
 # ==========================================================
 
-set -e
+set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/axionax-web-universe}"
 WEB_DIR="$APP_DIR/apps/web"
 STANDALONE_DIR="$WEB_DIR/.next/standalone"
 PORT="${PORT:-3000}"
 PM2_NAME="axionax-web"
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 
 echo "=== 1. Pull latest code ==="
 cd "$APP_DIR"
-git pull origin main
+git fetch origin "$DEPLOY_BRANCH"
+
+CURRENT_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$CURRENT_BRANCH" != "$DEPLOY_BRANCH" ]]; then
+  echo "  Current branch: $CURRENT_BRANCH → switching to $DEPLOY_BRANCH"
+  git checkout "$DEPLOY_BRANCH" || git checkout -b "$DEPLOY_BRANCH" "origin/$DEPLOY_BRANCH"
+fi
+
+git pull origin "$DEPLOY_BRANCH"
 
 echo ""
 echo "=== 2. Install dependencies ==="
@@ -24,8 +33,8 @@ pnpm install --frozen-lockfile
 
 echo ""
 echo "=== 3. Build packages (blockchain-utils → sdk → web) ==="
-pnpm --filter @axionax/blockchain-utils build || echo "  (blockchain-utils build skipped or failed — continuing)"
-pnpm --filter @axionax/sdk build || echo "  (sdk build skipped or failed — continuing)"
+pnpm --filter @axionax/blockchain-utils build
+pnpm --filter @axionax/sdk build
 pnpm --filter @axionax/web build
 
 echo ""
@@ -71,3 +80,4 @@ fi
 
 echo ""
 echo "Done! Updated and restarted on port $PORT"
+echo "Branch: $DEPLOY_BRANCH"

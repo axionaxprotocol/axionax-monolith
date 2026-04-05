@@ -1,11 +1,34 @@
 import { NextResponse } from 'next/server';
+import { CHAIN_IDS } from '@axionax/blockchain-utils';
 
 const FAUCET_API_URL = process.env.FAUCET_API_URL || 'http://localhost:3002';
+const NETWORK = (
+  process.env.NEXT_PUBLIC_NETWORK ||
+  process.env.RPC_NETWORK ||
+  'testnet'
+)
+  .trim()
+  .toLowerCase();
+const IS_MAINNET = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 0) === CHAIN_IDS.MAINNET || NETWORK === 'mainnet';
 
 const isRealFaucet = (): boolean =>
   !!FAUCET_API_URL && !FAUCET_API_URL.includes('localhost');
 
 export async function GET() {
+  if (IS_MAINNET) {
+    return NextResponse.json(
+      {
+        address: '0x0000000000000000000000000000000000000000',
+        balance: '0',
+        symbol: 'AXX',
+        isMock: false,
+        disabled: true,
+        message: 'Faucet is disabled on mainnet.',
+      },
+      { status: 403 }
+    );
+  }
+
   try {
     const res = await fetch(`${FAUCET_API_URL}/balance`, {
       signal: AbortSignal.timeout(5000),

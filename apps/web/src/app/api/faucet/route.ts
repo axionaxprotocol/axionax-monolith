@@ -13,15 +13,42 @@ const NETWORK = (
 const CHAIN_ID = NETWORK === 'mainnet' ? CHAIN_IDS.MAINNET : CHAIN_IDS.TESTNET;
 const NETWORK_LABEL =
   NETWORK === 'mainnet' ? 'Axionax Mainnet' : 'Axionax Testnet';
+const IS_MAINNET = CHAIN_ID === CHAIN_IDS.MAINNET;
+
+const resolveFaucetEndpoints = () => ({
+  status: `${FAUCET_API_URL}/status`,
+  claim: `${FAUCET_API_URL}/faucet`,
+  fallbackClaim: `${FAUCET_API_URL}/request`,
+});
+
+const extractMessage = (
+  data: Record<string, unknown>,
+  fallback: string
+): string => {
+  const candidate = data.message ?? data.error;
+  return typeof candidate === 'string' && candidate.trim().length > 0
+    ? candidate
+    : fallback;
+};
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const address = searchParams.get('address');
+  const endpoints = resolveFaucetEndpoints();
 
   if (address) {
+    if (IS_MAINNET) {
+      return NextResponse.json({
+        address,
+        canClaim: false,
+        cooldownRemaining: 0,
+        message: 'Faucet is disabled on mainnet.',
+      });
+    }
+
     try {
       const res = await fetch(
-        `${FAUCET_API_URL}/status?address=${encodeURIComponent(address)}`,
+        `${endpoints.status}?address=${encodeURIComponent(address)}`,
         {
           signal: AbortSignal.timeout(5000),
         }
@@ -45,7 +72,7 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({
-    status: 'active',
+    status: IS_MAINNET ? 'disabled' : 'active',
     amount: '10',
     network: NETWORK_LABEL,
     chainId: CHAIN_ID,
@@ -53,6 +80,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (IS_MAINNET) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Faucet is disabled on mainnet.',
+      },
+      { status: 403 }
+    );
+  }
+
+  const endpoints = resolveFaucetEndpoints();
   let body: { address?: string };
   try {
     body = await request.json();
@@ -78,34 +116,49 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const res = await fetch(`${FAUCET_API_URL}/faucet`, {
+    let res = await fetch(endpoints.claim, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ address }),
       signal: AbortSignal.timeout(15000),
     });
-    const data = await res.json().catch(() => ({}));
+
+    if (res.status === 404) {
+      // Backward compatibility for existing faucet service (/request endpoint).
+      res = await fetch(endpoints.fallbackClaim, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address }),
+        signal: AbortSignal.timeout(15000),
+      });
+    }
+    const data = (await res
+      .json()
+      .catch(() => ({}))) as Record<string, unknown>;
 
     if (res.ok && data.success !== false) {
       return NextResponse.json({
         success: true,
-        message: data.message || 'Successfully sent.',
+        message: extractMessage(data, 'Successfully sent.'),
         txHash: data.txHash || data.tx_hash,
-        amount: '10',
+        amount:
+          typeof data.amount === 'string' && data.amount.trim().length > 0
+            ? data.amount
+            : '10',
       });
     }
     if (res.status === 429) {
       return NextResponse.json(
         {
           success: false,
-          message: data.message || 'Cooldown. Try again later.',
+          message: extractMessage(data, 'Cooldown. Try again later.'),
           cooldown: data.cooldown,
         },
         { status: 429 }
       );
     }
     return NextResponse.json(
-      { success: false, message: data.message || 'Faucet failed' },
+      { success: false, message: extractMessage(data, 'Faucet failed') },
       { status: res.status >= 400 ? res.status : 500 }
     );
   } catch {

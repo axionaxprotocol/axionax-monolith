@@ -197,8 +197,7 @@ export default function Statistics(): React.JSX.Element {
             <MockBadge show={stats.isMock ?? false} label="Stats" />
           </div>
           <p className="text-muted text-lg max-w-2xl mx-auto">
-            Real-time status from our global infrastructure • All Systems
-            Operational
+            Real-time status from our global infrastructure
           </p>
         </div>
 
@@ -230,18 +229,18 @@ export default function Statistics(): React.JSX.Element {
               Service Health
             </h3>
             <span
-              className={`text-sm font-medium ${stats.services > 0 ? 'text-tech-success' : 'text-tech-error'}`}
+              className={`text-sm font-medium ${stats.services === 9 ? 'text-tech-success' : 'text-tech-warning'}`}
             >
-              {stats.services > 0
+              {stats.services === 9
                 ? '✅ All systems operational'
-                : '❌ Systems degraded'}
+                : '⚠️ Systems degraded'}
             </span>
           </div>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div
-                  className={`${stats.services > 0 ? 'bg-tech-success' : 'bg-tech-error'} h-2 rounded-full transition-all duration-300`}
+                  className={`${stats.services === 9 ? 'bg-tech-success' : 'bg-tech-warning'} h-2 rounded-full transition-all duration-300`}
                   style={{ width: `${(stats.services / 9) * 100}%` }}
                 ></div>
               </div>
@@ -260,14 +259,21 @@ export default function Statistics(): React.JSX.Element {
                 'Web',
                 'Explorer API',
                 'Faucet API',
-              ].map((svc) => (
+              ].map((svc, idx) => {
+                const isHealthy = idx < stats.services;
+                return (
                 <span
                   key={svc}
-                  className="px-2 py-1 bg-tech-success/10 text-tech-success rounded border border-tech-success/20"
+                  className={`px-2 py-1 rounded border ${
+                    isHealthy
+                      ? 'bg-tech-success/10 text-tech-success border-tech-success/20'
+                      : 'bg-tech-warning/10 text-tech-warning border-tech-warning/20'
+                  }`}
                 >
-                  ✅ {svc}
+                  {isHealthy ? '✅' : '⚠️'} {svc}
                 </span>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -278,8 +284,11 @@ export default function Statistics(): React.JSX.Element {
             <h3 className="text-lg font-semibold text-content">
               Validator Nodes
             </h3>
-            <span className="text-sm text-tech-success font-medium">
-              ✅ {stats.validators}/2 nodes online
+            <span
+              className={`text-sm font-medium ${stats.validators === 2 ? 'text-tech-success' : 'text-tech-warning'}`}
+            >
+              {stats.validators === 2 ? '✅' : '⚠️'} {stats.validators}/2 nodes
+              online
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

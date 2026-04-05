@@ -1,8 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
+import { AXIONAX_NETWORK_CONFIG } from '@/lib/web3';
 
 // QuickAccess component - Quick links to main services
 export default function QuickAccess(): React.JSX.Element {
+  const explorerBase = AXIONAX_NETWORK_CONFIG.blockExplorerUrls[0] || '/explorer';
+
   const services = [
     {
       title: 'RPC Endpoint',
@@ -29,7 +32,7 @@ export default function QuickAccess(): React.JSX.Element {
     {
       title: 'Block Explorer',
       description: 'View transactions, blocks, and accounts',
-      href: 'https://explorer.axionax.org',
+      href: '/explorer',
       icon: (
         <svg
           className="w-8 h-8"
@@ -92,7 +95,7 @@ export default function QuickAccess(): React.JSX.Element {
     {
       title: 'Monitoring',
       description: 'Real-time infrastructure metrics',
-      href: 'http://217.216.109.5:3004',
+      href: '/infrastructure/nodes',
       icon: (
         <svg
           className="w-8 h-8"
@@ -217,16 +220,19 @@ export default function QuickAccess(): React.JSX.Element {
             <div>
               <span className="text-muted block mb-1">Chain ID:</span>
               <p className="text-tech-success font-mono bg-white/5 px-2 py-1 rounded">
-                86137
+                {AXIONAX_NETWORK_CONFIG.chainIdDecimal}
               </p>
             </div>
             <div>
               <span className="text-muted block mb-1">Currency Symbol:</span>
               <p className="text-tech-warning font-mono bg-white/5 px-2 py-1 rounded">
-                AXX
+                {AXIONAX_NETWORK_CONFIG.nativeCurrency?.symbol ?? 'AXX'}
               </p>
             </div>
           </div>
+          <p className="mt-3 text-xs text-muted">
+            Explorer: <span className="font-mono">{explorerBase}</span>
+          </p>
         </div>
       </div>
     </section>

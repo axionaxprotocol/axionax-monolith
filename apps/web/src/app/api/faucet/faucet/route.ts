@@ -12,6 +12,11 @@ const IS_MAINNET = NETWORK === 'mainnet';
 const isRealFaucet = (): boolean =>
   !!FAUCET_API_URL && !FAUCET_API_URL.includes('localhost');
 
+const resolveFaucetEndpoints = () => ({
+  claim: `${FAUCET_API_URL}/faucet`,
+  fallbackClaim: `${FAUCET_API_URL}/request`,
+});
+
 export async function POST(request: NextRequest) {
   if (IS_MAINNET) {
     return NextResponse.json(
@@ -47,13 +52,26 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const endpoints = resolveFaucetEndpoints();
+
   try {
-    const res = await fetch(`${FAUCET_API_URL}/faucet`, {
+    let res = await fetch(endpoints.claim, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ address }),
       signal: AbortSignal.timeout(15000),
     });
+
+    if (res.status === 404) {
+      // Backward compatibility for existing faucet service (/request endpoint).
+      res = await fetch(endpoints.fallbackClaim, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address }),
+        signal: AbortSignal.timeout(15000),
+      });
+    }
+
     const data = await res.json().catch(() => ({}));
 
     if (res.ok && data.success !== false) {

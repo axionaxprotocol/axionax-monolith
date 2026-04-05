@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import MockBadge from '@/components/ui/MockBadge';
+import { AXIONAX_NETWORK_CONFIG } from '@/lib/web3';
 
 interface FaucetResponse {
   success: boolean;
@@ -313,7 +314,7 @@ function FaucetContent(): React.JSX.Element {
                           +{tx.amount} AXX
                         </p>
                         <a
-                          href={`https://explorer.axionax.org/tx/${tx.txHash}`}
+                          href={`${AXIONAX_NETWORK_CONFIG.blockExplorerUrls[0]}/tx/${tx.txHash}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs text-muted hover:text-tech-cyan transition-colors"
