@@ -156,8 +156,20 @@ describe('AxionaxClient', () => {
     });
 
     it('should fetch balance (mock returns 0 without provider)', async () => {
-      const balance = await client.getBalance('0x1234567890123456789012345678901234567890');
-      expect(typeof balance).toBe('bigint');
+      const origFetch = globalThis.fetch;
+      globalThis.fetch = async () =>
+        new Response(
+          JSON.stringify({ jsonrpc: '2.0', id: 1, result: '0x0' }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      try {
+        const balance = await client.getBalance(
+          '0x1234567890123456789012345678901234567890'
+        );
+        expect(typeof balance).toBe('bigint');
+      } finally {
+        globalThis.fetch = origFetch;
+      }
     });
   });
 });

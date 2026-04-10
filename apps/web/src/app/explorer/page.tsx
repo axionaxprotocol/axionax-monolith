@@ -228,11 +228,14 @@ export default function Explorer(): React.JSX.Element {
 
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
-            <div className="bg-[#0A0A0A] border border-white/5 rounded-lg p-4 flex flex-col">
+            <div
+              className="bg-[#0A0A0A] border border-white/5 rounded-lg p-4 flex flex-col"
+              data-testid="latest-block"
+            >
               <span className="text-[10px] uppercase tracking-widest text-white/40 font-semibold mb-1">
                 Latest Block
               </span>
-              <span className="text-xl font-mono text-white/90">
+              <span className="text-xl font-mono text-white/90" data-testid="block-number">
                 {isLoading ? '...' : `#${blocksData?.blocks[0]?.number.toLocaleString() || '0'}`}
               </span>
             </div>

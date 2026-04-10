@@ -93,6 +93,7 @@ test.describe('Web Application E2E Tests', () => {
     });
 
     test('should display real-time block updates', async ({ page }) => {
+      test.setTimeout(40_000);
       await page.goto(`${BASE_URL}/explorer`, {
         waitUntil: 'domcontentloaded',
       });
@@ -112,7 +113,7 @@ test.describe('Web Application E2E Tests', () => {
       if (!Number.isNaN(a) && !Number.isNaN(b)) {
         expect(b).toBeGreaterThanOrEqual(a);
       }
-    }, { timeout: 40000 });
+    });
   });
 
   test.describe('Transaction Flow', () => {
@@ -181,6 +182,7 @@ test.describe('Web Application E2E Tests', () => {
     });
 
     test('should handle rate limiting', async ({ page }) => {
+      test.setTimeout(10_000);
       await page.goto(`${BASE_URL}/faucet`);
       const input = page.getByPlaceholder(/0x/);
       await input.waitFor({ state: 'visible', timeout: 10000 });
@@ -196,7 +198,7 @@ test.describe('Web Application E2E Tests', () => {
         const text = await message.textContent();
         expect(text).toMatch(/success|sent|wait|limit/i);
       }
-    }, { timeout: 10000 });
+    });
   });
 
   test.describe('Performance', () => {
