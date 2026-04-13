@@ -167,6 +167,17 @@ cp apps/web/.env.example apps/web/.env.local
 cp apps/marketplace/.env.example apps/marketplace/.env
 ```
 
+**RPC-related names (easy to mix up):**
+
+| Variable | Where it applies | Role |
+| -------- | ---------------- | ---- |
+| `NEXT_PUBLIC_RPC_URL` | `apps/web` (Next.js) | Primary HTTP RPC for the site (client bundles and server code that read `process.env.NEXT_PUBLIC_RPC_URL`). If unset at build/runtime, UI falls back to `RPC_URLS` from `@axionax/blockchain-utils` (see Explorer and `web3` config). |
+| `NEXT_PUBLIC_RPC_EU` / `NEXT_PUBLIC_RPC_AU` | `apps/web` | Optional region endpoints for `/api/stats` and related routes (see `apps/web/docs/REALTIME_METRICS.md`). |
+| `RPC_URL` | `apps/api`, `apps/faucet-api`, `docker-compose.dev.yml` | **Backend** services and test containers — not read by `apps/web` source. |
+| `VITE_RPC_URL` | `apps/marketplace` | Vite client for the marketplace dApp. |
+
+`apps/web/docker-compose.yml` passes RPC configuration into the **web** container via `NEXT_PUBLIC_RPC_URL` so Docker deployments match local `.env` behavior.
+
 ### 7. Connecting to Live Testnet
 
 RPC Endpoints:

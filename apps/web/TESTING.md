@@ -17,7 +17,8 @@ From repo root:
 
 1. **Chromium** (used by default):  
    `npx playwright install chromium` (done once per machine)
-2. **Dev server**: Started automatically by Playwright unless `CI` is set.
+2. **Dev server**: Started automatically by Playwright (`playwright.config.ts` runs `pnpm dev` against `BASE_URL`, default `http://localhost:3000`) unless `CI` is set. Override the URL with `BASE_URL` if needed.
+3. **RPC / network**: Assertions tolerate live RPC being slow or offline (e.g. Explorer shows “—”, API routes may return mock data). No separate `RPC_URL` env is required for the web E2E suite.
 
 ## API Routes Used by the App
 

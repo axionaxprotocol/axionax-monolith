@@ -7,7 +7,6 @@
 import { test, expect, Page } from '@playwright/test';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const RPC_URL = process.env.RPC_URL || 'https://rpc.axionax.org';
 
 test.describe('Web Application E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
