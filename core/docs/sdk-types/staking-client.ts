@@ -102,18 +102,42 @@ export class StakingClient {
      * Stake tokens to become a validator
      * @param address Address
      * @param amount Token amount
+     * @param signature Ed25519 signature over "stake"
+     * @param publicKey Ed25519 public key used by the signature
      */
-    async stake(address: string, amount: bigint): Promise<boolean> {
-        return await this.call<boolean>('staking_stake', [address, toHex(amount)]);
+    async stake(
+        address: string,
+        amount: bigint,
+        signature: string,
+        publicKey: string
+    ): Promise<boolean> {
+        return await this.call<boolean>('staking_stake', [
+            address,
+            toHex(amount),
+            signature,
+            publicKey,
+        ]);
     }
 
     /**
      * Begin unstaking (must wait for lock period)
      * @param address Address
      * @param amount Token amount
+     * @param signature Ed25519 signature over "unstake"
+     * @param publicKey Ed25519 public key used by the signature
      */
-    async unstake(address: string, amount: bigint): Promise<boolean> {
-        return await this.call<boolean>('staking_unstake', [address, toHex(amount)]);
+    async unstake(
+        address: string,
+        amount: bigint,
+        signature: string,
+        publicKey: string
+    ): Promise<boolean> {
+        return await this.call<boolean>('staking_unstake', [
+            address,
+            toHex(amount),
+            signature,
+            publicKey,
+        ]);
     }
 
     /**
@@ -121,26 +145,42 @@ export class StakingClient {
      * @param delegator Delegator address
      * @param validator Receiving validator
      * @param amount Token amount
+     * @param signature Ed25519 signature over "delegate"
+     * @param publicKey Ed25519 public key used by the signature
      */
     async delegate(
         delegator: string,
         validator: string,
-        amount: bigint
+        amount: bigint,
+        signature: string,
+        publicKey: string
     ): Promise<boolean> {
         return await this.call<boolean>('staking_delegate', [
             delegator,
             validator,
             toHex(amount),
+            signature,
+            publicKey,
         ]);
     }
 
     /**
      * Claim staking rewards
      * @param address Address
+     * @param signature Ed25519 signature over "claimRewards"
+     * @param publicKey Ed25519 public key used by the signature
      * @returns Amount of rewards received
      */
-    async claimRewards(address: string): Promise<bigint> {
-        const result = await this.call<string>('staking_claimRewards', [address]);
+    async claimRewards(
+        address: string,
+        signature: string,
+        publicKey: string
+    ): Promise<bigint> {
+        const result = await this.call<string>('staking_claimRewards', [
+            address,
+            signature,
+            publicKey,
+        ]);
         return BigInt(result);
     }
 }
@@ -205,16 +245,22 @@ export function useStaking(rpcUrl: string) {
   }, [refresh]);
 
   const stake = useCallback(
-    async (address: string, amount: bigint) => {
-      await client.stake(address, amount);
+    async (address: string, amount: bigint, signature: string, publicKey: string) => {
+      await client.stake(address, amount, signature, publicKey);
       await refresh();
     },
     [client, refresh]
   );
 
   const delegate = useCallback(
-    async (delegator: string, validator: string, amount: bigint) => {
-      await client.delegate(delegator, validator, amount);
+    async (
+      delegator: string,
+      validator: string,
+      amount: bigint,
+      signature: string,
+      publicKey: string
+    ) => {
+      await client.delegate(delegator, validator, amount, signature, publicKey);
       await refresh();
     },
     [client, refresh]

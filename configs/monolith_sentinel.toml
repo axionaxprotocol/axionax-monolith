@@ -9,6 +9,7 @@ bootnodes = [
     "https://rpc-au.axionax.org"
 ]
 chain_id = 86137
+contract_address = "0x0000000000000000000000000000000000000000"
 
 [hardware]
 force_cpu = false

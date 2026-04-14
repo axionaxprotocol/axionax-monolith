@@ -16,7 +16,6 @@ import {
     parseGovernanceStats,
     buildProposalTypeString,
 } from './governance';
-import { toHex } from './staking';
 
 /**
  * Governance Client for RPC calls
@@ -109,23 +108,26 @@ export class GovernanceClient {
     /**
      * Create a new proposal
      * @param proposer Proposer address
-     * @param proposerStake Proposer's stake
      * @param proposal Proposal data
+     * @param signature Ed25519 signature over "createProposal"
+     * @param publicKey Ed25519 public key used by the signature
      * @returns ID of the created proposal
      */
     async createProposal(
         proposer: string,
-        proposerStake: bigint,
-        proposal: NewProposal
+        proposal: NewProposal,
+        signature: string,
+        publicKey: string
     ): Promise<number> {
         const typeString = buildProposalTypeString(proposal);
 
         return await this.call<number>('gov_createProposal', [
             proposer,
-            toHex(proposerStake),
             proposal.title,
             proposal.description,
             typeString,
+            signature,
+            publicKey,
         ]);
     }
 
@@ -134,36 +136,34 @@ export class GovernanceClient {
      * @param voter Voter address
      * @param proposalId Proposal ID
      * @param vote Vote option (for/against/abstain)
-     * @param voteWeight Vote weight (= stake)
+     * @param signature Ed25519 signature over "vote"
+     * @param publicKey Ed25519 public key used by the signature
      */
     async vote(
         voter: string,
         proposalId: number,
         vote: VoteOption,
-        voteWeight: bigint
+        signature: string,
+        publicKey: string
     ): Promise<boolean> {
         return await this.call<boolean>('gov_vote', [
             voter,
             proposalId,
             vote,
-            toHex(voteWeight),
+            signature,
+            publicKey,
         ]);
     }
 
     /**
      * Finalize proposal after voting period ends
      * @param proposalId Proposal ID
-     * @param totalStaked Total staked amount in the system
      * @returns Status ('passed' or 'failed')
      */
     async finalizeProposal(
-        proposalId: number,
-        totalStaked: bigint
+        proposalId: number
     ): Promise<'passed' | 'failed'> {
-        return await this.call<'passed' | 'failed'>('gov_finalizeProposal', [
-            proposalId,
-            toHex(totalStaked),
-        ]);
+        return await this.call<'passed' | 'failed'>('gov_finalizeProposal', [proposalId]);
     }
 
     /**
@@ -252,18 +252,23 @@ export function useGovernance(rpcUrl: string, userAddress?: string) {
   }, [refresh]);
 
   const vote = useCallback(
-    async (proposalId: number, voteOption: VoteOption, weight: bigint) => {
+    async (
+      proposalId: number,
+      voteOption: VoteOption,
+      signature: string,
+      publicKey: string
+    ) => {
       if (!userAddress) throw new Error('No user address');
-      await client.vote(userAddress, proposalId, voteOption, weight);
+      await client.vote(userAddress, proposalId, voteOption, signature, publicKey);
       await refresh();
     },
     [client, userAddress, refresh]
   );
 
   const createProposal = useCallback(
-    async (proposal: NewProposal, stake: bigint) => {
+    async (proposal: NewProposal, signature: string, publicKey: string) => {
       if (!userAddress) throw new Error('No user address');
-      const id = await client.createProposal(userAddress, stake, proposal);
+      const id = await client.createProposal(userAddress, proposal, signature, publicKey);
       await refresh();
       return id;
     },
