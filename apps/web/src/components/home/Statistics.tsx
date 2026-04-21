@@ -187,49 +187,48 @@ export default function Statistics(): React.JSX.Element {
   ];
 
   return (
-    <section className="section bg-black-hole/20 border-y border-white/5">
+    <section className="py-20 bg-[#0A0A0F] border-y border-white/5">
       <div className="container-custom">
-        <div className="section-heading mb-12 text-center">
+        <div className="text-center mb-12">
           <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
-            <h2 className="text-3xl md:text-4xl font-bold text-content">
+            <h2 className="text-3xl md:text-4xl font-bold text-white">
               Live Testnet Metrics
             </h2>
             <MockBadge show={stats.isMock ?? false} label="Stats" />
           </div>
-          <p className="text-muted text-lg max-w-2xl mx-auto">
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             Real-time status from our global infrastructure
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           {statItems.map((stat, index) => (
             <div
               key={stat.label}
-              className="relative p-6 rounded-lg border border-white/10 bg-black-hole/60 hover:border-tech-cyan/30 transition-all duration-300 text-center animate-fade-in-up group"
-              style={{ animationDelay: `${index * 100}ms` }}
+              className="p-6 rounded-xl border border-white/10 bg-white/5 hover:border-blue-500/30 transition-all duration-200 text-center group"
             >
-              <div className="flex justify-center mb-4 text-tech-cyan group-hover:scale-110 transition-transform">
+              <div className="flex justify-center mb-4 text-blue-400 group-hover:scale-110 transition-transform">
                 {stat.icon}
               </div>
-              <div className="text-3xl font-bold text-content mb-2 font-mono">
+              <div className="text-3xl font-bold text-white mb-2 font-mono">
                 {stat.value}
               </div>
-              <div className="text-muted text-sm font-medium mb-1">
+              <div className="text-gray-400 text-sm font-medium mb-1">
                 {stat.label}
               </div>
-              <div className="text-xs text-muted/60">{stat.subtitle}</div>
+              <div className="text-xs text-gray-500">{stat.subtitle}</div>
             </div>
           ))}
         </div>
 
         {/* Service Status Bar */}
-        <div className="mt-12 p-6 rounded-lg bg-black-hole/60 border border-white/10 backdrop-blur-sm">
+        <div className="mt-12 p-6 rounded-xl border border-white/10 bg-white/5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-content">
+            <h3 className="text-lg font-semibold text-white">
               Service Health
             </h3>
             <span
-              className={`text-sm font-medium ${stats.services === 9 ? 'text-tech-success' : 'text-tech-warning'}`}
+              className={`text-sm font-medium ${stats.services === 9 ? 'text-green-400' : 'text-yellow-400'}`}
             >
               {stats.services === 9
                 ? '✅ All systems operational'
@@ -240,11 +239,11 @@ export default function Statistics(): React.JSX.Element {
             <div className="flex items-center gap-3">
               <div className="w-full bg-white/10 rounded-full h-2">
                 <div
-                  className={`${stats.services === 9 ? 'bg-tech-success' : 'bg-tech-warning'} h-2 rounded-full transition-all duration-300`}
+                  className={`${stats.services === 9 ? 'bg-green-400' : 'bg-yellow-400'} h-2 rounded-full transition-all duration-200`}
                   style={{ width: `${(stats.services / 9) * 100}%` }}
                 ></div>
               </div>
-              <span className="text-sm text-muted whitespace-nowrap font-mono">
+              <span className="text-sm text-gray-400 whitespace-nowrap font-mono">
                 {Math.round((stats.services / 9) * 100)}%
               </span>
             </div>
@@ -266,8 +265,8 @@ export default function Statistics(): React.JSX.Element {
                   key={svc}
                   className={`px-2 py-1 rounded border ${
                     isHealthy
-                      ? 'bg-tech-success/10 text-tech-success border-tech-success/20'
-                      : 'bg-tech-warning/10 text-tech-warning border-tech-warning/20'
+                      ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                      : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'
                   }`}
                 >
                   {isHealthy ? '✅' : '⚠️'} {svc}
@@ -279,47 +278,47 @@ export default function Statistics(): React.JSX.Element {
         </div>
 
         {/* Validator Nodes Status */}
-        <div className="mt-6 p-6 rounded-lg bg-black-hole/60 border border-white/10 backdrop-blur-sm">
+        <div className="mt-6 p-6 rounded-xl border border-white/10 bg-white/5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-content">
+            <h3 className="text-lg font-semibold text-white">
               Validator Nodes
             </h3>
             <span
-              className={`text-sm font-medium ${stats.validators === 2 ? 'text-tech-success' : 'text-tech-warning'}`}
+              className={`text-sm font-medium ${stats.validators === 2 ? 'text-green-400' : 'text-yellow-400'}`}
             >
               {stats.validators === 2 ? '✅' : '⚠️'} {stats.validators}/2 nodes
               online
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="p-4 bg-black/30 rounded-lg border border-white/10">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-content">
+                <span className="text-sm font-medium text-white">
                   🇪🇺 Validator EU
                 </span>
                 <span
-                  className={`px-2 py-0.5 text-xs rounded border ${stats.nodes?.eu ? 'bg-tech-success/10 text-tech-success border-tech-success/20' : 'bg-tech-error/10 text-tech-error border-tech-error/20'}`}
+                  className={`px-2 py-0.5 text-xs rounded border ${stats.nodes?.eu ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}
                 >
                   {stats.nodes?.eu ? 'Online' : 'Offline'}
                 </span>
               </div>
-              <div className="text-xs text-muted space-y-1 font-mono">
+              <div className="text-xs text-gray-500 space-y-1 font-mono">
                 <div>IP: 217.76.***.***</div>
                 <div>RPC: 8545</div>
               </div>
             </div>
-            <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+            <div className="p-4 bg-black/30 rounded-lg border border-white/10">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-content">
+                <span className="text-sm font-medium text-white">
                   🇦🇺 Validator AU
                 </span>
                 <span
-                  className={`px-2 py-0.5 text-xs rounded border ${stats.nodes?.au ? 'bg-tech-success/10 text-tech-success border-tech-success/20' : 'bg-tech-error/10 text-tech-error border-tech-error/20'}`}
+                  className={`px-2 py-0.5 text-xs rounded border ${stats.nodes?.au ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'}`}
                 >
                   {stats.nodes?.au ? 'Online' : 'Offline'}
                 </span>
               </div>
-              <div className="text-xs text-muted space-y-1 font-mono">
+              <div className="text-xs text-gray-500 space-y-1 font-mono">
                 <div>IP: 46.250.***.***</div>
                 <div>RPC: 8545</div>
               </div>

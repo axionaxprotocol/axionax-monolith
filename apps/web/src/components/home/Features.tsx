@@ -139,13 +139,13 @@ export default function Features(): React.JSX.Element {
   ];
 
   return (
-    <section className="section">
+    <section className="py-20">
       <div className="container-custom">
-        <div className="section-heading">
-          <h2 className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text text-transparent mb-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Why Choose Axionax?
           </h2>
-          <p className="text-starlight/70 text-lg max-w-2xl mx-auto">
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             Built from the ground up for speed, security, and scalability
           </p>
         </div>
@@ -155,23 +155,20 @@ export default function Features(): React.JSX.Element {
             <Card
               key={feature.title}
               hover
-              className="animate-fade-in-up group"
-              style={
-                { animationDelay: `${index * 100}ms` } as React.CSSProperties
-              }
+              className="group"
             >
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="p-3 bg-gradient-to-br from-amber-500/20 to-yellow-600/10 rounded-xl text-amber-400 group-hover:shadow-lg group-hover:shadow-amber-500/20 transition-all duration-300">
+                  <div className="p-3 bg-blue-500/10 rounded-lg text-blue-400 group-hover:bg-blue-500/20 transition-colors">
                     {feature.icon}
                   </div>
                 </div>
-                <CardTitle className="text-starlight group-hover:text-amber-300 transition-colors">
+                <CardTitle className="text-white group-hover:text-blue-400 transition-colors">
                   {feature.title}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-starlight/60">{feature.description}</p>
+                <p className="text-gray-400">{feature.description}</p>
               </CardContent>
             </Card>
           ))}

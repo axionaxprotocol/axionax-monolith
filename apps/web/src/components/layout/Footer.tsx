@@ -44,11 +44,11 @@ export default function Footer(): React.JSX.Element {
                 alt="Axionax Logo"
                 className="w-8 h-8 rounded-full object-cover"
               />
-              <span className="text-xl font-bold bg-gradient-to-r from-[#60A5FA] to-[#A855F7] bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
                 Axionax
               </span>
             </Link>
-            <p className="text-starlight/60 text-sm leading-relaxed">
+            <p className="text-gray-400 text-sm leading-relaxed">
               Trusted World Computer — Layer-1 for decentralized compute and AI.
               PoPC consensus · v1.9
             </p>
@@ -56,13 +56,13 @@ export default function Footer(): React.JSX.Element {
 
           {/* Product Links */}
           <div>
-            <h4 className="font-semibold text-starlight mb-4">Product</h4>
+            <h4 className="font-semibold text-white mb-4">Product</h4>
             <ul className="space-y-2.5">
               {footerLinks.product.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-starlight/60 hover:text-tech-cyan transition-colors text-sm"
+                    className="text-gray-400 hover:text-blue-400 transition-colors text-sm"
                   >
                     {link.name}
                   </Link>
@@ -73,13 +73,13 @@ export default function Footer(): React.JSX.Element {
 
           {/* Developers Links */}
           <div>
-            <h4 className="font-semibold text-starlight mb-4">Developers</h4>
+            <h4 className="font-semibold text-white mb-4">Developers</h4>
             <ul className="space-y-2.5">
               {footerLinks.developers.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-starlight/60 hover:text-tech-cyan transition-colors text-sm"
+                    className="text-gray-400 hover:text-blue-400 transition-colors text-sm"
                     target={link.href.startsWith('http') ? '_blank' : undefined}
                     rel={
                       link.href.startsWith('http')
@@ -96,13 +96,13 @@ export default function Footer(): React.JSX.Element {
 
           {/* Community Links */}
           <div>
-            <h4 className="font-semibold text-starlight mb-4">Community</h4>
+            <h4 className="font-semibold text-white mb-4">Community</h4>
             <ul className="space-y-2.5">
               {footerLinks.community.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-starlight/60 hover:text-tech-cyan transition-colors text-sm"
+                    className="text-gray-400 hover:text-blue-400 transition-colors text-sm"
                     target={link.href.startsWith('http') ? '_blank' : undefined}
                     rel={
                       link.href.startsWith('http')
@@ -119,13 +119,13 @@ export default function Footer(): React.JSX.Element {
 
           {/* Company Links */}
           <div>
-            <h4 className="font-semibold text-starlight mb-4">Company</h4>
+            <h4 className="font-semibold text-white mb-4">Company</h4>
             <ul className="space-y-2.5">
               {footerLinks.company.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="text-starlight/60 hover:text-tech-cyan transition-colors text-sm"
+                    className="text-gray-400 hover:text-blue-400 transition-colors text-sm"
                   >
                     {link.name}
                   </Link>
@@ -137,7 +137,7 @@ export default function Footer(): React.JSX.Element {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-starlight/50 text-sm">
+          <p className="text-gray-500 text-sm">
             © {new Date().getFullYear()} Axionax Protocol v1.9.0 · Trusted World
             Computer
           </p>
@@ -146,7 +146,7 @@ export default function Footer(): React.JSX.Element {
               href="https://github.com/axionaxprotocol"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-starlight/50 hover:text-tech-cyan transition-colors"
+              className="text-gray-500 hover:text-blue-400 transition-colors"
               aria-label="GitHub"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -157,7 +157,7 @@ export default function Footer(): React.JSX.Element {
               href="https://twitter.com/axionax"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-starlight/50 hover:text-tech-cyan transition-colors"
+              className="text-gray-500 hover:text-blue-400 transition-colors"
               aria-label="Twitter"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -168,7 +168,7 @@ export default function Footer(): React.JSX.Element {
               href="https://discord.gg/axionax"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-starlight/50 hover:text-tech-cyan transition-colors"
+              className="text-gray-500 hover:text-blue-400 transition-colors"
               aria-label="Discord"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">

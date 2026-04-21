@@ -137,19 +137,19 @@ export default function QuickAccess(): React.JSX.Element {
   ];
 
   return (
-    <section className="section bg-black-hole/40">
+    <section className="py-20 bg-[#0A0A0F] border-y border-white/5">
       <div className="container-custom">
-        <div className="section-heading mb-12 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-content mb-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Quick Access
           </h2>
-          <p className="text-muted text-lg max-w-2xl mx-auto">
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             Everything you need to start building on{' '}
-            <span className="text-tech-cyan">Axionax</span>
+            <span className="text-blue-400 font-medium">Axionax</span>
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {services.map((service) => (
             <Link
               key={service.title}
@@ -160,26 +160,26 @@ export default function QuickAccess(): React.JSX.Element {
                   ? 'noopener noreferrer'
                   : undefined
               }
-              className="group card-panel p-6 hover:border-tech-cyan/30 transition-all duration-300 block h-full"
+              className="group p-6 bg-white/5 border border-white/10 hover:border-blue-500/30 hover:bg-white/10 rounded-xl transition-all duration-200 block h-full"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="p-3 rounded-xl bg-tech-cyan/10 text-tech-cyan group-hover:scale-110 transition-transform">
+                <div className="p-3 rounded-lg bg-blue-500/10 text-blue-400 group-hover:bg-blue-500/20 transition-colors">
                   {service.icon}
                 </div>
-                <span className="px-3 py-1 text-xs font-medium rounded-full bg-tech-cyan/10 text-tech-cyan border border-tech-cyan/20">
+                <span className="px-3 py-1 text-xs font-medium rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
                   {service.badge}
                 </span>
               </div>
-              <h3 className="text-xl font-semibold text-content mb-2 group-hover:text-tech-cyan transition-colors">
+              <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors">
                 {service.title}
               </h3>
-              <p className="text-muted text-sm mb-4">{service.description}</p>
+              <p className="text-gray-400 text-sm mb-4">{service.description}</p>
               {service.code && (
-                <code className="block p-2 rounded bg-black-hole border border-white/10 text-xs text-tech-cyan font-mono truncate">
+                <code className="block p-2 rounded bg-black/30 border border-white/10 text-xs text-blue-400 font-mono truncate">
                   {service.code}
                 </code>
               )}
-              <div className="flex items-center text-tech-cyan text-sm mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex items-center text-blue-400 text-sm mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
                 <span>Open</span>
                 <svg
                   className="w-4 h-4 ml-1"
@@ -200,38 +200,41 @@ export default function QuickAccess(): React.JSX.Element {
         </div>
 
         {/* Network Config Box */}
-        <div className="mt-12 p-6 rounded-lg border border-white/10 bg-black-hole/60 backdrop-blur-sm">
-          <h3 className="text-xl font-semibold text-content mb-4 flex items-center gap-2">
-            <span>🔗</span> Add Axionax Testnet to MetaMask
+        <div className="mt-12 p-6 rounded-xl border border-white/10 bg-white/5">
+          <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            Add Axionax Testnet to MetaMask
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             <div>
-              <span className="text-muted block mb-1">Network Name:</span>
-              <p className="text-content font-mono bg-white/5 px-2 py-1 rounded">
+              <span className="text-gray-500 block mb-1">Network Name:</span>
+              <p className="text-white font-mono bg-black/30 px-3 py-2 rounded">
                 Axionax Testnet
               </p>
             </div>
             <div>
-              <span className="text-muted block mb-1">RPC URL:</span>
-              <p className="text-tech-cyan font-mono bg-white/5 px-2 py-1 rounded truncate">
+              <span className="text-gray-500 block mb-1">RPC URL:</span>
+              <p className="text-blue-400 font-mono bg-black/30 px-3 py-2 rounded truncate">
                 https://rpc.axionax.org
               </p>
             </div>
             <div>
-              <span className="text-muted block mb-1">Chain ID:</span>
-              <p className="text-tech-success font-mono bg-white/5 px-2 py-1 rounded">
+              <span className="text-gray-500 block mb-1">Chain ID:</span>
+              <p className="text-green-400 font-mono bg-black/30 px-3 py-2 rounded">
                 {AXIONAX_NETWORK_CONFIG.chainIdDecimal}
               </p>
             </div>
             <div>
-              <span className="text-muted block mb-1">Currency Symbol:</span>
-              <p className="text-tech-warning font-mono bg-white/5 px-2 py-1 rounded">
+              <span className="text-gray-500 block mb-1">Currency Symbol:</span>
+              <p className="text-yellow-400 font-mono bg-black/30 px-3 py-2 rounded">
                 {AXIONAX_NETWORK_CONFIG.nativeCurrency?.symbol ?? 'AXX'}
               </p>
             </div>
           </div>
-          <p className="mt-3 text-xs text-muted">
-            Explorer: <span className="font-mono">{explorerBase}</span>
+          <p className="mt-3 text-xs text-gray-500">
+            Explorer: <span className="font-mono text-gray-400">{explorerBase}</span>
           </p>
         </div>
       </div>
