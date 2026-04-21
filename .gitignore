@@ -36,6 +36,13 @@ pnpm-debug.log*
 *.swo
 .DS_Store
 
+# E2E test artifacts
+playwright-report/
+test-results/
+
+# IDX workspace
+.idx/
+
 # Optional local clones (core is separate repo)
 /core-universe/
 /axionaxprotocol/
