@@ -53,6 +53,20 @@ No file upload from your machine — on VPS just clone repo and build there:
 
 Default script values: app folder `/opt/axionax-web-universe`, port 3000
 
+#### VPS standalone: branch, lockfile, and Windows
+
+- **Tracked branch:** `vps-update-and-restart.sh` uses `DEPLOY_BRANCH` (default `main`). It `git fetch` / checks out that branch / `git pull origin "$DEPLOY_BRANCH"`, then runs `pnpm install --frozen-lockfile`. Deploy a different branch, for example:
+
+  ```bash
+  ssh user@VPS 'DEPLOY_BRANCH=cursor/my-feature bash -s' < scripts/vps-update-and-restart.sh
+  ```
+
+- **Stale Next.js output:** The script removes `apps/web/.next` before rebuilding and refreshes standalone `static` and `public` copies so old chunks and assets are not left behind.
+
+- **Windows:** Piping a `.sh` file with CRLF line endings into `ssh … bash -s` breaks on Linux. From PowerShell use [scripts/vps-update-from-windows.ps1](../scripts/vps-update-from-windows.ps1) (writes an LF-only temp file and uses `ssh` stdin redirection). Example: `.\scripts\vps-update-from-windows.ps1 -HostName root@YOUR_IP`
+
+- **Initial clone branch:** [scripts/vps-setup-from-git.sh](../scripts/vps-setup-from-git.sh) respects `BRANCH` (default `main`) plus `REPO_URL` and `APP_DIR` — see [scripts/README.md](../scripts/README.md).
+
 ### Run from root (recommended — build + upload static)
 
 From repo root:

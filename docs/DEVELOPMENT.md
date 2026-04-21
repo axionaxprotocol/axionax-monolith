@@ -157,6 +157,10 @@ Dependencies are kept at **latest stable** within current major versions. After 
 
 To refresh to latest within semver: `pnpm update -r`. To check for newer majors: `pnpm outdated -r`.
 
+### 5a. Cloud / automation workspace bootstrap
+
+Cursor and similar automation may run [scripts/cloud-agent-startup.sh](../scripts/cloud-agent-startup.sh) from the repo root before tasks. It performs `pnpm install --frozen-lockfile` and runs the TypeScript checker for `@axionax/blockchain-utils`. If agent or CI steps fail on install or `tsc`, reproduce locally with the same script.
+
 ### 6. Environment Variables
 
 Copy example env files:
@@ -202,10 +206,10 @@ If you restart a validator and its **block height drops to a low number** (e.g. 
 
 ## 📚 Documentation
 
-- [Web README](apps/web/README.md)
-- [Marketplace README](apps/marketplace/README.md)
+- [Web README](../apps/web/README.md)
+- [Marketplace README](../apps/marketplace/README.md)
 - [Core Universe](https://github.com/axionaxprotocol/axionax-core-universe) (separate repo)
-- [SDK README](packages/sdk/README.md)
+- [SDK README](../packages/sdk/README.md)
 
 ## 🔗 Links
 
