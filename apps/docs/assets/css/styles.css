@@ -1,5 +1,5 @@
 :root {
-  /* Colors - Blockchain + AI Theme */
+  /* Colors - Blockchain + AI Theme (Dark Mode Default) */
   --primary: #6366f1;
   --primary-dark: #4f46e5;
   --secondary: #ec4899;
@@ -32,6 +32,30 @@
   --star-color2: #a6f1ff44;
 }
 
+[data-theme="light"] {
+  --primary: #4f46e5;
+  --primary-dark: #4338ca;
+  --secondary: #db2777;
+  --accent: #0891b2;
+  --bg-dark: #f1f5f9;
+  --bg-darker: #f8fafc;
+  --bg-card: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --bg-space: radial-gradient(ellipse 200% 80% at 50% 0%, #e2e8f0 0%, #f1f5f9 60%, #f8fafc 100%);
+  --star-color: rgba(0, 0, 0, 0.05);
+  --star-color2: rgba(0, 0, 0, 0.02);
+  --gradient-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%), radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.08) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.08) 0px, transparent 50%), radial-gradient(at 0% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+}
+
+[data-theme="light"] .galaxy-overlay,
+[data-theme="light"] .shooting-star,
+[data-theme="light"] #space-canvas {
+  display: none !important;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -43,7 +67,7 @@ body {
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
   overflow-x: hidden;
-  background-color: #000;
+  background-color: var(--bg-darker);
 }
 
 .galaxy-overlay {
@@ -189,13 +213,20 @@ body {
 
 /* Header */
 header {
-  padding: 1.5rem 0;
-  border-bottom: 1px solid var(--border);
-  backdrop-filter: blur(10px);
   background: rgba(15, 15, 35, 0.8);
-  position: sticky;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  position: fixed;
+  width: 100%;
   top: 0;
   z-index: 100;
+  transition: all 0.3s ease;
+}
+
+[data-theme="light"] header {
+  background: rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .header-content {
@@ -238,8 +269,60 @@ nav a {
   font-size: 0.95rem;
 }
 
+nav a:hover::after {
+  width: 100%;
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+[data-theme=\ light\] .theme-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+  width: 100%;
+}
+
 nav a:hover {
   color: var(--primary);
+}
+
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .mobile-menu-btn {
@@ -274,20 +357,26 @@ nav a:hover {
 .mobile-menu {
   display: none;
   position: fixed;
-  top: 73px;
+  top: 70px;
   left: 0;
-  right: 0;
-  background: var(--bg-darker);
-  border-bottom: 1px solid var(--border);
+  width: 100%;
+  background: rgba(15, 15, 35, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   z-index: 99;
-  backdrop-filter: blur(10px);
+  flex-direction: column;
+  gap: 1rem;
+}
+
+[data-theme="light"] .mobile-menu {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .mobile-menu.active {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
   animation: slideDown 0.3s ease;
 }
 
@@ -355,13 +444,57 @@ nav a:hover {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(99, 102, 241, 0.1);
-  border: 1px solid var(--primary);
-  border-radius: 2rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 20px;
+  color: var(--success);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   margin-bottom: 2rem;
-  color: var(--primary);
+}
+
+[data-theme=\ light\] .badge {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #059669;
+}
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 20px;
+  color: var(--success);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+
+[data-theme="light"] .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 20px;
+  color: var(--success);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 2rem;
+}
+
+[data-theme=\ light\] .badge {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #059669;
+}
+
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #059669;
 }
 
 .pulse {
@@ -452,14 +585,26 @@ nav a:hover {
   margin-top: 3rem;
 }
 
-.feature-card {
+.feature-card,
+.tech-card,
+.stat-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: 16px;
   padding: 2rem;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+}
+
+[data-theme="light"] .feature-card,
+[data-theme="light"] .tech-card,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .metric-card,
+[data-theme="light"] .testnet-info-card,
+[data-theme="light"] .health-item,
+[data-theme="light"] .status-item {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .feature-card::before {
@@ -899,6 +1044,30 @@ footer a:hover {
 
 .comparison-table th,
 .comparison-table td {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-primary);
+}
+
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-primary);
+}
+
+  color: var(--text-primary);
+}
+/* old 
   padding: 1.25rem 1.5rem;
   text-align: left;
   border-bottom: 1px solid var(--border);
@@ -909,6 +1078,30 @@ footer a:hover {
 }
 
 .comparison-table th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+[data-theme=\ light\] table th {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+[data-theme=\ light\] table th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}
+
+[data-theme=\ light\] table th {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+  background: rgba(0, 0, 0, 0.05);
+}
+/* old 
   font-weight: 700;
   color: var(--text-primary);
   font-size: 1.1rem;
@@ -1401,6 +1594,30 @@ footer a:hover {
 
   .comparison-table th,
   .comparison-table td {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-primary);
+}
+
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-primary);
+}
+
+  color: var(--text-primary);
+}
+/* old 
     padding: 1rem;
   }
 }
@@ -1460,6 +1677,30 @@ footer a:hover {
 
   .comparison-table th,
   .comparison-table td {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-primary);
+}
+
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+[data-theme=\light\] table td {
+  color: var(--text-primary);
+}
+
+  color: var(--text-primary);
+}
+/* old 
     padding: 0.75rem 0.5rem;
   }
 
@@ -1699,12 +1940,40 @@ body::after {
 }
 
 .metric-card {
-  background: rgba(99, 102, 241, 0.05);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  border-radius: 0.75rem;
+  background: rgba(15, 15, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
   padding: 1.5rem;
-  text-align: center;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
+}
+
+[data-theme=\light\] .metric-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+  background: rgba(15, 15, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+[data-theme="light"] .metric-card {
+  background: rgba(15, 15, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+[data-theme=\light\] .metric-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .metric-card:hover {
@@ -1805,6 +2074,48 @@ body::after {
 }
 
 .testnet-info-card {
+  background: rgba(15, 15, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+[data-theme=\ light\] .testnet-info-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+  background: rgba(15, 15, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+[data-theme=\ light\] .testnet-info-card {
+  background: rgba(15, 15, 35, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+[data-theme=\ light\] .testnet-info-card {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+/* old 
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 1rem;
