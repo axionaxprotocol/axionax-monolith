@@ -4,6 +4,8 @@
 **Based on:** SECURITY_AUDIT_REPORT.md (97 findings)
 **Classification:** CONFIDENTIAL
 
+**Remediation tracking:** [reports/SECURITY_AUDIT_REMEDIATION_STATUS.md](reports/SECURITY_AUDIT_REMEDIATION_STATUS.md) — per-finding status vs current codebase (update when closing items).
+
 ---
 
 ## Overview

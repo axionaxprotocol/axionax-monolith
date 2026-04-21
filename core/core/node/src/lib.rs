@@ -56,12 +56,18 @@ pub struct NodeConfig {
     pub validator_address: Option<String>,
 }
 
+/// Default RPC listen address used by dev/testnet/mainnet presets.
+const DEFAULT_RPC_ADDR: SocketAddr = SocketAddr::new(
+    std::net::IpAddr::V4(std::net::Ipv4Addr::new(127, 0, 0, 1)),
+    8545,
+);
+
 impl NodeConfig {
     /// Create development node configuration
     pub fn dev() -> Self {
         Self {
             network: NetworkConfig::dev(),
-            rpc_addr: "127.0.0.1:8545".parse().unwrap(),
+            rpc_addr: DEFAULT_RPC_ADDR,
             state_path: "/tmp/axionax-dev".to_string(),
             validator_address: None,
         }
@@ -71,7 +77,7 @@ impl NodeConfig {
     pub fn testnet() -> Self {
         Self {
             network: NetworkConfig::testnet(),
-            rpc_addr: "127.0.0.1:8545".parse().unwrap(),
+            rpc_addr: DEFAULT_RPC_ADDR,
             state_path: "/var/lib/axionax/testnet".to_string(),
             validator_address: None,
         }
@@ -81,7 +87,7 @@ impl NodeConfig {
     pub fn mainnet() -> Self {
         Self {
             network: NetworkConfig::mainnet(),
-            rpc_addr: "127.0.0.1:8545".parse().unwrap(),
+            rpc_addr: DEFAULT_RPC_ADDR,
             state_path: "/var/lib/axionax/mainnet".to_string(),
             validator_address: None,
         }

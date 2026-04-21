@@ -4,6 +4,26 @@
 
 ---
 
+## วิธีที่ 0: สคริปต์เดียวจบ (build → genesis → run / systemd)
+
+จาก repo หลัง clone:
+
+```bash
+cd axionax-core-universe/ops/deploy/scripts
+chmod +x axionax-node-bootstrap.sh
+
+./axionax-node-bootstrap.sh build
+sudo AXIONAX_BOOTSTRAP_NODES='/ip4/<IP>/tcp/30303/p2p/<PEER_ID>' \
+  ./axionax-node-bootstrap.sh setup --role full --data-dir /var/lib/axionax-node
+sudo ./axionax-node-bootstrap.sh run --data-dir /var/lib/axionax-node
+# หรือ: sudo ./axionax-node-bootstrap.sh install-systemd --data-dir /var/lib/axionax-node && sudo systemctl start axionax-node
+```
+
+รายละเอียดคำสั่งทุก role (`full`, `rpc`, `validator`, `bootnode`): [scripts/README-NODE-RUNTIME.md](scripts/README-NODE-RUNTIME.md)  
+คู่มือภาษาอังกฤษสำหรับผู้ใช้ทั่วโลก (permissionless): [docs/RUN_PUBLIC_FULL_NODE.md](../../docs/RUN_PUBLIC_FULL_NODE.md)
+
+---
+
 ## สิ่งที่ต้องมีบนแต่ละ VPS
 
 - **OS:** Ubuntu 22.04 / 24.04 (หรือ Debian)
@@ -33,6 +53,8 @@ mkdir -p /var/lib/axionax-node
 ```
 
 ### รัน Node
+
+**Public testnet:** คัดลอก `core/tools/genesis.json` ไปที่เครื่อง แล้วเพิ่ม `--chain /path/to/genesis.json` และตั้ง `AXIONAX_BOOTSTRAP_NODES` ชี้ validator ที่รันอยู่ (หรือใช้สคริปต์ [README-NODE-RUNTIME.md](scripts/README-NODE-RUNTIME.md) ด้านบน)
 
 **VPS ตัวที่ 1 (รันก่อน — ใช้เป็น bootstrap ของตัวที่ 2):**
 

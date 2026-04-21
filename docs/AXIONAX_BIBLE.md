@@ -78,6 +78,10 @@ This repository contains many documents. This file is the central index: content
 | [ADD_NETWORK_AND_TOKEN.md](ADD_NETWORK_AND_TOKEN.md) | Add Axionax Testnet and AXX token in MetaMask; receive from Faucet |
 | [ops/deploy/VPS_VALIDATOR_UPDATE.md](../ops/deploy/VPS_VALIDATOR_UPDATE.md) | Validator VPS update (217.76.61.116, 46.250.244.4) and checklist |
 | [ops/deploy/VPS_FULL_NODE_RUNBOOK.md](../ops/deploy/VPS_FULL_NODE_RUNBOOK.md) | Run full node on VPS (chain_id 86137, RPC 8545, P2P 30303) |
+| [RUN_PUBLIC_FULL_NODE.md](RUN_PUBLIC_FULL_NODE.md) | Permissionless public testnet full node — genesis, bootstrap, build, verify (any operator worldwide) |
+| [PUBLIC_TESTNET_BOOTSTRAPS.txt](PUBLIC_TESTNET_BOOTSTRAPS.txt) | Maintainer-updated libp2p multiaddrs for `AXIONAX_BOOTSTRAP_NODES` |
+| [SMOKE_TEST_PUBLIC_FULL_NODE.md](SMOKE_TEST_PUBLIC_FULL_NODE.md) | Fresh-machine smoke test for external operators + bootstrap publish flow |
+| [EXTERNAL_OPERATOR_ACCEPTANCE_CHECKLIST.md](EXTERNAL_OPERATOR_ACCEPTANCE_CHECKLIST.md) | Release gate checklist for external node-operator readiness |
 | [ops/deploy/README.md](../ops/deploy/README.md) | ops/deploy structure, Docker, Nginx, scripts |
 | [core/tools/GENESIS_LAUNCH_README.md](../core/tools/GENESIS_LAUNCH_README.md) | Genesis tools (create_genesis, verify, launch) |
 | [tools/devtools/tools/faucet/README.md](../tools/devtools/tools/faucet/README.md) | Faucet API (Rust) and deploy |
@@ -93,6 +97,7 @@ This repository contains many documents. This file is the central index: content
 | [GENESIS_PUBLIC_TESTNET_PLAN.md](GENESIS_PUBLIC_TESTNET_PLAN.md) | Genesis public testnet plan, VPS allocation, weekly timeline |
 | [TESTNET_OPTIMIZATION_CHECKLIST.md](TESTNET_OPTIMIZATION_CHECKLIST.md) | Testnet optimization checklist (Stability, Consensus, RPC, Faucet, Monitoring, Security) |
 | [MAINNET_PRODUCTION_PLAN.md](MAINNET_PRODUCTION_PLAN.md) | Mainnet production plan — target mid-year 2026 (Chain ID 86150), pre-mainnet checklist, launch |
+| [BENCHMARK_BASELINE.md](BENCHMARK_BASELINE.md) | Reproducible benchmark baseline (TPS/block-time/latency) and claim policy |
 | [TESTNET_READINESS.md](../TESTNET_READINESS.md) | Testnet readiness (Genesis, Balance, Faucet) and launch doc links |
 | [GITHUB_READINESS.md](GITHUB_READINESS.md) | Repository readiness on GitHub (CI, secrets, docs, verify script) |
 | [WALLET_AND_KEYS_READINESS.md](WALLET_AND_KEYS_READINESS.md) | Wallet, private key, Faucet key, node identity, Balance & Faucet flow |

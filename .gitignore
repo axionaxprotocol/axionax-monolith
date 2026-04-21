@@ -14,6 +14,8 @@ worker_key.json
 **/identity.key
 # Keep .env.example committed; do not commit .env or .env.faucet
 ops/deploy/environments/testnet/public/faucet.env
+ops/deploy/environments/testnet/public/explorer.env
+ops/deploy/environments/testnet/public/.env.monitoring
 
 # Python
 *.py[cod]

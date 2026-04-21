@@ -1,28 +1,41 @@
 #!/bin/bash
-# Run axionax full node (for VPS).
-# Usage:
-#   ./run-full-node.sh                    # RPC on 0.0.0.0:8545, state in ./data
-#   AXIONAX_BOOTSTRAP_NODES=/ip4/1.2.3.4/tcp/30303/p2p/12D3KooW... ./run-full-node.sh
+# Run axionax full node.
 #
-# Require: run from repo root or set AXIONAX_REPO_ROOT to core/ directory parent.
-
+# If you already ran: axionax-node-bootstrap.sh setup …
+#   ./run-full-node.sh --data-dir /var/lib/axionax-node
+#   (delegates to axionax-node-bootstrap.sh run)
+#
+# Legacy (no setup / no genesis file on disk):
+#   AXIONAX_STATE_PATH=./data AXIONAX_BOOTSTRAP_NODES=/ip4/… ./run-full-node.sh
+#
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEPLOY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-REPO_ROOT="${AXIONAX_REPO_ROOT:-$(cd "$DEPLOY_DIR/../.." && pwd)}"
-CORE="$REPO_ROOT/core"
-BIN="$CORE/target/release/axionax-node"
-STATE="${AXIONAX_STATE_PATH:-$REPO_ROOT/data}"
+# shellcheck source=node-runtime-common.sh
+source "$SCRIPT_DIR/node-runtime-common.sh"
+axionax_resolve_paths
 
-if [ ! -x "$BIN" ]; then
-  echo "Binary not found: $BIN (run: cd $CORE && cargo build --release -p node)"
-  exit 1
+DATA_DIR=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --data-dir) DATA_DIR="$2"; shift 2 ;;
+    *) break ;;
+  esac
+done
+
+if [[ -z "${DATA_DIR:-}" ]]; then
+  DATA_DIR="${AXIONAX_STATE_PATH:-$AXIONAX_REPO_ROOT/data}"
 fi
 
-mkdir -p "$STATE"
-echo "Starting axionax-node (rpc=0.0.0.0:8545, state=$STATE)"
-exec "$BIN" \
+if [[ -x "$DATA_DIR/run.sh" ]]; then
+  exec "$SCRIPT_DIR/axionax-node-bootstrap.sh" run --data-dir "$DATA_DIR"
+fi
+
+axionax_require_binary
+mkdir -p "$DATA_DIR"
+echo "Starting axionax-node (legacy: no genesis file; state=$DATA_DIR)"
+echo "  For public testnet use: $SCRIPT_DIR/axionax-node-bootstrap.sh setup --role full …"
+exec "$AXIONAX_NODE_BIN" \
   --role full \
   --chain-id 86137 \
   --rpc 0.0.0.0:8545 \
-  --state-path "$STATE"
+  --state-path "$DATA_DIR"

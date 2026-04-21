@@ -9,3 +9,5 @@ Use the public testnet stack instead:
 - **Root deploy Dockerfile:** `ops/deploy/Dockerfile` (build context: `core/`)
 
 Chain ID **86137** (`0x15079`).
+
+**Public full node (any operator):** [docs/RUN_PUBLIC_FULL_NODE.md](../../../docs/RUN_PUBLIC_FULL_NODE.md)

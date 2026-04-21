@@ -131,6 +131,8 @@ curl -s -X POST -H "Content-Type: application/json" \
   http://217.76.61.116:8545
 ```
 
+**Run your own full node (anywhere on the Internet)** — no allowlist: build `axionax-node`, use the same genesis as testnet, set `AXIONAX_BOOTSTRAP_NODES`, open P2P port **30303**. Step-by-step: [docs/RUN_PUBLIC_FULL_NODE.md](docs/RUN_PUBLIC_FULL_NODE.md) · bootstrap list template: [docs/PUBLIC_TESTNET_BOOTSTRAPS.txt](docs/PUBLIC_TESTNET_BOOTSTRAPS.txt)
+
 ---
 
 ## Configuration

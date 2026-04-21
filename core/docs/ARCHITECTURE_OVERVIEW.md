@@ -31,7 +31,7 @@ Single entry point for **how the protocol is structured** in this repository: la
 | Logical layers and data flow | Every JSON-RPC method → [RPC_API.md](./RPC_API.md) |
 | Folder ↔ responsibility | VPS runbooks, genesis day → repo `docs/`, [RUNBOOK.md](./RUNBOOK.md) |
 | List of Rust workspace crates | Full API signatures → [API_REFERENCE.md](./API_REFERENCE.md) |
-| **Production readiness checklist** | [§9](#9-production-code--deployment-readiness) + linked runbooks / audit docs |
+| **Production readiness checklist** | [§12](#12-production-code--deployment-readiness) + linked runbooks / audit docs |
 
 Canonical doc index for the whole repo: [AXIONAX_BIBLE.md](../../docs/AXIONAX_BIBLE.md).
 
@@ -48,7 +48,7 @@ Traffic flows **down** from clients; trust and execution anchor in **Rust core**
 | L1 | **Clients** | Web, dApps, wallets, marketplace UIs |
 | L2 | **Edge services** | Explorer (e.g. Blockscout), faucet, monitoring (Prometheus/Grafana) |
 | L3 | **RPC** | JSON-RPC (HTTP/WebSocket); Ethereum-style and custom methods |
-| L4 | **Chain & P2P** | Validators, bootnodes, full/light nodes; sync and block production |
+| L4 | **Chain & P2P** | Validators, bootnodes, and full/rpc nodes; sync and block production |
 | L5 | **Core (Rust)** | State, consensus, mempool, staking, governance, genesis, metrics |
 | L6 | **DeAI (Python)** | Worker node, marketplace integration, optional optical / ML paths |
 | L7 | **HAL** | SILICON (CPU/GPU), NPU (e.g. Hailo), PHOTONIC (simulation / roadmap) |
@@ -155,7 +155,7 @@ Defined in `core/Cargo.toml`: **18 protocol crates** in `core/core/`, plus **`br
 | `consensus` | PoPC; Proof-of-Light (simulation) |
 | `crypto` | Primitives; **ECVRF** (schnorrkel) on production VRF paths |
 | `network` | libp2p, gossip, capabilities (ASR / Monolith hints) |
-| `state` | Persistent state (e.g. RocksDB) |
+| `state` | Persistent state (redb-backed storage) |
 | `node` | Binary `axionax-node` — wires network, state, RPC, roles |
 | `rpc` | JSON-RPC server, health, metrics hooks |
 | `config` | Configuration loading |
@@ -202,7 +202,7 @@ Defined in `core/Cargo.toml`: **18 protocol crates** in `core/core/`, plus **`br
 
 ## 5. Network & node roles
 
-- **Chain participants:** validator, bootnode, full node, light node (as implemented).  
+- **Chain participants:** validator, bootnode, full node, rpc node.  
 - **Off-chain / ops:** dedicated RPC service, explorer backend, faucet, monitoring.
 
 Authoritative list and responsibilities: [NETWORK_NODES.md](./NETWORK_NODES.md).  
@@ -391,7 +391,7 @@ Security framing (Sentinels, self-sufficiency): [SENTINELS.md](./SENTINELS.md), 
 | RPC server | ~1,000 req/s | <10ms | Rate-limited via tower |
 | P2P gossip | ~10 MB/s | <100ms | Gossipsub |
 | Block production | 1 block / `block_time_secs` | N/A | Default 5s, configurable |
-| StateDB reads | ~5,000 tx/s | <5ms | RocksDB |
+| StateDB reads | ~5,000 tx/s | <5ms | redb |
 | PoPC sampling | 1,000 indices | <1ms | SHA3-256 deterministic |
 | Merkle proof verify | per challenge | <10ms | All samples verified |
 

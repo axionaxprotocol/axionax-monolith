@@ -4,6 +4,14 @@ Complete set of automated deployment and management scripts for axionax protocol
 
 ## 📁 Scripts Overview
 
+### axionax-node (Rust binary)
+
+| Script | Purpose |
+|--------|---------|
+| [axionax-node-bootstrap.sh](axionax-node-bootstrap.sh) | `build` → `setup` → `run` / `install-systemd` / `doctor` for roles `full`, `rpc`, `validator`, `bootnode` |
+| [export-bootstrap-multiaddr.sh](export-bootstrap-multiaddr.sh) | Export `/ip4/.../tcp/.../p2p/...` line from validator host for `PUBLIC_TESTNET_BOOTSTRAPS.txt` |
+| [README-NODE-RUNTIME.md](README-NODE-RUNTIME.md) | Quick start and environment variables |
+
 ### 🚀 Deployment Scripts
 
 #### 1. `deploy-all-services.sh` - Complete Service Deployment

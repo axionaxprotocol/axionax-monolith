@@ -17,8 +17,8 @@ To help you navigate faster, here is the core layout:
 | Service | How to Run | Port | Notes |
 |---------|-----------|------|-------|
 | **Rust Core (build/test)** | `cd core && cargo build --workspace` / `cargo test --workspace` | — | Primary dev workflow; ALL tests must pass. |
-| **Mock RPC** | `cd ops/deploy/mock-rpc && npm start` | 8545 (HTTP), 8546 (WS) | Lightweight mock JSON-RPC; no Rust compile needed. Supports 40+ ETH + Axionax-specific methods. Simulates block production every 5s. |
-| **Python DeAI tests** | `cd core/deai && python3 -m pytest . -v --tb=short --ignore=tests` | — | Python test suite (skips bridge/Docker sandbox if not configured). |
+| **Mock RPC** | `cd ops/deploy/mock-rpc && node server.js` | 8545 (HTTP), 8546 (WS) | Lightweight mock JSON-RPC; no Rust compile needed. Supports 40+ ETH + Axionax-specific methods. Simulates block production every 5s. |
+| **Python DeAI tests** | `cd core/deai && python3 -m pytest . -v --tb=short --ignore=tests` | — | 30 pass, 2 skip (bridge + Docker sandbox if not configured). |
 
 ## ⚠️ Non-obvious Caveats (Troubleshooting)
 
