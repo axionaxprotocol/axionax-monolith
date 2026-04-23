@@ -4,7 +4,8 @@ WORKDIR /build
 RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 
 COPY . .
-# Build only the faucet binary (core workspace is in context root)
+# Build inside core/ to avoid the outer root-level workspace conflict
+WORKDIR /build/core
 RUN cargo build --release -p axionax-faucet
 
 # Runtime image
@@ -13,7 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 RUN adduser --system --uid 1000 faucet
 USER faucet
 WORKDIR /app
-COPY --from=builder /build/target/release/axionax-faucet /app/axionax-faucet
+COPY --from=builder /build/core/target/release/axionax-faucet /app/axionax-faucet
 ENV PORT=3002
 EXPOSE 3002
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
