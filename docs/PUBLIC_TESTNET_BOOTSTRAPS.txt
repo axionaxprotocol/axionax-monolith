@@ -1,0 +1,19 @@
+# Axionax public testnet — libp2p multiaddrs for AXIONAX_BOOTSTRAP_NODES
+#
+# Rules:
+# - One multiaddr per non-comment line.
+# - Format: /ip4/<IP>/tcp/<PORT>/p2p/<PeerId>
+# - Multiple lines: join with commas when exporting, e.g.:
+#     export AXIONAX_BOOTSTRAP_NODES="$(grep -v '^#' docs/PUBLIC_TESTNET_BOOTSTRAPS.txt | grep '/ip4/' | paste -sd, -)"
+#
+# Maintainer: add uncommented lines below when PeerIds are published for the live testnet.
+# Validator reference IPs (P2P usually 30303): see README.md "Current Network (Testnet)".
+# Source procedure: docs/SMOKE_TEST_PUBLIC_FULL_NODE.md (section "Publish bootstrap list").
+#
+# Example (replace PeerId with real value from validator logs: "Local peer ID:"):
+# /ip4/217.76.61.116/tcp/30303/p2p/12D3KooWREPLACE_ME_EU
+# /ip4/46.250.244.4/tcp/30303/p2p/12D3KooWREPLACE_ME_AU
+
+# ACTIVE BOOTSTRAPS (UNCOMMENTED LINES ONLY)
+# Add real, verified values here. If this block has no uncommented /ip4 lines,
+# external operators cannot do plug-and-play bootstrap.
