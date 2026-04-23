@@ -61,7 +61,11 @@ async fn main() -> anyhow::Result<()> {
         86150 => NodeConfig::mainnet(),
         _ => NodeConfig::dev(),
     };
-    config.state_path = args.state_path.to_str().unwrap().to_string();
+    config.state_path = args
+        .state_path
+        .to_str()
+        .ok_or_else(|| anyhow::anyhow!("state_path is not valid UTF-8"))?
+        .to_string();
     config.rpc_addr = args.rpc_addr;
     config.network.chain_id = args.chain_id;
 

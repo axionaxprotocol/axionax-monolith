@@ -382,7 +382,10 @@ pub struct VRFOutput {
 impl VRFOutput {
     /// Convert to u64 (for sampling)
     pub fn to_u64(&self) -> u64 {
-        u64::from_le_bytes(self.value[..8].try_into().unwrap())
+        // Safe: `value` is [u8; 32], so the first 8 bytes always fit.
+        let mut bytes = [0u8; 8];
+        bytes.copy_from_slice(&self.value[..8]);
+        u64::from_le_bytes(bytes)
     }
 
     /// Convert to f64 in range [0, 1)
