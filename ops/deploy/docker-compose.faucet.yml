@@ -1,0 +1,33 @@
+# Faucet co-located with RPC node on the same VPS (e.g. 46.250.244.4).
+# Uses host network to reach local RPC on 127.0.0.1:8545.
+#
+# Usage (on VPS):
+#   cp ops/deploy/env.faucet.example ops/deploy/.env.faucet
+#   # edit .env.faucet and set FAUCET_PRIVATE_KEY
+#   docker compose -f ops/deploy/docker-compose.faucet.yml --env-file ops/deploy/.env.faucet up -d --build
+
+services:
+  faucet:
+    build:
+      context: ../../
+      dockerfile: ops/deploy/Dockerfile.faucet
+    image: axionax-faucet:local
+    container_name: axionax-testnet-faucet
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - NODE_ENV=production
+      - RPC_URL=http://127.0.0.1:8545
+      - FAUCET_PRIVATE_KEY=${FAUCET_PRIVATE_KEY}
+      - FAUCET_AMOUNT=100
+      - RATE_LIMIT_MINUTES=1440
+      - PORT=3002
+      - CHAIN_ID=86137
+      - RUST_LOG=info
+    ulimits:
+      nofile: { soft: 65536, hard: 65536 }
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

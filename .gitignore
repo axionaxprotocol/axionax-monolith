@@ -13,6 +13,8 @@ worker_key.json
 .env.production
 **/identity.key
 # Keep .env.example committed; do not commit .env or .env.faucet
+ops/deploy/.env.faucet
+ops/deploy/.env.vps3-faucet
 ops/deploy/environments/testnet/public/faucet.env
 ops/deploy/environments/testnet/public/explorer.env
 ops/deploy/environments/testnet/public/.env.monitoring
