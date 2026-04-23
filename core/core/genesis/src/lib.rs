@@ -53,7 +53,7 @@ pub const ADDR_FOUNDATION: &str = "0xa77f117ff23b672cf484b1d05cc48b5e7c03909d";
 pub const ADDR_COMMUNITY: &str = "0x776b0130e806cb70003744a4691238052c0b972a";
 pub const ADDR_TEAM: &str = "0x6af7d73fdcc0bf711ccada1422774ab1fdff9ae4";
 pub const ADDR_PUBLIC_SALE: &str = "0x58abb3d4e75f232b4177bfd6061972a210f4c9e6";
-pub const ADDR_FAUCET: &str = "0x59927b9ed220aa6bf2f0ef46bc6efefaf935109f";
+pub const ADDR_FAUCET: &str = "0x9dd7e28ccd04cfb6547adc7be2a8cf2beb434a1c";
 pub const ADDR_RESERVE: &str = "0xa61e8cb3ec1e6246a852ca0493f7e8c9c44006cd";
 
 pub const ADDR_VALIDATOR_EU: &str = "0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326";

@@ -40,11 +40,21 @@ def _evm_addr(seed: str) -> str:
 
 
 def _faucet_address() -> str:
-    """Faucet address from deterministic key (testnet). For mainnet use --faucet-address."""
+    """Faucet address from deterministic key (testnet). For mainnet use --faucet-address.
+
+    Derivation MUST match core/tools/faucet (Rust): ed25519 pubkey -> keccak256 -> last 20 bytes.
+    """
     try:
-        from eth_account import Account
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+        from cryptography.hazmat.primitives import serialization
+        from eth_hash.auto import keccak
         pk = hashlib.sha256(b"axionax_faucet_mainnet_q2_2026").digest()
-        return Account.from_key(pk).address
+        sk = Ed25519PrivateKey.from_private_bytes(pk)
+        pub_bytes = sk.public_key().public_bytes(
+            encoding=serialization.Encoding.Raw,
+            format=serialization.PublicFormat.Raw,
+        )
+        return "0x" + keccak(pub_bytes)[12:].hex()
     except ImportError:
         return _evm_addr("axionax_genesis_faucet")
 

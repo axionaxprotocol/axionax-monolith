@@ -182,8 +182,9 @@
       "percent": "5%",
       "balance": "50000000000000000000000000000"
     },
-    "0x59927B9Ed220aA6bf2F0Ef46bC6efefAf935109f": {
+    "0x9dd7e28ccd04cfb6547adc7be2a8cf2beb434a1c": {
       "label": "Faucet (Testnet & Mainnet)",
+      "note": "ed25519-derived address (matches core/tools/faucet Rust signer)",
       "percent": "3%",
       "balance": "30000000000000000000000000000"
     },

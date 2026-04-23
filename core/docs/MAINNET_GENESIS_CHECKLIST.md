@@ -87,7 +87,7 @@ Each receives 25,000,000,000 AXX (2.5% of supply) as bootstrap stake.
 ## 4. Faucet Address (Testnet Default)
 
 ```
-0x59927b9ed220aa6bf2f0ef46bc6efefaf935109f
+0x9dd7e28ccd04cfb6547adc7be2a8cf2beb434a1c
 ```
 
 Deterministic key seed: `axionax_faucet_mainnet_q2_2026`
