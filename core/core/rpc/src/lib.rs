@@ -127,6 +127,31 @@ impl From<Transaction> for TransactionResponse {
     }
 }
 
+/// Transaction receipt response format (Ethereum-compatible fields).
+///
+/// Since axionax tx execution is all-or-nothing (tx is applied atomically when
+/// accepted via `eth_sendRawTransaction` or when included in a produced block),
+/// `status` is always `0x1` for successfully indexed receipts. If a tx is not
+/// found in the state DB, the RPC returns `None` (JSON `null`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReceiptResponse {
+    pub transaction_hash: String,
+    pub transaction_index: String, // hex-encoded position in block
+    pub block_hash: String,
+    pub block_number: String,
+    pub from: String,
+    pub to: Option<String>, // None for contract creation (not yet supported)
+    pub cumulative_gas_used: String,
+    pub gas_used: String,
+    pub contract_address: Option<String>,
+    pub logs: Vec<serde_json::Value>,
+    pub logs_bloom: String,
+    pub status: String, // "0x1" success, "0x0" failure
+    #[serde(rename = "type")]
+    pub tx_type: String,
+    pub effective_gas_price: String,
+}
+
 /// Ethereum-compatible JSON-RPC API
 #[rpc(server)]
 pub trait AxionaxRpc {
@@ -176,6 +201,19 @@ pub trait AxionaxRpc {
     /// Send raw transaction
     #[method(name = "eth_sendRawTransaction")]
     async fn send_raw_transaction(&self, tx_hex: String) -> RpcResult<String>;
+
+    /// Get transaction receipt by hash. Returns None if tx not indexed yet.
+    #[method(name = "eth_getTransactionReceipt")]
+    async fn get_transaction_receipt(&self, tx_hash: String)
+        -> RpcResult<Option<ReceiptResponse>>;
+
+    /// Get current gas price (hex-encoded wei). Returns the chain's min gas price.
+    #[method(name = "eth_gasPrice")]
+    async fn gas_price(&self) -> RpcResult<String>;
+
+    /// Get number of connected peers (hex-encoded).
+    #[method(name = "net_peerCount")]
+    async fn net_peer_count(&self) -> RpcResult<String>;
 }
 
 /// RPC server implementation
@@ -337,6 +375,72 @@ impl AxionaxRpcServer for AxionaxRpcServerImpl {
         }
 
         Ok(tx_hash)
+    }
+
+    async fn get_transaction_receipt(
+        &self,
+        tx_hash: String,
+    ) -> RpcResult<Option<ReceiptResponse>> {
+        let hash = parse_hex_hash(&tx_hash).map_err(RpcError::InvalidParams)?;
+
+        // Look up the transaction first; if it's not indexed we return None.
+        let tx = match self.state.get_transaction(&hash) {
+            Ok(t) => t,
+            Err(state::StateError::TransactionNotFound(_)) => return Ok(None),
+            Err(e) => return Err(RpcError::from(e).into()),
+        };
+
+        // Look up which block contains it; also returns None gracefully.
+        let block_hash = match self.state.get_transaction_block(&hash) {
+            Ok(h) => h,
+            Err(state::StateError::TransactionNotFound(_)) => return Ok(None),
+            Err(e) => return Err(RpcError::from(e).into()),
+        };
+
+        let block = match self.state.get_block_by_hash(&block_hash) {
+            Ok(b) => b,
+            Err(state::StateError::BlockNotFound(_)) => return Ok(None),
+            Err(e) => return Err(RpcError::from(e).into()),
+        };
+
+        let tx_index = block
+            .transactions
+            .iter()
+            .position(|t| t.hash == tx.hash)
+            .unwrap_or(0);
+
+        let to = if tx.to.is_empty() {
+            None
+        } else {
+            Some(tx.to.clone())
+        };
+
+        Ok(Some(ReceiptResponse {
+            transaction_hash: format!("0x{}", hex::encode(tx.hash)),
+            transaction_index: format!("0x{:x}", tx_index),
+            block_hash: format!("0x{}", hex::encode(block.hash)),
+            block_number: format!("0x{:x}", block.number),
+            from: tx.from,
+            to,
+            cumulative_gas_used: format!("0x{:x}", tx.gas_limit),
+            gas_used: format!("0x{:x}", tx.gas_limit),
+            contract_address: None,
+            logs: vec![],
+            logs_bloom: format!("0x{}", "0".repeat(512)),
+            status: "0x1".to_string(),
+            tx_type: "0x0".to_string(),
+            effective_gas_price: format!("0x{:x}", tx.gas_price),
+        }))
+    }
+
+    async fn gas_price(&self) -> RpcResult<String> {
+        // Chain's configured minimum gas price (1 Gwei). Dynamic pricing could
+        // be wired through PPC later.
+        Ok(format!("0x{:x}", 1_000_000_000u64))
+    }
+
+    async fn net_peer_count(&self) -> RpcResult<String> {
+        Ok(format!("0x{:x}", metrics::PEERS_CONNECTED.get() as u64))
     }
 }
 

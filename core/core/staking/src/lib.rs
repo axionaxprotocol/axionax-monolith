@@ -469,6 +469,26 @@ impl Staking {
 
         info!("Distributed {} total epoch rewards", total_rewards);
     }
+
+    /// Bootstrap a validator from genesis configuration.
+    /// This bypasses minimum stake checks and is used during node startup
+    /// to register validators defined in the genesis block.
+    pub async fn bootstrap_validator(&self, address: String, stake: u128) -> Result<()> {
+        let mut validators = self.validators.write().await;
+        let mut total = self.total_staked.write().await;
+
+        if validators.contains_key(&address) {
+            warn!("Validator {} already exists, skipping bootstrap", address);
+            return Ok(());
+        }
+
+        let validator = ValidatorInfo::new(address.clone(), stake);
+        validators.insert(address.clone(), validator);
+        *total = total.saturating_add(stake);
+
+        info!("Bootstrapped validator {} with stake {}", address, stake);
+        Ok(())
+    }
 }
 
 #[cfg(test)]

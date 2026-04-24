@@ -208,6 +208,27 @@ impl AxionaxNode {
         )));
         info!("Staking and governance modules initialized");
 
+        // Bootstrap genesis validators into staking module
+        // These validators are defined in genesis with pre-allocated stakes
+        let staking_clone = staking.clone();
+        tokio::spawn(async move {
+            use genesis::{ADDR_VALIDATOR_EU, ADDR_VALIDATOR_AU};
+            const ONE_AXX: u128 = 10_u128.pow(18);
+            const VALIDATOR_STAKE: u128 = 25_000_000 * ONE_AXX; // 25M AXX per validator (5% of total / 2)
+
+            let _ = staking_clone
+                .write()
+                .await
+                .bootstrap_validator(ADDR_VALIDATOR_EU.to_string(), VALIDATOR_STAKE)
+                .await;
+            let _ = staking_clone
+                .write()
+                .await
+                .bootstrap_validator(ADDR_VALIDATOR_AU.to_string(), VALIDATOR_STAKE)
+                .await;
+            info!("Bootstrapped genesis validators into staking module");
+        });
+
         let stats = Arc::new(RwLock::new(NodeStats::default()));
 
         Ok(Self {
@@ -435,7 +456,20 @@ impl AxionaxNode {
                     };
 
                     match state.store_block(&block) {
-                        Ok(()) => Some((block, new_number, block_hash)),
+                        Ok(()) => {
+                            // Index each tx by hash so eth_getTransactionByHash and
+                            // eth_getTransactionReceipt can resolve them.
+                            for tx in &block.transactions {
+                                if let Err(e) = state.store_transaction(tx, &block.hash) {
+                                    tracing::warn!(
+                                        "Failed to index tx 0x{}: {}",
+                                        hex::encode(tx.hash),
+                                        e
+                                    );
+                                }
+                            }
+                            Some((block, new_number, block_hash))
+                        }
                         Err(e) => {
                             error!("Failed to store block #{}: {}", new_number, e);
                             None

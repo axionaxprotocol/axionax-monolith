@@ -219,11 +219,13 @@ pub fn list_methods() -> Vec<&'static str> {
         "eth_getBlockByNumber",
         "eth_getBlockByHash",
         "eth_getTransactionByHash",
+        "eth_getTransactionReceipt",
         "eth_sendRawTransaction",
         "eth_getBalance",
         "eth_getTransactionCount",
         "eth_gasPrice",
         "net_version",
+        "net_peerCount",
         // Staking
         "staking_getValidator",
         "staking_getActiveValidators",
