@@ -3,25 +3,28 @@ layout: default
 title: axionax protocol Documentation
 ---
 
-# axionax protocol v1.9.0
+# Axionax Protocol — Documentation
 
 **Decentralized Compute Network with Proof-of-Probabilistic-Checking**
 
-Welcome to the official documentation for axionax protocol - a next-generation decentralized compute infrastructure powered by novel consensus mechanisms.
+Welcome to the official documentation for Axionax Protocol — a next-generation decentralized compute infrastructure powered by novel consensus mechanisms.
 
-## 🏗️ Testnet Infrastructure Status (December 5, 2025)
+## 🏗️ Genesis Public Testnet — Status (April 24, 2026)
 
-**Deployment Progress: 100% Complete (All Services Operational)**
+**Phase 1 — *The Incarnation* (Pre-Testnet → Genesis launch)**  
+**Synced core ref**: `axionax-core-universe@28f42cf`
 
-| Category           | Status         | Details                                |
-| ------------------ | -------------- | -------------------------------------- |
-| **Infrastructure** | ✅ 5/5 Healthy | PostgreSQL, Redis, Nginx/SSL, RPC Node |
-| **Monitoring**     | ✅ 2/2 Healthy | Grafana v12.2.1, Prometheus            |
-| **Applications**   | ✅ 2/2 Healthy | Explorer API, Faucet API               |
+| Layer              | Host                         | Status       | Details                                              |
+| ------------------ | ---------------------------- | ------------ | ---------------------------------------------------- |
+| **Validator EU**   | 217.76.61.116 (VPS 1)        | 🟢 Running   | `axionax-node` validator, RPC 8545, P2P 30303         |
+| **Validator AU**   | 46.250.244.4 (VPS 2)         | 🟢 Running   | `axionax-node` validator, RPC 8545, P2P 30303         |
+| **Infra hub**      | 217.216.109.5 (VPS 3)        | 🟢 Running   | Nginx + Faucet (+ optional Explorer), no chain node  |
+| **Public RPC**     | rpc.axionax.org              | 🟡 DNS pending | Reverse-proxy on VPS 3 → VPS 1/2                    |
+| **Faucet**         | faucet.axionax.org           | 🟡 DNS pending | `docker-compose.vps3-faucet.yml` on VPS 3            |
 
-**VPS**: vmi2895217 • **Chain ID**: 86137 • **Network**: axionax-testnet-1
+**Chain ID**: `86137` (`0x15079`) • **Native token**: AXX (18 dec) • **Block time**: 2 s • **Genesis SHA-256**: `0xed1bdac7…c762b55`
 
-📊 **[Full Infrastructure Status](https://github.com/axionaxprotocol/axionax-docs/blob/main/INFRASTRUCTURE_STATUS.md)** | **[Health Checks Guide](HEALTH_CHECKS.md)** | **[Monitoring Setup](MONITORING.md)**
+📊 **[Testnet Status](TESTNET_STATUS.md)** | **[Infrastructure Status](INFRASTRUCTURE_STATUS.md)** | **[Chain ID Configuration](CHAIN_ID_CONFIGURATION.md)**
 
 ---
 
@@ -122,4 +125,4 @@ axionax protocol is open source software. See [LICENSE](../LICENSE) and [LICENSE
 
 ---
 
-_Documentation for axionax protocol v1.9.0 Testnet - Last Updated: December 5, 2025_
+_Documentation for Axionax Protocol v1.9.0 — Genesis Public Testnet · Last Updated: April 24, 2026 · Synced `axionax-core-universe@28f42cf`_

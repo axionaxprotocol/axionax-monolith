@@ -12,46 +12,32 @@ for high-performance decentralized compute markets.
 
 ---
 
-## 🔥 Current Status (Updated December 5, 2025)
+## 🔥 Current Status (Updated April 24, 2026)
 
-### Documentation Status: 🟢 100% Complete - Production Ready!
+**Phase**: Genesis Public Testnet (Phase 1 — *The Incarnation*)  
+**Synced core ref**: `axionax-core-universe@28f42cf`
 
-**Major Updates:**
+**Three-VPS topology**:
 
-- ✅ Added comprehensive **REFACTORING_SUMMARY.md** documenting code quality improvements
-- ✅ All core protocol documentation complete
-- ✅ API references 95% complete with examples
-- ✅ Deployment guides updated for latest infrastructure
-- ✅ Monitoring stack fully documented
+| VPS       | IP              | Role                        | Services                                                               |
+| --------- | --------------- | --------------------------- | ---------------------------------------------------------------------- |
+| **VPS 1** | 217.76.61.116   | Validator + RPC (EU)        | `axionax-node` (RPC 8545, P2P 30303)                                   |
+| **VPS 2** | 46.250.244.4    | Validator + RPC (AU)        | `axionax-node` (RPC 8545, P2P 30303)                                   |
+| **VPS 3** | 217.216.109.5   | Infra hub (no chain node)   | Nginx reverse-proxy, Faucet (3002), Postgres, Redis, optional Explorer |
 
-**Infrastructure Status: 🟢 9/9 Services Operational (100%)**
+**Chain parameters**:
 
-**VPS Deployment (vmi2895217)**:
+- Chain ID `86137` (`0x15079`) · Symbol **AXX** (18 decimals)
+- Block time 2 s · Genesis SHA-256 `0xed1bdac7c278e5b4f58a1eceb7594a4238e39bb63e1018e38ec18a555c762b55`
+- Public RPC `https://rpc.axionax.org` · Faucet `https://faucet.axionax.org`
 
-| Service       | Port      | Status     | Details                                           |
-| ------------- | --------- | ---------- | ------------------------------------------------- |
-| PostgreSQL    | 5432      | ✅ Healthy | Connection pool ready (48h+ uptime)               |
-| Redis         | 6379      | ✅ Healthy | Cache layer operational (48h+ uptime)             |
-| Nginx         | 80/443    | ✅ Healthy | SSL configured (48h+ uptime)                      |
-| RPC Node      | 8545/8546 | ✅ Healthy | Mock JSON-RPC server, chainId 86137 (22h+ uptime) |
-| Grafana       | 3030      | ✅ Healthy | v12.2.1, dashboards accessible (19h+ uptime)      |
-| Prometheus    | 9090      | ✅ Running | Metrics collection active (19h+ uptime)           |
-| Web Interface | 3000      | ✅ Running | axionax-web frontend (27h+ uptime)                |
-| Explorer API  | 3001      | ✅ Healthy | Full blockchain explorer operational              |
-| Faucet API    | 3002      | ✅ Healthy | Testnet token distribution service active         |
+**Recent updates** (web ↔ core sync pass, 2026-04-24):
 
-**Recent Documentation Additions:**
-
-- 🎊 **REFACTORING_SUMMARY.md** - Complete code quality improvement documentation
-  - Before/after metrics
-  - Code examples
-  - Migration guides
-  - Best practices
-- ✅ Updated all README files with latest status
-- ✅ Enhanced monitoring documentation
-- ✅ Health check guides completed
-
-� **Documentation:** Now includes comprehensive refactoring guide and updated status across all repos
+- ✅ `docs/CORE_WEB_COMPAT.md` — pair recorded with core `28f42cf`
+- ✅ `TESTNET_STATUS.md` — rewritten around the three-VPS Genesis topology
+- ✅ `INFRASTRUCTURE_STATUS.md` — mock-RPC narrative replaced with real `axionax-node` stack
+- ✅ `CHAIN_ID_CONFIGURATION.md` — Testnet marked *Genesis Public Testnet* (not "Coming Q1 2026")
+- ✅ `JOIN_TESTNET.md` — block time 2 s + VPS 3 Faucet
 
 ---
 
@@ -307,4 +293,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **Part of the axionax protocol Ecosystem**
 
-**Last Updated**: December 5, 2025 - All services operational, protocol v1.8.0 deployed ✨
+**Last Updated**: April 24, 2026 — Genesis Public Testnet prep, protocol v1.9.0 + core `28f42cf`

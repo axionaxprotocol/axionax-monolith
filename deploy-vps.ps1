@@ -62,12 +62,27 @@ if (-not (Test-Path $StandaloneDir)) {
     exit 1
 }
 
-# 2. Prepare standalone: copy .next/static into standalone/.next/
-$StandaloneNext = Join-Path $StandaloneDir ".next"
-if (-not (Test-Path $StandaloneNext)) { New-Item -ItemType Directory -Path $StandaloneNext -Force | Out-Null }
+# 2. Prepare standalone: for pnpm monorepo, server.js lives at apps/web/server.js
+#    so static must be placed at apps/web/.next/static and public at apps/web/public
+$AppDir = Join-Path $StandaloneDir "apps\web"
+if (-not (Test-Path $AppDir)) {
+    Write-Host "ERROR: expected pnpm monorepo layout at $AppDir" -ForegroundColor Red
+    exit 1
+}
+$AppNextDir = Join-Path $AppDir ".next"
+if (-not (Test-Path $AppNextDir)) { New-Item -ItemType Directory -Path $AppNextDir -Force | Out-Null }
 if (Test-Path $StaticDir) {
-    Write-Host "Copying static assets into standalone..." -ForegroundColor Gray
-    Copy-Item -Path $StaticDir -Destination (Join-Path $StandaloneNext "static") -Recurse -Force
+    Write-Host "Copying .next/static into standalone/apps/web/.next/static..." -ForegroundColor Gray
+    $DestStatic = Join-Path $AppNextDir "static"
+    if (Test-Path $DestStatic) { Remove-Item $DestStatic -Recurse -Force }
+    Copy-Item -Path $StaticDir -Destination $DestStatic -Recurse -Force
+}
+$PublicDir = Join-Path $ProjectRoot "apps\web\public"
+if (Test-Path $PublicDir) {
+    Write-Host "Copying public/ into standalone/apps/web/public..." -ForegroundColor Gray
+    $DestPublic = Join-Path $AppDir "public"
+    if (Test-Path $DestPublic) { Remove-Item $DestPublic -Recurse -Force }
+    Copy-Item -Path $PublicDir -Destination $DestPublic -Recurse -Force
 }
 
 # 3. Pack to tarball (avoids scp -r following symlinks → loop)

@@ -209,5 +209,6 @@ const handleAddToken = async () => {
 
 ---
 
-**อัปเดตล่าสุด:** ธันวาคม 2025  
-**Version:** 1.0.0
+**อัปเดตล่าสุด:** เมษายน 2026  
+**Synced core ref:** `axionax-core-universe@28f42cf`  
+**Version:** 1.1.0 (Genesis Public Testnet)

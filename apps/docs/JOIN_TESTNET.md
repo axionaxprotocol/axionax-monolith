@@ -1,7 +1,8 @@
-# วิธีเข้าร่วม axionax Testnet 🚀
+# วิธีเข้าร่วม Axionax Testnet 🚀
 
-**เวอร์ชัน**: v1.8.0-testnet  
-**อัพเดทล่าสุด**: 5 ธันวาคม 2025  
+**เวอร์ชัน**: v1.9.0-testnet (Genesis Public Testnet)  
+**Synced core ref**: `axionax-core-universe@28f42cf`  
+**อัพเดทล่าสุด**: 24 เมษายน 2026  
 **ภาษา**: ไทย 🇹🇭
 
 ---
@@ -21,24 +22,26 @@
 
 ### Network Details
 
-- **ชื่อเครือข่าย**: axionax Testnet
+- **ชื่อเครือข่าย**: Axionax Testnet
 - **Chain ID**: 86137 (0x15079)
-- **สัญลักษณ์**: AXX
-- **Block Time**: ~3 วินาที
+- **สัญลักษณ์**: AXX (18 decimals)
+- **Block Time**: 2 วินาที (ตาม genesis)
 - **Consensus**: Proof of Probabilistic Checking (PoPC)
+- **Genesis SHA-256**: `0xed1bdac7c278e5b4f58a1eceb7594a4238e39bb63e1018e38ec18a555c762b55`
 
 ### Endpoints
 
-- **RPC URL**: `https://rpc.axionax.org`
+- **RPC URL**: `https://rpc.axionax.org` (Nginx proxy บน VPS 3 → VPS 1/2)
 - **WebSocket**: `wss://rpc.axionax.org`
-- **Explorer**: https://explorer.axionax.org
-- **Faucet**: https://faucet.axionax.org
+- **Explorer**: https://explorer.axionax.org (optional บน VPS 3)
+- **Faucet**: https://faucet.axionax.org (VPS 3)
 - **Website**: https://axionax.org
 
-### Validator Nodes (สำรอง)
+### Validator Nodes (direct RPC fallback)
 
-- **EU Node**: http://217.76.61.116:8545
-- **AU Node**: http://46.250.244.4:8545
+- **EU Validator** (VPS 1): http://217.76.61.116:8545
+- **AU Validator** (VPS 2): http://46.250.244.4:8545
+- **Infra hub** (VPS 3 — Nginx + Faucet, no chain node): 217.216.109.5
 
 ---
 

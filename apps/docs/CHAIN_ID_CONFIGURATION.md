@@ -8,10 +8,10 @@ axionax Protocol uses different Chain IDs for different network environments to 
 
 ### Production Networks
 
-| Network     | Chain ID | Status   | RPC Endpoint   | Purpose                                    |
-| ----------- | -------- | -------- | -------------- | ------------------------------------------ |
-| **Mainnet** | 86150    | Reserved | TBD            | Production network for real-world usage    |
-| **Testnet** | 86137    | Active   | Coming Q1 2026 | Public testnet for testing and development |
+| Network     | Chain ID | Status                               | RPC Endpoint                          | Purpose                                    |
+| ----------- | -------- | ------------------------------------ | ------------------------------------- | ------------------------------------------ |
+| **Mainnet** | 86150    | Reserved (launch planned Q3 2026)    | TBD                                   | Production network for real-world usage    |
+| **Testnet** | 86137    | Genesis Public Testnet (Phase 1)     | https://rpc.axionax.org               | Public testnet for testing and development |
 
 ### Development Networks
 
@@ -98,27 +98,30 @@ docker-compose -f docker-compose.dev.yml up -d
 
 ### Purpose
 
-Public testnet for community testing, validator onboarding, and dApp development before mainnet launch.
+Public testnet for community testing, validator onboarding, and dApp development before mainnet launch. Currently in the **Genesis Public Testnet** phase (Phase 1 — *The Incarnation*).
 
 ### Status
 
-**Coming Q1 2026** - Currently in preparation phase
+**Active** — synced with core `axionax-core-universe@28f42cf`.
 
-### Planned Features
+| Item              | Value                                                                |
+| ----------------- | -------------------------------------------------------------------- |
+| Chain ID          | `86137` (`0x15079`)                                                  |
+| Native token      | AXX (18 decimals)                                                    |
+| Block time        | 2 s (from genesis)                                                   |
+| Genesis SHA-256   | `0xed1bdac7c278e5b4f58a1eceb7594a4238e39bb63e1018e38ec18a555c762b55` |
+| Validator #1 (EU) | `http://217.76.61.116:8545`                                          |
+| Validator #2 (AU) | `http://46.250.244.4:8545`                                           |
+| Reverse-proxy RPC | `https://rpc.axionax.org` (VPS 3 Nginx → VPS 1/2)                    |
+| Faucet            | `https://faucet.axionax.org` (VPS 3)                                 |
 
-- Faucet for free testnet tokens
-- Block explorer
-- RPC endpoints in multiple regions
-- Smart contract deployment
-- Validator participation
-
-### Configuration (Preview)
+### Configuration
 
 ```typescript
 const client = new axionaxClient({
   network: 'testnet',
   chainId: 86137,
-  endpoint: 'https://rpc.testnet.axionax.org',
+  endpoint: 'https://rpc.axionax.org',
 });
 ```
 
@@ -201,14 +204,14 @@ Currency Symbol: AXX
 Block Explorer: http://localhost:3001 (if running local explorer)
 ```
 
-#### Testnet (86137) - Coming Soon
+#### Testnet (86137)
 
 ```
-Network Name: axionax Testnet
-RPC URL: https://rpc.testnet.axionax.org
+Network Name: Axionax Testnet
+RPC URL: https://rpc.axionax.org
 Chain ID: 86137
 Currency Symbol: AXX
-Block Explorer: https://explorer.testnet.axionax.org
+Block Explorer: https://explorer.axionax.org
 ```
 
 #### Mainnet (86150) - Coming Q2 2026
@@ -309,6 +312,6 @@ describe('Smart Contract Tests', () => {
 
 ---
 
-**Last Updated:** November 11, 2025  
-**Version:** 1.0  
-**Status:** Active (Local Development) | Planned (Testnet & Mainnet)
+**Last Updated:** April 24, 2026  
+**Synced core ref:** `axionax-core-universe@28f42cf`  
+**Status:** Active (Local Development & Genesis Public Testnet) | Reserved (Mainnet 86150)

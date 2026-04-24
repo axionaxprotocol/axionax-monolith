@@ -9,6 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Web ↔ core sync pass (2026-04-24)** against [`axionax-core-universe@28f42cf`](https://github.com/axionaxprotocol/axionax-core-universe/commit/28f42cf) (`docs: enhance GENESIS_PUBLIC_TESTNET_PLAN and update Docker configurations`). Realigned web docs around the three-VPS Genesis Public Testnet topology (VPS 1 EU + VPS 2 AU validators + VPS 3 Nginx/Faucet hub), genesis SHA-256 `0xed1bdac7…c762b55`, block time 2 s. No on-chain constants changed; doc-only updates:
+  - [docs/CORE_WEB_COMPAT.md](docs/CORE_WEB_COMPAT.md) — filled the pairing table and genesis parameters block.
+  - [apps/docs/TESTNET_STATUS.md](apps/docs/TESTNET_STATUS.md) — rewritten around Genesis Public Testnet readiness; dropped stale Nov/Dec 2025 mock-RPC tracking.
+  - [apps/docs/INFRASTRUCTURE_STATUS.md](apps/docs/INFRASTRUCTURE_STATUS.md) — replaced single-VPS / mock-RPC narrative with live 3-VPS topology and Genesis runbook; removed `YOUR_VPS_IP` placeholders.
+  - [apps/docs/CHAIN_ID_CONFIGURATION.md](apps/docs/CHAIN_ID_CONFIGURATION.md) — Testnet status changed from "Coming Q1 2026" to active Genesis Public Testnet; real RPC URL.
+  - [apps/docs/JOIN_TESTNET.md](apps/docs/JOIN_TESTNET.md) — block time 2 s, added VPS 3 Faucet hub, April 2026 date.
+  - [apps/docs/index.md](apps/docs/index.md) and [apps/docs/README.md](apps/docs/README.md) — landing pages refreshed with Genesis phase, 3-VPS grid, genesis hash.
+  - [apps/docs/STATUS.md](apps/docs/STATUS.md) — phase/date header realigned to *The Incarnation* (Genesis Public Testnet).
+  - [apps/docs/ADD_TOKEN_TO_METAMASK.md](apps/docs/ADD_TOKEN_TO_METAMASK.md) — version/date footer refreshed.
+  - [apps/web/src/app/infrastructure/page.tsx](apps/web/src/app/infrastructure/page.tsx) — public Infrastructure page rebuilt around the 3-VPS topology and genesis parameters; host column replaces fake uptime data.
+
 ### Added
 
 - Solo-maintainer workflow for dual-repo sync with core: [docs/SOLO_CORE_WEB_SYNC.md](docs/SOLO_CORE_WEB_SYNC.md), compatibility log [docs/CORE_WEB_COMPAT.md](docs/CORE_WEB_COMPAT.md), and links from README, DEVELOPMENT, and PARAMETERS_SYNC.

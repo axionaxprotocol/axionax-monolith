@@ -1,8 +1,9 @@
 # สถานะโครงการ axionax Core | Project Status
 
-> **อัปเดตล่าสุด | Last Updated**: 2025-12-05
-> **เวอร์ชัน | Version**: v1.8.0-testnet
-> **เฟสปัจจุบัน | Current Phase**: Phase 1 Complete + Phase 2 Active ✅
+> **อัปเดตล่าสุด | Last Updated**: 2026-04-24  
+> **Synced core ref**: `axionax-core-universe@28f42cf`  
+> **เวอร์ชัน | Version**: v1.9.0-testnet (Genesis Public Testnet)  
+> **เฟสปัจจุบัน | Current Phase**: Phase 1 — *The Incarnation* (Genesis launch prep)
 
 ---
 
@@ -11,12 +12,14 @@
 ### ความคืบหน้าโดยรวม | Overall Progress
 
 ```
-Phase 1: Testnet Infrastructure (Nov 2025)
+Phase 0: Pre-Testnet infrastructure (2025)
 ███████████████████████████████ 100% Complete ✅
 
-Phase 2: Production Services (Dec 2025)
-███████████████████████░░░░░░░░ 75% In Progress 🔄
+Phase 1: Genesis Public Testnet (Q1-Q2 2026 — The Incarnation)
+███████████████████████░░░░░░░░ ~75% — genesis built, distribution + DNS cutover pending 🔄
 ```
+
+> Tracked against core `docs/GENESIS_PUBLIC_TESTNET_PLAN.md` and `docs/GENESIS_LAUNCH_DAY_CHECKLIST.md` in [axionax-core-universe@28f42cf](https://github.com/axionaxprotocol/axionax-core-universe/tree/main/docs).
 
 | หมวดหมู่                   | สถานะ          | ความคืบหน้า |
 | -------------------------- | -------------- | ----------- |

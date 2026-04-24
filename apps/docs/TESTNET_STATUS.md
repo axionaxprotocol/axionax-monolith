@@ -1,47 +1,58 @@
 # axionax Testnet Status
 
-> **Last Updated**: December 5, 2025  
-> **Version**: v1.8.0-testnet  
-> **Phase**: Phase 2 Active ✅ | All Services Operational 🟢
+> **Last Updated**: April 24, 2026  
+> **Core reference**: `axionax-core-universe@28f42cf` (docs: GENESIS_PUBLIC_TESTNET_PLAN + ulimits, 2026-03-15)  
+> **Version**: v1.9.0-testnet  
+> **Phase**: Pre-Testnet → Genesis Public Testnet (Phase 1 — *The Incarnation*)
 
 ---
 
-## 🌐 Live Testnet Information
+## 🌐 Testnet Information
 
 ### Network Details
 
 - **Chain ID**: 86137 (0x15079)
 - **Native Token**: AXX (18 decimals)
 - **Consensus**: Proof of Probabilistic Checking (PoPC)
-- **Block Time**: ~3 seconds
+- **Block Time**: 2 seconds (from genesis)
+- **Genesis file**: `core/tools/genesis.json`
+- **Genesis SHA-256**: `0xed1bdac7c278e5b4f58a1eceb7594a4238e39bb63e1018e38ec18a555c762b55`
 
 ### Public Endpoints
 
-- **RPC Endpoint**: https://rpc.axionax.org (load balanced)
+- **RPC Endpoint**: https://rpc.axionax.org (Nginx reverse-proxy on VPS 3 → VPS 1 / VPS 2)
 - **WebSocket**: wss://rpc.axionax.org
-- **Explorer**: https://explorer.axionax.org
-- **Faucet**: https://faucet.axionax.org
+- **Explorer**: https://explorer.axionax.org (optional on VPS 3)
+- **Faucet**: https://faucet.axionax.org (VPS 3)
 - **Website**: https://axionax.org
 - **Monitoring**: https://monitor.axionax.org
 
-### Validator Nodes (2 Active)
+### Three-VPS Architecture (Genesis Public Testnet)
 
-| Validator        | Location  | IP            | RPC Port | P2P Port | Status     |
-| ---------------- | --------- | ------------- | -------- | -------- | ---------- |
-| **Validator EU** | Europe    | 217.76.61.116 | 8545     | 30303    | ✅ Running |
-| **Validator AU** | Australia | 46.250.244.4  | 8545     | 30303    | ✅ Running |
+| VPS       | IP              | Role                                  | Services                                     |
+| --------- | --------------- | ------------------------------------- | -------------------------------------------- |
+| **VPS 1** | 217.76.61.116   | Validator #1 + RPC (EU)               | `axionax-node` (validator, RPC 8545, P2P 30303) |
+| **VPS 2** | 46.250.244.4    | Validator #2 + RPC (AU)               | `axionax-node` (validator, RPC 8545, P2P 30303) |
+| **VPS 3** | 217.216.109.5   | Infra hub (no chain node)             | Nginx reverse-proxy, Faucet, Postgres, Redis, *optional* Explorer |
+
+> VPS 3 runs `ops/deploy/docker-compose.vps3-faucet.yml` from core with `FAUCET_PRIVATE_KEY` and `RPC_URL` pointing at VPS 1.
 
 ### Direct RPC Access
 
 ```bash
-# Validator EU (Primary)
-curl -X POST -H "Content-Type: application/json" \\
-  --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \\
+# Chain ID (expect "0x15079" = 86137)
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
   http://217.76.61.116:8545
 
-# Validator AU (Backup)
-curl -X POST -H "Content-Type: application/json" \\
-  --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \\
+# Validator EU (primary)
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
+  http://217.76.61.116:8545
+
+# Validator AU (secondary)
+curl -s -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
   http://46.250.244.4:8545
 ```
 
@@ -49,38 +60,43 @@ curl -X POST -H "Content-Type: application/json" \\
 
 ## 📊 Service Status
 
-| Service          | Status     | Endpoint             | Description                 |
-| ---------------- | ---------- | -------------------- | --------------------------- |
-| **Validator EU** | ✅ Running | 217.76.61.116:8545   | Primary validator node      |
-| **Validator AU** | ✅ Running | 46.250.244.4:8545    | Secondary validator node    |
-| **RPC Gateway**  | ✅ Running | rpc.axionax.org      | Load-balanced RPC endpoint  |
-| **Website**      | ✅ Running | axionax.org          | Main website                |
-| **Explorer**     | ✅ Running | explorer.axionax.org | Block explorer              |
-| **Faucet**       | ✅ Running | faucet.axionax.org   | Real AXX token distribution |
-| **Grafana**      | ✅ Running | monitor.axionax.org  | Monitoring dashboard        |
-| **Prometheus**   | ✅ Running | Internal             | Metrics collection          |
+| Service           | Status     | Endpoint             | Description                                                              |
+| ----------------- | ---------- | -------------------- | ------------------------------------------------------------------------ |
+| **Validator EU**  | ❌ Offline | 217.76.61.116:8545   | Genesis validator node (VPS 1) - currently offline                       |
+| **Validator AU**  | ✅ Running | 46.250.244.4:8545    | Genesis validator node (VPS 2) - only active validator                   |
+| **RPC Gateway**   | ✅ Running | rpc.axionax.org      | Nginx reverse-proxy on VPS 3 → VPS 2 (AU only)                          |
+| **Website**       | ✅ Running | axionax.org          | Main website (`apps/web`)                                                |
+| **Faucet**        | ✅ Running | faucet.axionax.org   | VPS 3 Faucet (`docker-compose.vps3-faucet.yml`)                          |
+| **Explorer**      | 🟡 Optional | explorer.axionax.org | Runs on VPS 3 *if RAM allows* — deferred until post-launch if constrained |
+| **Grafana**       | ✅ Running | monitor.axionax.org  | Monitoring dashboard                                                     |
+| **Prometheus**    | ✅ Running | Internal             | Metrics collection                                                       |
 
 ---
 
-## ✅ Phase 2 Progress
+## ✅ Genesis Public Testnet — Readiness
+
+Tracked against [axionax-core-universe `docs/GENESIS_PUBLIC_TESTNET_PLAN.md`](https://github.com/axionaxprotocol/axionax-core-universe/blob/main/docs/GENESIS_PUBLIC_TESTNET_PLAN.md) and [`docs/GENESIS_LAUNCH_DAY_CHECKLIST.md`](https://github.com/axionaxprotocol/axionax-core-universe/blob/main/docs/GENESIS_LAUNCH_DAY_CHECKLIST.md).
 
 ### Completed
 
-- [x] 2 Validator nodes deployed and synced
-- [x] Real PoPC consensus running
-- [x] Peer discovery working (validators connected)
-- [x] Load-balanced RPC endpoint
-- [x] Real faucet transactions (ethers.js integration)
-- [x] SSL certificates for all subdomains
-- [x] Monitoring with Prometheus & Grafana
-- [x] Website updated with validator status
+- [x] Genesis file produced (`core/tools/genesis.json`, SHA-256 `0xed1bdac7…c762b55`, chain_id 86137)
+- [x] Two validators in genesis allocation: EU (217.76.61.116), AU (46.250.244.4)
+- [ ] EU validator currently offline - only AU validator active
+- [x] Validator update scripts: `ops/deploy/scripts/update-validator-vps.sh`, `run-update-both-vps.ps1`
+- [x] VPS 3 Faucet compose (`docker-compose.vps3-faucet.yml`) + nginx example
+- [x] ulimit (`nofile=65536`) fixed in compose + `fix-validator-ulimit.sh` for existing containers
+- [x] Launch Day Checklist documented (`GENESIS_LAUNCH_DAY_CHECKLIST.md`)
+- [x] Web ↔ core constants aligned in `packages/blockchain-utils`
 
 ### In Progress
 
-- [ ] Additional validator recruitment
-- [ ] Genesis ceremony documentation
-- [ ] Staking UI implementation
-- [ ] Governance portal
+- [x] Genesis distributed to both validators
+- [ ] EU validator offline - single-validator mode active
+- [ ] P2P peer count = 0 (no peer connection with EU offline)
+- [ ] DNS cutover: `rpc.axionax.org` → VPS 3, `faucet.axionax.org` → VPS 3
+- [ ] SSL (Certbot) on VPS 3; `NEXT_PUBLIC_RPC_URL=https://rpc.axionax.org` in `apps/web`
+- [ ] Run `ops/deploy/scripts/verify-launch-ready.sh` from core once RPC/DNS are live
+- [ ] Optional: Explorer on VPS 3 (deferred if RAM budget is tight)
 
 ---
 
@@ -100,13 +116,12 @@ Add axionax Testnet to MetaMask:
 
 ## 📈 Network Statistics
 
-Current network metrics (live from validators):
+Live values are displayed on the [Validator Network](https://axionax.org/validators) page (10 s polling via `/api/rpc/eu` and `/api/rpc/au`).
 
-- **Block Height**: ~264,000+ blocks
-- **Validators**: 2 active
-- **Peer Count**: 1 (validators connected)
-- **Target TPS**: 45,000+
-- **Finality**: <0.5 seconds
+- **Validators**: 1 active validator (AU only) - EU offline
+- **Target TPS**: 45,000+ (design goal)
+- **Finality**: <0.5 seconds (design goal)
+- **Block time**: 2 s (genesis)
 
 ---
 
@@ -130,177 +145,30 @@ curl -X POST -H "Content-Type: application/json" \\
 
 ### 3. Run Your Own Node
 
-See [VPS_VALIDATOR_SETUP.md](./VPS_VALIDATOR_SETUP.md) for detailed instructions.
-
-- HighDiskUsage: <20% available for 5min
-- **Automated Backups**:
-  - Daily at 2:00 AM UTC via cron
-  - PostgreSQL: `pg_dumpall` (3.5KB)
-  - Redis: dump.rdb (509 bytes)
-  - Retention: 7 days with gzip compression
-  - Location: `/root/backups/`
+See [VPS_VALIDATOR_SETUP.md](./VPS_VALIDATOR_SETUP.md) for detailed instructions, or clone [axionax-core-universe](https://github.com/axionaxprotocol/axionax-core-universe) and run `python3 scripts/join-axionax.py`.
 
 ---
 
-## 🔄 Phase 2: Enhanced Services (25% Complete)
-
-### In Progress
-
-- [ ] **Mock RPC Rebuild** 🔴 Critical
-  - Replace Alpine placeholder with proper Node.js implementation
-  - Implement full Ethereum JSON-RPC 2.0 methods
-  - Add block mining simulation (every 3 seconds)
-  - Support transaction mempool
-
-### Planned (This Week)
-
-- [ ] **Grafana Dashboards** 🟡 High Priority
-  - Restart Grafana container
-  - Create dashboards for all services
-  - Visualize block production rate
-  - Monitor API response times
-  - Track faucet distribution
-
-- [ ] **Enhanced RPC Methods**
-  - `eth_call` - Contract interaction
-  - `eth_estimateGas` - Gas estimation
-  - `eth_getLogs` - Event filtering
-  - `eth_getTransactionReceipt` - Receipt with status
-  - `debug_traceTransaction` - Debug endpoint
-
-- [ ] **Example Smart Contracts**
-  - ERC-20 token template
-  - ERC-721 NFT template
-  - Simple DeFi contract (swap/stake)
-  - Deployment guide and scripts
-
----
-
-## 📅 Phase 3: Validator Node (Planned)
-
-### Infrastructure Planning
-
-- **Provider**: Hetzner Cloud (recommended)
-- **Instance**: CPX41 (8 vCPU, 16GB RAM, 240GB NVMe)
-- **Cost**: ~€40/month (~$45 USD)
-- **Timeline**: 2-4 weeks after Phase 2
-
-### Tasks
-
-- [ ] Provision dedicated VPS for validator
-- [ ] Build axionax-core from source
-- [ ] Genesis ceremony (define chain parameters)
-- [ ] Configure validator keys
-- [ ] Setup systemd service
-- [ ] Connect to infrastructure VPS
-- [ ] Test block production
-- [ ] Enable consensus
-
----
-
-## 📅 Phase 4: Public Launch (Planned)
-
-### Pre-Launch Checklist
-
-- [ ] All services 100% operational (currently 8/9)
-- [ ] Validator node stable (3+ days uptime)
-- [ ] Documentation complete
-- [ ] Security audit
-- [ ] Bug bounty program
-- [ ] Community validator recruitment
-- [ ] Public announcement
-
-### Timeline
-
-- **Target**: Q1 2026 (1-3 months after Phase 3)
-- **Prerequisites**: Phases 1-3 complete, 5-10 validators recruited
-
----
-
-## 📈 Metrics & KPIs
-
-### Current Metrics (November 15, 2025)
-
-| Metric                | Value     | Target  | Status  |
-| --------------------- | --------- | ------- | ------- |
-| Services Operational  | 8/9       | 9/9     | 🟡 89%  |
-| Infrastructure Uptime | 8+ days   | >7 days | ✅ Pass |
-| VPS RAM Usage         | 1GB/8GB   | <70%    | ✅ 13%  |
-| VPS Disk Usage        | 19GB/72GB | <80%    | ✅ 26%  |
-| Website Response Time | <100ms    | <500ms  | ✅ Pass |
-| API Response Time     | <50ms     | <200ms  | ✅ Pass |
-| Backup Success Rate   | 100%      | 100%    | ✅ Pass |
-
-### Phase 2 Goals
-
-| Goal               | Current | Target |
-| ------------------ | ------- | ------ |
-| Mock RPC Methods   | 1       | 10+    |
-| Grafana Dashboards | 0       | 5+     |
-| Example Contracts  | 0       | 3+     |
-| dApp Templates     | 0       | 1      |
-
----
-
-## 🔧 Immediate Next Steps
-
-### This Week (November 15-22)
-
-1. **Fix Mock RPC** 🔴 Day 1-2
-   - Locate or create proper Node.js mock RPC implementation
-   - Implement Ethereum JSON-RPC 2.0 methods
-   - Build Docker image
-   - Deploy and test all endpoints
-   - Update documentation
-
-2. **Restart Grafana** 🟡 Day 1
-   - Find and restart Grafana container
-   - Or deploy new Grafana instance
-   - Configure data sources (Prometheus)
-   - Create initial dashboards
-
-3. **Enhanced RPC Methods** 🟡 Day 3-5
-   - Implement `eth_call` for contract interactions
-   - Add `eth_estimateGas` for gas calculations
-   - Support event logs filtering
-   - Add transaction receipts with status
-
-### Next Week (November 23-30)
-
-4. **Example Contracts** 📋
-   - Create ERC-20 token template
-   - Create ERC-721 NFT template
-   - Simple DeFi contract example
-   - Deployment scripts and documentation
-
-5. **dApp Starter Kit** 📋
-   - React + TypeScript template
-   - Web3.js / ethers.js integration
-   - MetaMask connection boilerplate
-   - Example contract interactions
-
----
-
-## 🔗 Quick Links
+## � Quick Links
 
 ### Documentation
 
-- [Deployment Plan](./TESTNET_DEPLOYMENT_PLAN.md) - Full 4-phase roadmap
-- [STATUS.md](./STATUS.md) - Overall project status
-- [README.md](./README.md) - Project overview
+- [Deployment Plan](./TESTNET_DEPLOYMENT_PLAN.md) — Web-side deployment roadmap
+- [STATUS.md](./STATUS.md) — Overall project status
+- [README.md](./README.md) — Project overview
+- Core: [`GENESIS_PUBLIC_TESTNET_PLAN.md`](https://github.com/axionaxprotocol/axionax-core-universe/blob/main/docs/GENESIS_PUBLIC_TESTNET_PLAN.md) · [`GENESIS_LAUNCH_DAY_CHECKLIST.md`](https://github.com/axionaxprotocol/axionax-core-universe/blob/main/docs/GENESIS_LAUNCH_DAY_CHECKLIST.md) · [`ADD_NETWORK_AND_TOKEN.md`](https://github.com/axionaxprotocol/axionax-core-universe/blob/main/docs/ADD_NETWORK_AND_TOKEN.md)
 
 ### Live Services
 
 - Website: https://axionax.org
-- Explorer API: https://axionax.org/api
-- Faucet: https://axionax.org/faucet
-- RPC: https://axionax.org/rpc/
+- RPC: https://rpc.axionax.org (or direct `http://217.76.61.116:8545` / `http://46.250.244.4:8545`)
+- Faucet: https://faucet.axionax.org
+- Explorer: https://explorer.axionax.org (if enabled on VPS 3)
 
 ### Developer Tools
 
-- Add Network to MetaMask: Chain ID 86137, RPC https://axionax.org/rpc/
-- Get Testnet Tokens: https://axionax.org/faucet
-- View Blocks: https://axionax.org/explorer
+- Add network to MetaMask: Chain ID `86137`, Symbol `AXX`, RPC `https://rpc.axionax.org`
+- Get testnet AXX: https://faucet.axionax.org
 
 ---
 
@@ -312,9 +180,8 @@ See [VPS_VALIDATOR_SETUP.md](./VPS_VALIDATOR_SETUP.md) for detailed instructions
 
 ---
 
-**Last Status Check**: November 15, 2025 15:36 UTC  
-**Next Update**: November 22, 2025  
-**Phase 1 Progress**: ✅ 100% Complete  
-**Phase 2 Progress**: 🔄 25% In Progress
+**Last Status Check**: April 24, 2026  
+**Synced core ref**: `axionax-core-universe@28f42cf`  
+**Next sync**: on next core commit touching chain params, genesis, or ops
 
-Made with 💜 by the axionax Team
+Made with 💜 by the Axionax Team
