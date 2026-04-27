@@ -1,0 +1,12 @@
+{
+  "name": "Axionax Protocol",
+  "short_name": "Axionax",
+  "description": "Trusted World Computer — Layer-1 for decentralized compute and AI",
+  "icons": [
+    { "src": "/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ],
+  "theme_color": "#0a0a0f",
+  "background_color": "#0a0a0f",
+  "display": "standalone"
+}

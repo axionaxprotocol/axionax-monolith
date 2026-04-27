@@ -1,0 +1,72 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+    - generic [ref=e2]:
+        - banner [ref=e3]:
+            - link "Axionax Axionax" [ref=e4] [cursor=pointer]:
+                - /url: /
+                - img "Axionax" [ref=e5]
+                - generic [ref=e6]: Axionax
+            - generic [ref=e7]:
+                - link "Docs" [ref=e8] [cursor=pointer]:
+                    - /url: /docs
+                - button "Add Network" [ref=e9] [cursor=pointer]
+                - button "Switch to light mode" [ref=e10] [cursor=pointer]:
+                    - img [ref=e11]
+                - button "Install MetaMask" [ref=e13] [cursor=pointer]:
+                    - img [ref=e14]
+                    - text: Install MetaMask
+        - navigation [ref=e16]:
+            - link "Home" [ref=e17] [cursor=pointer]:
+                - /url: /
+            - link "Workers" [ref=e18] [cursor=pointer]:
+                - /url: /marketplace
+            - link "Explorer" [ref=e19] [cursor=pointer]:
+                - /url: /explorer
+            - link "Faucet" [ref=e20] [cursor=pointer]:
+                - /url: /faucet
+            - link "Validators" [ref=e21] [cursor=pointer]:
+                - /url: /validators
+            - link "Wallet" [ref=e22] [cursor=pointer]:
+                - /url: /wallet
+            - link "Dashboard" [ref=e23] [cursor=pointer]:
+                - /url: /dashboard
+            - link "Join Network" [ref=e24] [cursor=pointer]:
+                - /url: /join
+            - link "Airdrop" [ref=e25] [cursor=pointer]:
+                - /url: /airdrop
+            - link "Docs" [ref=e26] [cursor=pointer]:
+                - /url: /docs
+        - main [ref=e27]:
+            - generic [ref=e29]:
+                - generic [ref=e30]:
+                    - heading "Block Explorer" [level=1] [ref=e32]
+                    - paragraph [ref=e33]: Explore blocks, transactions, and addresses on the Axionax testnet
+                - generic [ref=e34]:
+                    - generic [ref=e35]:
+                        - heading "⬡ Latest Block" [level=3] [ref=e37]
+                        - generic [ref=e38]:
+                            - generic [ref=e39]: ...
+                            - generic [ref=e40]: Loading...
+                    - generic [ref=e41]:
+                        - heading "Total Blocks" [level=3] [ref=e43]
+                        - generic [ref=e44]:
+                            - generic [ref=e45]: ...
+                            - generic [ref=e46]: Since testnet launch
+                    - generic [ref=e47]:
+                        - heading "Active Validators" [level=3] [ref=e49]
+                        - generic [ref=e50]:
+                            - generic [ref=e51]: 2/2
+                            - generic [ref=e52]: EU + AU regions
+                - generic [ref=e53]:
+                    - heading "🔍 Search the Cosmos" [level=3] [ref=e55]
+                    - generic [ref=e57]:
+                        - textbox "Search by address (0x...) or transaction hash..." [ref=e58]
+                        - button "Search" [disabled] [ref=e59]
+                - generic [ref=e60]:
+                    - heading "⬡ Recent Blocks" [level=3] [ref=e62]
+                    - generic [ref=e64]: Loading blocks from the cosmos...
+                - paragraph [ref=e67]: 🌌 Explorer connected to live validators (EU + AU). Search for addresses or transactions above.
+    - alert [ref=e68]
+```

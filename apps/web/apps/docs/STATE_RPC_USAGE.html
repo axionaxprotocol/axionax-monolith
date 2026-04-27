@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>axionax – State & RPC Usage Guide</title>
+    <meta name="description" content="Guide for persistent blockchain storage (StateDB) and JSON-RPC API usage in axionax. Methods, error codes, performance, troubleshooting.">
+    <link rel="canonical" href="https://axionax.org/docs/STATE_RPC_USAGE.html" />
+    <meta property="og:title" content="axionax – State & RPC Module Usage Guide">
+    <meta property="og:description" content="How axionax stores and exposes blockchain data using RocksDB and Ethereum-compatible JSON-RPC, plus advanced usage and error handling.">
+    <meta property="og:type" content="article"/>
+    <meta property="og:url" content="https://axionax.org/docs/STATE_RPC_USAGE.html" />
+    <meta property="og:image" content="https://axionax.org/assets/og-image.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-markdown-css/5.1.0/github-markdown.min.css">
+    <style>
+        main.markdown-body {
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+            background: #fff;
+            color: #23272f;
+        }
+        .code-block { background:#f3f6fa; border-radius:6px; padding:16px; font-size:0.96em; margin:1em 0; }
+        ul, ol { margin-bottom: 1.2em; }
+        table { border-collapse: collapse; margin: 16px 0; width: 100% }
+        table,th,td{border:1px solid #aab;}
+        th,td{padding:8px;text-align:left}
+    </style>
+</head>
+<body>
+<main class="markdown-body" aria-label="State & RPC Usage Guide">
+    <h1>State & RPC Module Usage Guide</h1>
+    <section>
+        <h2>Overview</h2>
+        <ul>
+            <li><b>StateDB</b>: Persistent blockchain database via RocksDB (blocks, tx, state)</li>
+            <li><b>RPC</b>: Ethereum-compatible JSON-RPC 2.0 API server</li>
+        </ul>
+    </section>
+    <section>
+        <h2>State Module</h2>
+        <h3>Features</h3>
+        <ul>
+            <li>Persistent storage with column families (blocks, tx, account state, etc.)</li>
+            <li>Store/retrieve block and transaction by hash/number</li>
+            <li>Track chain state, height, state roots</li>
+            <li>Thread-safe for concurrent access</li>
+        </ul>
+        <h3>Example Rust API Usage</h3>
+        <div class="code-block"><pre><code>let state = StateDB::open("/path/to/db")?;
+state.store_block(&block)?;
+let block_by_hash = state.get_block_by_hash(&hash)?;
+let block_by_number = state.get_block_by_number(42)?;
+let tx = state.get_transaction(&tx_hash)?;
+let block_hash = state.get_transaction_block(&tx_hash)?;
+state.close()?;
+</code></pre></div>
+        <table>
+            <tr><th>Column Family</th><th>Purpose</th></tr>
+            <tr><td>blocks</td><td>Serialized blocks by hash</td></tr>
+            <tr><td>block_hash_to_number</td><td>Map hash → block number</td></tr>
+            <tr><td>transactions</td><td>Transactions by hash</td></tr>
+            <tr><td>tx_to_block</td><td>Tx hash → block hash</td></tr>
+            <tr><td>chain_state</td><td>Chain metadata</td></tr>
+            <tr><td>accounts</td><td>Future: Account state</td></tr>
+        </table>
+    </section>
+    <section>
+        <h2>RPC Module</h2>
+        <h3>Supported Methods</h3>
+        <table>
+            <tr><th>Method</th><th>Description</th><th>Parameters</th></tr>
+            <tr><td>eth_blockNumber</td><td>Get current block number</td><td>None</td></tr>
+            <tr><td>eth_getBlockByNumber</td><td>Get block by number</td><td>block_number, full_transactions</td></tr>
+            <tr><td>eth_getBlockByHash</td><td>Get block by hash</td><td>block_hash, full_transactions</td></tr>
+            <tr><td>eth_getTransactionByHash</td><td>Get transaction by hash</td><td>tx_hash</td></tr>
+            <tr><td>eth_chainId</td><td>Get chain ID</td><td>None</td></tr>
+            <tr><td>net_version</td><td>Get network version</td><td>None</td></tr>
+        </table>
+        <h3>API Example – Get Block Number</h3>
+        <div class="code-block"><pre><code>curl -X POST http://127.0.0.1:8545 \
+ -H 'Content-Type: application/json' \
+ -d '{ "jsonrpc": "2.0", "method": "eth_blockNumber", "params": [], "id": 1 }'
+</code></pre></div>
+    </section>
+    <section>
+        <h2>Performance & Benchmarks</h2>
+        <ul>
+            <li><b>Block Write:</b> ~200 μs/block</li>
+            <li><b>Block Read:</b> ~50 μs/block</li>
+            <li><b>Transaction Read:</b> ~40 μs/tx</li>
+            <li><b>RPC Throughput:</b> ~5,000 req/s (p50 &lt;1ms, p99 &lt;5ms)</li>
+        </ul>
+    </section>
+    <section>
+        <h2>Error Handling</h2>
+        <table>
+            <tr><th>Code</th><th>Message</th><th>Description</th></tr>
+            <tr><td>-32001</td><td>Block not found</td><td>Requested block does not exist</td></tr>
+            <tr><td>-32002</td><td>Transaction not found</td><td>Requested tx does not exist</td></tr>
+            <tr><td>-32602</td><td>Invalid params</td><td>Malformed or invalid parameters</td></tr>
+            <tr><td>-32603</td><td>Internal error</td><td>Server-side error</td></tr>
+        </table>
+        <div class="code-block"><pre><code>{
+  "jsonrpc": "2.0",
+  "error": {
+    "code": -32001,
+    "message": "Block not found: 0x999..."
+  },
+  "id": 5
+}</code></pre></div>
+    </section>
+    <section>
+        <h2>Future Enhancements</h2>
+        <ul>
+            <li>Batch writes for bulk imports</li>
+            <li>Account state trie (Merkle proof)</li>
+            <li>Pruning old blocks</li>
+            <li>WebSocket subscriptions</li>
+            <li>Rate limiting & authentication</li>
+        </ul>
+    </section>
+    <footer>
+        <p>Rendered from <code>STATE_RPC_USAGE.html</code> — Last updated Oct 2025 — <a href="https://axionax.org">axionax</a></p>
+    </footer>
+</main>
+</body>
+</html>

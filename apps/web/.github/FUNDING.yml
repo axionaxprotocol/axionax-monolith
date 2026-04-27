@@ -1,0 +1,11 @@
+# These are supported funding model platforms
+
+github: [axionaxprotocol]
+# patreon: axionax
+# open_collective: axionax
+# ko_fi: axionax
+# tidelift: npm/axionax
+# community_bridge: axionax
+# liberapay: axionax
+# issuehunt: axionax
+custom: ['https://axionax.org/donate', 'https://faucet.axionax.org']

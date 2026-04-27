@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  marketplace:
+    build:
+      context: .
+      dockerfile: apps/marketplace/Dockerfile
+    ports:
+      - "8080:80"
+    restart: always

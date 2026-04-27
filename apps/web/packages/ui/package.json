@@ -1,0 +1,29 @@
+{
+  "name": "@axionax/ui",
+  "version": "1.9.0",
+  "main": "./src/index.tsx",
+  "types": "./src/index.tsx",
+  "exports": {
+    ".": "./src/index.tsx",
+    "./OracleChat": "./src/OracleChat.tsx"
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "echo 'No build output'",
+    "lint": "pnpm --dir ../.. exec eslint packages/ui/src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@axionax/sdk": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
+    "eslint": "^8.57.0",
+    "react": "^18.3.1",
+    "typescript": "^5.9.3"
+  }
+}

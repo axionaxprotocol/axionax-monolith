@@ -1,0 +1,172 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+    - generic [ref=e2]:
+        - banner [ref=e3]:
+            - link "Axionax Axionax" [ref=e4] [cursor=pointer]:
+                - /url: /
+                - img "Axionax" [ref=e5]
+                - generic [ref=e6]: Axionax
+            - generic [ref=e7]:
+                - link "Docs" [ref=e8] [cursor=pointer]:
+                    - /url: /docs
+                - button "Add Network" [ref=e9] [cursor=pointer]
+                - button "Switch to light mode" [ref=e10] [cursor=pointer]:
+                    - img [ref=e11]
+                - button "Install MetaMask" [ref=e13] [cursor=pointer]:
+                    - img [ref=e14]
+                    - text: Install MetaMask
+        - navigation [ref=e16]:
+            - link "Home" [ref=e17] [cursor=pointer]:
+                - /url: /
+            - link "Workers" [ref=e18] [cursor=pointer]:
+                - /url: /marketplace
+            - link "Explorer" [ref=e19] [cursor=pointer]:
+                - /url: /explorer
+            - link "Faucet" [ref=e20] [cursor=pointer]:
+                - /url: /faucet
+            - link "Validators" [ref=e21] [cursor=pointer]:
+                - /url: /validators
+            - link "Wallet" [ref=e22] [cursor=pointer]:
+                - /url: /wallet
+            - link "Dashboard" [ref=e23] [cursor=pointer]:
+                - /url: /dashboard
+            - link "Join Network" [ref=e24] [cursor=pointer]:
+                - /url: /join
+            - link "Airdrop" [ref=e25] [cursor=pointer]:
+                - /url: /airdrop
+            - link "Docs" [ref=e26] [cursor=pointer]:
+                - /url: /docs
+        - main [ref=e27]:
+            - generic [ref=e29]:
+                - generic [ref=e30]:
+                    - heading "Block Explorer" [level=1] [ref=e32]
+                    - paragraph [ref=e33]: Explore blocks, transactions, and addresses on the Axionax testnet
+                - generic [ref=e34]:
+                    - generic [ref=e35]:
+                        - heading "⬡ Latest Block" [level=3] [ref=e37]
+                        - generic [ref=e38]:
+                            - generic [ref=e39]: '#734,596'
+                            - generic [ref=e40]: 406d ago
+                    - generic [ref=e41]:
+                        - heading "Total Blocks" [level=3] [ref=e43]
+                        - generic [ref=e44]:
+                            - generic [ref=e45]: 734,597
+                            - generic [ref=e46]: Since testnet launch
+                    - generic [ref=e47]:
+                        - heading "Active Validators" [level=3] [ref=e49]
+                        - generic [ref=e50]:
+                            - generic [ref=e51]: 2/2
+                            - generic [ref=e52]: EU + AU regions
+                - generic [ref=e53]:
+                    - heading "🔍 Search the Cosmos" [level=3] [ref=e55]
+                    - generic [ref=e57]:
+                        - textbox "Search by address (0x...) or transaction hash..." [ref=e58]
+                        - button "Search" [disabled] [ref=e59]
+                - generic [ref=e60]:
+                    - heading "⬡ Recent Blocks" [level=3] [ref=e62]
+                    - generic [ref=e64]:
+                        - generic [ref=e65]:
+                            - generic [ref=e66]:
+                                - generic [ref=e67]: '#734,596'
+                                - generic [ref=e68]: 406d ago
+                            - generic [ref=e69]:
+                                - generic [ref=e70]: 'Txs: 0'
+                                - generic [ref=e71]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e72]: 0.00M
+                                - generic [ref=e73]: 0x00000000...000b3584
+                        - generic [ref=e74]:
+                            - generic [ref=e75]:
+                                - generic [ref=e76]: '#734,595'
+                                - generic [ref=e77]: 406d ago
+                            - generic [ref=e78]:
+                                - generic [ref=e79]: 'Txs: 0'
+                                - generic [ref=e80]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e81]: 0.00M
+                                - generic [ref=e82]: 0x00000000...000b3583
+                        - generic [ref=e83]:
+                            - generic [ref=e84]:
+                                - generic [ref=e85]: '#734,594'
+                                - generic [ref=e86]: 406d ago
+                            - generic [ref=e87]:
+                                - generic [ref=e88]: 'Txs: 0'
+                                - generic [ref=e89]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e90]: 0.00M
+                                - generic [ref=e91]: 0x00000000...000b3582
+                        - generic [ref=e92]:
+                            - generic [ref=e93]:
+                                - generic [ref=e94]: '#734,593'
+                                - generic [ref=e95]: 406d ago
+                            - generic [ref=e96]:
+                                - generic [ref=e97]: 'Txs: 0'
+                                - generic [ref=e98]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e99]: 0.00M
+                                - generic [ref=e100]: 0x00000000...000b3581
+                        - generic [ref=e101]:
+                            - generic [ref=e102]:
+                                - generic [ref=e103]: '#734,592'
+                                - generic [ref=e104]: 406d ago
+                            - generic [ref=e105]:
+                                - generic [ref=e106]: 'Txs: 0'
+                                - generic [ref=e107]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e108]: 0.00M
+                                - generic [ref=e109]: 0x00000000...000b3580
+                        - generic [ref=e110]:
+                            - generic [ref=e111]:
+                                - generic [ref=e112]: '#734,591'
+                                - generic [ref=e113]: 406d ago
+                            - generic [ref=e114]:
+                                - generic [ref=e115]: 'Txs: 0'
+                                - generic [ref=e116]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e117]: 0.00M
+                                - generic [ref=e118]: 0x00000000...000b357f
+                        - generic [ref=e119]:
+                            - generic [ref=e120]:
+                                - generic [ref=e121]: '#734,590'
+                                - generic [ref=e122]: 406d ago
+                            - generic [ref=e123]:
+                                - generic [ref=e124]: 'Txs: 0'
+                                - generic [ref=e125]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e126]: 0.00M
+                                - generic [ref=e127]: 0x00000000...000b357e
+                        - generic [ref=e128]:
+                            - generic [ref=e129]:
+                                - generic [ref=e130]: '#734,589'
+                                - generic [ref=e131]: 406d ago
+                            - generic [ref=e132]:
+                                - generic [ref=e133]: 'Txs: 0'
+                                - generic [ref=e134]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e135]: 0.00M
+                                - generic [ref=e136]: 0x00000000...000b357d
+                        - generic [ref=e137]:
+                            - generic [ref=e138]:
+                                - generic [ref=e139]: '#734,588'
+                                - generic [ref=e140]: 406d ago
+                            - generic [ref=e141]:
+                                - generic [ref=e142]: 'Txs: 0'
+                                - generic [ref=e143]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e144]: 0.00M
+                                - generic [ref=e145]: 0x00000000...000b357c
+                        - generic [ref=e146]:
+                            - generic [ref=e147]:
+                                - generic [ref=e148]: '#734,587'
+                                - generic [ref=e149]: 406d ago
+                            - generic [ref=e150]:
+                                - generic [ref=e151]: 'Txs: 0'
+                                - generic [ref=e152]:
+                                    - text: 'Gas:'
+                                    - generic [ref=e153]: 0.00M
+                                - generic [ref=e154]: 0x00000000...000b357b
+                - paragraph [ref=e156]: 🌌 Explorer connected to live validators (EU + AU). Search for addresses or transactions above.
+    - alert [ref=e157]
+```

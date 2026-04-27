@@ -1,0 +1,13 @@
+# =============================================================================
+# VPS Standalone (no Docker): Nginx proxy to Node on same host
+# =============================================================================
+# Copy to server and include from main nginx.conf, or replace web_frontend
+# upstream with:  server 127.0.0.1:3000;
+# =============================================================================
+
+upstream web_frontend {
+    server 127.0.0.1:3000;
+}
+
+# Then use proxy_pass http://web_frontend; for location / and /api/ as in axionax.conf
+# Do NOT use root /var/www/axionax; - the app is Node (server.js), not static files.

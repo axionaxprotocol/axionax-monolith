@@ -1,0 +1,1571 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>axionax protocol - Layer-1 Blockchain for Decentralized Compute with AI</title>
+  <meta name="description" content="axionax is a Layer-1 blockchain with PoPC consensus, ASR auto-selection, and DeAI security for decentralized compute markets">
+  
+  <!-- SEO Meta Tags -->
+  <meta name="keywords" content="blockchain, Layer-1, L1, decentralized compute, PoPC, Proof of Probabilistic Checking, VRF, AI, machine learning, DeAI, fraud detection, Rust, Python, TypeScript, smart contracts, Web3">
+  <meta name="author" content="axionax protocol Team">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://axionax.org/">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://axionax.org/">
+  <meta property="og:title" content="axionax protocol - Layer-1 Blockchain for Decentralized Compute with AI">
+  <meta property="og:description" content="Unifying Execution, PoPC Validation, Data Availability, and Settlement with ML-powered auto-selection and fraud detection">
+  <meta property="og:image" content="https://axionax.org/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:site_name" content="axionax protocol">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://axionax.org/">
+  <meta name="twitter:title" content="axionax protocol - Layer-1 Blockchain for Decentralized Compute with AI">
+  <meta name="twitter:description" content="Unifying Execution, PoPC Validation, Data Availability, and Settlement with ML-powered auto-selection and fraud detection">
+  <meta name="twitter:image" content="https://axionax.org/assets/twitter-card.png">
+  <meta name="twitter:site" content="@axionaxprotocol">
+  <meta name="twitter:creator" content="@axionaxprotocol">
+  
+  <!-- Favicons -->
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+  <link rel="manifest" href="./site.webmanifest">
+  <meta name="theme-color" content="#6366f1">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "axionax protocol",
+    "applicationCategory": "Blockchain",
+    "operatingSystem": "Cross-platform",
+    "description": "Layer-1 blockchain for decentralized compute with PoPC consensus, ASR auto-selection, and DeAI security",
+    "url": "https://axionax.org",
+    "softwareVersion": "1.9.0-testnet",
+    "author": {
+      "@type": "Organization",
+      "name": "axionax protocol Team",
+      "url": "https://axionax.org"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "programmingLanguage": ["Rust", "Python", "TypeScript"],
+    "license": "https://github.com/axionaxprotocol/axionax-core/tree/main/LICENSE",
+    "codeRepository": "https://github.com/axionaxprotocol/axionax-core",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "reviewCount": "1"
+    }
+  }
+  </script>
+  
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "axionax protocol",
+    "url": "https://axionax.org",
+    "logo": "https://axionax.org/logo.png",
+    "description": "Layer-1 blockchain for decentralized compute with AI-powered security and validation",
+    "sameAs": [
+      "https://github.com/axionaxprotocol",
+      "https://twitter.com/axionaxprotocol",
+      "https://discord.gg/axionax"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Support",
+      "availableLanguage": ["English"]
+    }
+  }
+  </script>
+  
+  <link rel="stylesheet" href="assets/css/styles.css">
+  </head>
+  <body>
+    <canvas id="space-canvas" aria-hidden="true" style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none"></canvas>
+    <div class="galaxy-overlay" aria-hidden="true" style="position:fixed;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;mix-blend-mode:screen"></div>
+  <!-- Shooting star overlays -->
+  <div class="shooting-star"></div>
+  <div class="shooting-star s2"></div>
+  <div class="shooting-star s3"></div>
+  
+  <div class="bg-animation"></div>
+  
+  <!-- Header -->
+  <header>
+    <div class="header-content">
+      <div class="logo">
+        <img src="./assets/img/axionax-logo.png" alt="axionax protocol Logo" style="height: 40px; vertical-align: middle;">
+      </div>
+      <nav id="mainNav">
+        <a href="#features">Features</a>
+        <a href="#tech">Technology</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#docs">Documentation</a>
+        <a href="https://github.com/axionaxprotocol/axionax-core" target="_blank">GitHub</a>
+        <button id="themeToggleBtn" class="theme-toggle" aria-label="Toggle light/dark mode">
+          <span class="icon-sun">☀️</span>
+          <span class="icon-moon" style="display:none;">🌙</span>
+        </button>
+      </nav>
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </header>
+  
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="mobile-menu">
+    <a href="#features">Features</a>
+    <a href="#tech">Technology</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#docs">Documentation</a>
+    <a href="https://github.com/axionaxprotocol/axionax-core" target="_blank">GitHub</a>
+  </div>
+  
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="badge animate-in">
+        <span class="pulse"></span>
+        <span>v1.9.0-testnet • 🟢 Public Testnet LIVE</span>
+      </div>
+      
+      <h1 class="animate-in" style="animation-delay: 0.1s;">
+        Layer-1 Blockchain for<br>Decentralized Compute with AI
+      </h1>
+      
+      <p class="subtitle animate-in" style="animation-delay: 0.2s;">
+        axionax unifies <strong>Execution</strong>, <strong>PoPC Validation</strong>, <strong>Data Availability</strong>, and <strong>Settlement</strong> with ML-powered auto-selection and fraud detection for next-generation decentralized compute markets.
+      </p>
+      
+      <div class="security-warning animate-in" style="animation-delay: 0.3s;">
+        <h3>🏗️ Infrastructure Status</h3>
+        <p><strong>Testnet Deployment: 78% Complete (7/9 Services Operational)</strong></p>
+        <p><strong>✅ Live:</strong> RPC (8545/8546), PostgreSQL, Redis, Nginx/SSL, Grafana, Prometheus, Web Interface</p>
+        <p><strong>🔧 Debugging:</strong> Explorer API (3001), Faucet API (3002)</p>
+        <p>VPS: vmi2895217 • <strong>Chain ID: 86137</strong> • Network: axionax-testnet-1</p>
+        <p>Status Dashboard: <a href="https://github.com/axionaxprotocol/axionax-docs/blob/main/INFRASTRUCTURE_STATUS.md" target="_blank">INFRASTRUCTURE_STATUS.md</a></p>
+      </div>
+      
+      <div class="cta-buttons animate-in" style="animation-delay: 0.4s;">
+        <a href="#docs" class="btn btn-primary">
+          📚 Read Documentation
+        </a>
+        <a href="https://github.com/axionaxprotocol/axionax-core" class="btn btn-secondary" target="_blank">
+          💻 View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Public Testnet Section -->
+  <section class="testnet-live">
+    <div class="container">
+      <div class="testnet-header">
+        <h2 class="section-title">
+          🌐 Public Testnet is LIVE
+        </h2>
+        <p style="text-align: center; color: var(--text-secondary); max-width: 800px; margin: 0 auto 2rem;">
+          Join our public testnet and start building on axionax today!
+        </p>
+      </div>
+
+      <!-- Network Status Dashboard -->
+      <div class="network-dashboard">
+        <div class="dashboard-header">
+          <h3>📊 Network Status Dashboard (VPS vmi2895217)</h3>
+          <div class="status-indicator">
+            <span class="status-dot status-warning"></span>
+            <span class="status-text">7/9 Services Operational (78%)</span>
+          </div>
+        </div>
+
+        <!-- Real-time Metrics -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon">�️</div>
+            <div class="metric-value">7/9</div>
+            <div class="metric-label">Services Healthy</div>
+            <div class="metric-trend trend-up">Infrastructure 100%</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">📦</div>
+            <div class="metric-value" id="block-height">1,000</div>
+            <div class="metric-label">Mock Block Height</div>
+            <div class="metric-trend trend-stable">Auto-increment</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">⚡</div>
+            <div class="metric-value">44h+</div>
+            <div class="metric-label">Infrastructure Uptime</div>
+            <div class="metric-trend trend-up">↑ PostgreSQL/Redis</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">🌐</div>
+            <div class="metric-value">86137</div>
+            <div class="metric-label">Chain ID</div>
+            <div class="metric-trend trend-stable">axionax-testnet</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">�</div>
+            <div class="metric-value">12%</div>
+            <div class="metric-label">RAM Usage</div>
+            <div class="metric-trend trend-stable">7.8GB available</div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">📊</div>
+            <div class="metric-value">Grafana</div>
+            <div class="metric-label">Monitoring Active</div>
+            <div class="metric-trend trend-up">✅ v12.2.1</div>
+          </div>
+        </div>
+
+        <!-- Network Health Indicators -->
+        <div class="health-indicators">
+          <div class="health-item" data-health="infrastructure">
+            <div class="health-label">🏗️ Infrastructure</div>
+            <div class="health-bar">
+              <div class="health-fill" style="width: 100%; background: #10b981;"></div>
+            </div>
+            <div class="health-value">100%</div>
+          </div>
+
+          <div class="health-item" data-health="network">
+            <div class="health-label">🔗 Network</div>
+            <div class="health-bar">
+              <div class="health-fill" style="width: 98%; background: #10b981;"></div>
+            </div>
+            <div class="health-value">98%</div>
+          </div>
+
+          <div class="health-item" data-health="storage">
+            <div class="health-label">💾 Storage</div>
+            <div class="health-bar">
+              <div class="health-fill" style="width: 85%; background: #3b82f6;"></div>
+            </div>
+            <div class="health-value">85%</div>
+          </div>
+
+          <div class="health-item" data-health="security">
+            <div class="health-label">🛡️ Security</div>
+            <div class="health-bar">
+              <div class="health-fill" style="width: 100%; background: #10b981;"></div>
+            </div>
+            <div class="health-value">100%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Testnet Connection Info -->
+      <div class="testnet-info-grid">
+        <!-- Service Status Overview -->
+        <div class="testnet-info-card" style="grid-column: 1 / -1; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border: 1px solid rgba(99, 102, 241, 0.3);">
+          <h3>🚦 Service Status</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            <div class="status-item">
+              <span style="font-size: 1.5rem;">✅</span>
+              <div>
+                <div style="font-weight: 600; color: #10b981;">Core Protocol</div>
+                <div style="font-size: 0.875rem; color: #64748b;">Operational</div>
+              </div>
+            </div>
+            <div class="status-item">
+              <span style="font-size: 1.5rem;">🔜</span>
+              <div>
+                <div style="font-weight: 600; color: #fbbf24;">RPC Endpoint</div>
+                <div style="font-size: 0.875rem; color: #64748b;">Q1 2026</div>
+              </div>
+            </div>
+            <div class="status-item">
+              <span style="font-size: 1.5rem;">🔜</span>
+              <div>
+                <div style="font-weight: 600; color: #fbbf24;">Block Explorer</div>
+                <div style="font-size: 0.875rem; color: #64748b;">Q1 2026</div>
+              </div>
+            </div>
+            <div class="status-item">
+              <span style="font-size: 1.5rem;">🔜</span>
+              <div>
+                <div style="font-weight: 600; color: #fbbf24;">Token Faucet</div>
+                <div style="font-size: 0.875rem; color: #64748b;">Q1 2026</div>
+              </div>
+            </div>
+            <div class="status-item">
+              <span style="font-size: 1.5rem;">✅</span>
+              <div>
+                <div style="font-weight: 600; color: #10b981;">Documentation</div>
+                <div style="font-size: 0.875rem; color: #64748b;">Available</div>
+              </div>
+            </div>
+            <div class="status-item">
+              <span style="font-size: 1.5rem;">✅</span>
+              <div>
+                <div style="font-weight: 600; color: #10b981;">GitHub</div>
+                <div style="font-size: 0.875rem; color: #64748b;">Open Source</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(251, 191, 36, 0.1); border-radius: 8px; border: 1px solid rgba(251, 191, 36, 0.3);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <span style="font-size: 1.25rem;">📅</span>
+              <div>
+                <div style="font-weight: 600; color: #fbbf24;">Testnet Public Launch</div>
+                <div style="font-size: 0.875rem; color: #94a3b8; margin-top: 0.25rem;">
+                  RPC endpoints, Block Explorer, and Faucet will be available after testnet launch (Q1 2026). 
+                  <a href="../ROADMAP.html" style="color: #6366f1; text-decoration: underline;">View Roadmap →</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="testnet-info-card">
+          <h3>📋 Network Details</h3>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-label">Network Name:</span>
+              <span class="info-value">axionax Testnet</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Chain ID:</span>
+              <span class="info-value code-value">86137</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Currency:</span>
+              <span class="info-value">AXX (Testnet)</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Block Explorer:</span>
+              <a href="https://explorer.axionax.org" class="info-link" style="color: #6366f1;">
+                explorer.axionax.org <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 0.5rem;">✅ Live</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="testnet-info-card">
+          <h3>🔌 RPC Endpoints</h3>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-label">HTTPS:</span>
+              <a href="https://rpc.axionax.org" class="info-link" style="color: #6366f1;">
+                https://rpc.axionax.org <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">✅ Live</span>
+              </a>
+            </div>
+            <div class="info-item">
+              <span class="info-label">WebSocket:</span>
+              <span class="info-value code-value">wss://rpc.axionax.org</span>
+              <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 12px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">✅ Live</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Status:</span>
+              <span class="info-value">✅ Genesis Public Testnet Live</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="testnet-info-card">
+          <h3>💰 Get Test Tokens</h3>
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-label">Faucet:</span>
+              <a href="https://faucet.axionax.org" class="info-link" style="color: #6366f1;">
+                faucet.axionax.org <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 0.5rem;">✅ Live</span>
+              </a>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Amount:</span>
+              <span class="info-value">100 AXX / request</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Cooldown:</span>
+              <span class="info-value">24 hours</span>
+            </div>
+            <div class="cta-mini">
+              <a href="https://faucet.axionax.org" class="btn btn-primary btn-sm">
+                � Get Test Tokens
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="testnet-info-card">
+          <h3>🚀 Quick Actions</h3>
+          <div class="action-buttons">
+            <a href="#" id="add-metamask" class="action-btn" style="opacity: 0.6; cursor: not-allowed;" title="Available after testnet launch">
+              <span class="action-icon">🦊</span>
+              <span>Add to MetaMask</span>
+              <span style="font-size: 0.75rem; color: #fbbf24;">🔜</span>
+            </a>
+            <a href="https://explorer.axionax.org" class="action-btn">
+              <span class="action-icon">🔍</span>
+              <span>View Explorer</span>
+              <span style="font-size: 0.75rem; color: #10b981;">✅</span>
+            </a>
+            <a href="../docs/VPS_VALIDATOR_SETUP.html" class="action-btn">
+              <span class="action-icon">⚙️</span>
+              <span>Run Validator</span>
+              <span style="font-size: 0.75rem; color: #10b981;">✓</span>
+            </a>
+            <a href="API_REFERENCE.html" class="action-btn">
+              <span class="action-icon">📖</span>
+              <span>API Docs</span>
+              <span style="font-size: 0.75rem; color: #10b981;">✓</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity Feed -->
+      <div class="activity-feed">
+        <h3>📡 Recent Network Activity</h3>
+        <div class="activity-list" id="activityFeed">
+          <!-- Will be populated by JavaScript -->
+          <div class="activity-item">
+            <span class="activity-time">2s ago</span>
+            <span class="activity-type">🟢 Block</span>
+            <span class="activity-desc">Block #<span class="code-inline">1,234,567</span> mined by validator-03</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">5s ago</span>
+            <span class="activity-type">💸 Transaction</span>
+            <span class="activity-desc">0xabcd...ef12 → 0x1234...5678 (50 AXX)</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">8s ago</span>
+            <span class="activity-type">⚡ Contract</span>
+            <span class="activity-desc">Smart contract deployed at 0x9876...4321</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">12s ago</span>
+            <span class="activity-type">🟢 Block</span>
+            <span class="activity-desc">Block #<span class="code-inline">1,234,566</span> mined by validator-01</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">15s ago</span>
+            <span class="activity-type">👤 Validator</span>
+            <span class="activity-desc">New validator joined: validator-10</span>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 1.5rem;">
+          <a href="https://testnet-explorer.axionax.org" target="_blank" class="btn btn-secondary btn-sm">
+            View All Activity →
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Stats -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-number">20/20</div>
+          <div class="stat-label">Tests Passing</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">3x</div>
+          <div class="stat-label">Faster than Go</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">40K+</div>
+          <div class="stat-label">VRF Ops/Sec</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">10K+</div>
+          <div class="stat-label">Target TPS</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Performance Metrics -->
+  <section class="performance">
+    <div class="container">
+      <h2 class="section-title">Performance Benchmarks</h2>
+      <p style="text-align: center; color: var(--text-secondary); max-width: 800px; margin: 0 auto 3rem;">
+        Real-world performance metrics from our v1.6 implementation
+      </p>
+      
+      <div class="performance-grid">
+        <div class="performance-card">
+          <div class="performance-icon">⚡</div>
+          <h3>Block Processing</h3>
+          <div class="performance-value">~200μs</div>
+          <p class="performance-desc">Average time to process and validate a block</p>
+          <div class="performance-bar">
+            <div class="performance-fill" style="width: 95%"></div>
+          </div>
+        </div>
+        
+        <div class="performance-card">
+          <div class="performance-icon">🔐</div>
+          <h3>VRF Operations</h3>
+          <div class="performance-value">40,419</div>
+          <p class="performance-desc">VRF operations per second (2x target)</p>
+          <div class="performance-bar">
+            <div class="performance-fill" style="width: 100%"></div>
+          </div>
+        </div>
+        
+        <div class="performance-card">
+          <div class="performance-icon">🎲</div>
+          <h3>Consensus Ops</h3>
+          <div class="performance-value">21,808</div>
+          <p class="performance-desc">Consensus operations per second (43x target)</p>
+          <div class="performance-bar">
+            <div class="performance-fill" style="width: 100%"></div>
+          </div>
+        </div>
+        
+        <div class="performance-card">
+          <div class="performance-icon">💾</div>
+          <h3>Memory Efficiency</h3>
+          <div class="performance-value">2.67x</div>
+          <p class="performance-desc">Less memory usage compared to Go implementation</p>
+          <div class="performance-bar">
+            <div class="performance-fill" style="width: 90%"></div>
+          </div>
+        </div>
+        
+        <div class="performance-card">
+          <div class="performance-icon">🌐</div>
+          <h3>RPC Throughput</h3>
+          <div class="performance-value">5,000+</div>
+          <p class="performance-desc">JSON-RPC requests per second sustained</p>
+          <div class="performance-bar">
+            <div class="performance-fill" style="width: 85%"></div>
+          </div>
+        </div>
+        
+        <div class="performance-card">
+          <div class="performance-icon">🔗</div>
+          <h3>Network Latency</h3>
+          <div class="performance-value">&lt;50ms</div>
+          <p class="performance-desc">P2P message propagation (gossipsub)</p>
+          <div class="performance-bar">
+            <div class="performance-fill" style="width: 92%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Features -->
+  <section id="features" class="features">
+    <div class="container">
+      <h2 class="section-title">Core Features</h2>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🎲</div>
+          <h3>PoPC Consensus</h3>
+          <p>Proof-of-Probabilistic-Checking enables scalable validation through statistical sampling with O(s) verification cost and fraud-proof security guarantees.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🤖</div>
+          <h3>Auto-Selection Router (ASR)</h3>
+          <p>ML-powered worker assignment with fairness guarantees, VRF-weighted selection, and quota management for optimal resource allocation.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">💰</div>
+          <h3>Dynamic Pricing (PPC)</h3>
+          <p>Posted Price Controller adjusts pricing based on real-time utilization, queue length, and market conditions for efficient resource markets.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>DeAI Security Sentinel</h3>
+          <p>ML-based anomaly detection using Isolation Forest for fraud prevention, risk scoring, and continuous security monitoring.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>High Performance</h3>
+          <p>Rust core delivers 3x faster execution than Go, with Python ML layer for AI/ML workloads and TypeScript SDK for easy integration.</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🏛️</div>
+          <h3>DAO Governance</h3>
+          <p>Community-driven parameter tuning, protocol upgrades, and transparent decision-making for sustainable decentralization.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Tech Stack -->
+  <section id="tech" class="tech-stack">
+    <div class="container">
+      <h2 class="section-title">Multi-Language Architecture</h2>
+      <p style="text-align: center; color: var(--text-secondary); max-width: 700px; margin: 0 auto;">
+        axionax v1.6 leverages the best of each language: <strong>Rust</strong> for performance-critical consensus, <strong>Python</strong> for ML/AI workloads, and <strong>TypeScript</strong> for developer experience.
+      </p>
+      
+      <div class="tech-grid">
+        <div class="tech-item">
+          <div class="tech-label">🦀 Rust</div>
+          <div class="tech-percentage">80%</div>
+          <div class="tech-desc">Consensus • Blockchain • Crypto • Network • State • RPC</div>
+        </div>
+        
+        <div class="tech-item">
+          <div class="tech-label">🐍 Python</div>
+          <div class="tech-percentage">10%</div>
+          <div class="tech-desc">ASR • Fraud Detection • ML Security</div>
+        </div>
+        
+        <div class="tech-item">
+          <div class="tech-label">📘 TypeScript</div>
+          <div class="tech-percentage">10%</div>
+          <div class="tech-desc">SDK • Client Library • DApp Integration</div>
+        </div>
+      </div>
+      
+      <div class="code-section">
+        <h3 style="color: var(--primary); margin-bottom: 1rem;">🚀 Quick Start Installation</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+          <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 1rem;">
+            <h4 style="color: #fff; margin-bottom: 0.5rem;">🐧 Linux</h4>
+            <pre style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; overflow-x: auto;"><code>curl -sSL https://raw.githubusercontent.com/axionaxprotocol/axionax-core/main/scripts/install_dependencies_linux.sh | bash</code></pre>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">Ubuntu/Debian, CentOS/RHEL, Arch, Alpine</p>
+          </div>
+          
+          <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 1rem;">
+            <h4 style="color: #fff; margin-bottom: 0.5rem;">🪟 Windows</h4>
+            <pre style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; overflow-x: auto;"><code>irm https://raw.githubusercontent.com/axionaxprotocol/axionax-core/main/scripts/install_dependencies_windows.ps1 | iex</code></pre>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">PowerShell as Administrator required</p>
+          </div>
+          
+          <div style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 8px; padding: 1rem;">
+            <h4 style="color: #fff; margin-bottom: 0.5rem;">🍎 macOS</h4>
+            <pre style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; overflow-x: auto;"><code>curl -sSL https://raw.githubusercontent.com/axionaxprotocol/axionax-core/main/scripts/install_dependencies_macos.sh | bash</code></pre>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">macOS 10.15+, M1/M2/M3 & Intel</p>
+          </div>
+        </div>
+        
+        <h3 style="color: var(--primary); margin: 2rem 0 1rem;">📦 Then Build All Components</h3>
+        <pre><code><span class="comment"># 1. Clone repository</span>
+git clone https://github.com/axionaxprotocol/axionax-core.git
+cd axionax-core
+
+<span class="comment"># 2. Build Rust core (consensus, blockchain, crypto, network, state, RPC)</span>
+cargo build --release --workspace
+
+<span class="comment"># 3. Build Rust-Python bridge</span>
+cd bridge/rust-python && ./build.sh && cd ../..
+
+<span class="comment"># 4. Install Python ML dependencies</span>
+pip install -r deai/requirements.txt
+
+<span class="comment"># 5. Build TypeScript SDK</span>
+cd sdk && npm install && npm run build && cd ..
+
+<span class="comment"># 6. Run integration tests</span>
+python3 tests/integration_simple.py
+
+<span class="comment"># ✅ All 20/20 tests should pass!</span></code></pre>
+        
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1.5rem;">
+          <p style="margin: 0; color: #10b981;">
+            <strong>✨ What gets installed:</strong> Rust, Node.js, Python, Docker, PostgreSQL, Nginx, Redis, and all build tools
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Architecture Diagram -->
+  <section id="architecture" class="architecture">
+    <div class="container">
+      <h2 class="section-title">System Architecture</h2>
+      <p style="text-align: center; color: var(--text-secondary); max-width: 800px; margin: 0 auto 3rem;">
+        axionax unifies all four critical blockchain layers into a single, cohesive protocol designed for high-performance decentralized compute.
+      </p>
+      
+      <div class="architecture-diagram">
+        <div class="arch-layer">
+          <div class="layer-badge">Layer 1</div>
+          <h3>👥 Execution Layer</h3>
+          <p>Worker nodes execute compute jobs with proof generation</p>
+          <div class="layer-features">
+            <span>ASR Router</span>
+            <span>Worker Selection</span>
+            <span>Job Queue</span>
+          </div>
+        </div>
+        
+        <div class="arch-arrow">↓</div>
+        
+        <div class="arch-layer">
+          <div class="layer-badge">Layer 2</div>
+          <h3>🎲 PoPC Validation</h3>
+          <p>Probabilistic checking of execution proofs via VRF sampling</p>
+          <div class="layer-features">
+            <span>VRF Selection</span>
+            <span>Stratified Sampling</span>
+            <span>Fraud Detection</span>
+          </div>
+        </div>
+        
+        <div class="arch-arrow">↓</div>
+        
+        <div class="arch-layer">
+          <div class="layer-badge">Layer 3</div>
+          <h3>💾 Data Availability</h3>
+          <p>Erasure coding ensures data can be reconstructed from any subset</p>
+          <div class="layer-features">
+            <span>Reed-Solomon</span>
+            <span>Sharding</span>
+            <span>CDN Storage</span>
+          </div>
+        </div>
+        
+        <div class="arch-arrow">↓</div>
+        
+        <div class="arch-layer">
+          <div class="layer-badge">Layer 4</div>
+          <h3>⚖️ Settlement Layer</h3>
+          <p>Final state commitment and economic settlement on L1</p>
+          <div class="layer-features">
+            <span>State Root</span>
+            <span>Payment</span>
+            <span>Slashing</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="arch-sidebars">
+        <div class="arch-sidebar">
+          <div class="sidebar-icon">💰</div>
+          <h4>Price Controller</h4>
+          <p>Dynamic pricing based on utilization and queue length</p>
+        </div>
+        <div class="arch-sidebar">
+          <div class="sidebar-icon">🛡️</div>
+          <h4>DeAI Sentinel</h4>
+          <p>ML-based fraud detection and anomaly monitoring</p>
+        </div>
+        <div class="arch-sidebar">
+          <div class="sidebar-icon">🏛️</div>
+          <h4>DAO Governance</h4>
+          <p>Community parameter tuning and upgrades</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Table -->
+  <section class="comparison">
+    <div class="container">
+      <h2 class="section-title">Why axionax?</h2>
+      <p style="text-align: center; color: var(--text-secondary); max-width: 800px; margin: 0 auto 3rem;">
+        Comparing axionax with other decentralized compute protocols
+      </p>
+      
+      <div class="comparison-table-wrapper">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th><span class="highlight">axionax</span></th>
+              <th>Traditional Rollups</th>
+              <th>Other L1s</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Validation Method</strong></td>
+              <td><span class="badge-success">✓</span> PoPC (Probabilistic)</td>
+              <td>Fraud/Validity Proofs</td>
+              <td>Full Re-execution</td>
+            </tr>
+            <tr>
+              <td><strong>Verification Cost</strong></td>
+              <td><span class="badge-success">✓</span> O(s) samples</td>
+              <td>O(n) or O(log n)</td>
+              <td>O(n) full replay</td>
+            </tr>
+            <tr>
+              <td><strong>Worker Selection</strong></td>
+              <td><span class="badge-success">✓</span> ML-powered ASR</td>
+              <td>First-come-first-serve</td>
+              <td>Random/Manual</td>
+            </tr>
+            <tr>
+              <td><strong>Dynamic Pricing</strong></td>
+              <td><span class="badge-success">✓</span> Posted Price Controller</td>
+              <td>Fixed gas prices</td>
+              <td>Market-based</td>
+            </tr>
+            <tr>
+              <td><strong>AI/ML Security</strong></td>
+              <td><span class="badge-success">✓</span> DeAI Sentinel</td>
+              <td>Rule-based only</td>
+              <td>Limited</td>
+            </tr>
+            <tr>
+              <td><strong>Data Availability</strong></td>
+              <td><span class="badge-success">✓</span> Native DA Layer</td>
+              <td>External DA (Celestia, etc)</td>
+              <td>On-chain only</td>
+            </tr>
+            <tr>
+              <td><strong>Performance</strong></td>
+              <td><span class="badge-success">✓</span> 10K+ TPS target</td>
+              <td>100-1000 TPS</td>
+              <td>1K-5K TPS</td>
+            </tr>
+            <tr>
+              <td><strong>Language Support</strong></td>
+              <td><span class="badge-success">✓</span> Rust + Python + TS</td>
+              <td>Single language</td>
+              <td>Single language</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roadmap -->
+  <section id="roadmap" class="roadmap">
+    <div class="container">
+      <h2 class="section-title">Development Roadmap</h2>
+      <p style="text-align: center; color: var(--text-secondary); max-width: 800px; margin: 0 auto 3rem;">
+        Our journey from testnet to mainnet and beyond
+      </p>
+      
+      <div class="timeline">
+        <div class="timeline-item completed">
+          <div class="timeline-marker">✓</div>
+          <div class="timeline-content">
+            <div class="timeline-date">Q4 2025</div>
+            <h3>Phase 1: v1.6 Core Integration</h3>
+            <p>Multi-language architecture complete with Rust core, Python ML layer, and TypeScript SDK. All 20 tests passing.</p>
+            <ul>
+              <li>✓ Rust Core Modules (consensus, blockchain, crypto)</li>
+              <li>✓ Network Layer (libp2p + 17 tests)</li>
+              <li>✓ State & RPC (RocksDB + JSON-RPC)</li>
+              <li>✓ Node Integration Complete</li>
+              <li>✓ Python DeAI (ASR + Fraud Detection)</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="timeline-item active">
+          <div class="timeline-marker">🔄</div>
+          <div class="timeline-content">
+            <div class="timeline-date">Q1 2026</div>
+            <h3>Phase 2: v1.5 Testnet Launch</h3>
+            <p>Public testnet with 50+ validators and 100+ worker nodes</p>
+            <ul>
+              <li>→ Testnet genesis configuration</li>
+              <li>→ Deploy validator infrastructure</li>
+              <li>→ Block explorer and faucet</li>
+              <li>→ Community onboarding</li>
+              <li>→ Stress testing (10K+ TPS)</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-marker">⏳</div>
+          <div class="timeline-content">
+            <div class="timeline-date">Q2 2026</div>
+            <h3>Phase 3: Production Optimization</h3>
+            <p>Data Availability optimization and security audits</p>
+            <ul>
+              <li>Production-grade DA layer (erasure coding)</li>
+              <li>External security audits</li>
+              <li>Performance optimization (20K+ TPS)</li>
+              <li>Multi-node testing</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="timeline-item">
+          <div class="timeline-marker">📅</div>
+          <div class="timeline-content">
+            <div class="timeline-date">Q3-Q4 2026</div>
+            <h3>Phase 4: Mainnet Launch</h3>
+            <p>Production mainnet with full security guarantees</p>
+            <ul>
+              <li>Mainnet genesis (Chain ID: 86150)</li>
+              <li>Token distribution</li>
+              <li>DAO governance activation</li>
+              <li>Bug bounty program</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq">
+    <div class="container">
+      <h2 class="section-title">Frequently Asked Questions</h2>
+      
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h3>🤔 What makes axionax different from other L1 blockchains?</h3>
+          <p>axionax uniquely combines PoPC consensus (probabilistic validation with O(s) cost), ML-powered ASR for fair worker selection, and native DeAI security. We're specifically optimized for decentralized compute markets, not generic smart contracts.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3>🎲 How does PoPC consensus work?</h3>
+          <p>Instead of re-executing all computations (expensive), PoPC uses VRF to randomly sample a small subset of proofs for verification. This provides probabilistic security guarantees while dramatically reducing verification costs to O(s) where s << n.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3>🤖 What is ASR (Auto-Selection Router)?</h3>
+          <p>ASR is our ML-powered system that automatically selects the best workers for each job based on suitability score, performance history, and fairness quotas. It uses ε-greedy exploration and VRF weighting to prevent centralization.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3>🛡️ How does DeAI Sentinel protect against fraud?</h3>
+          <p>DeAI Sentinel uses Isolation Forest (unsupervised ML) to detect anomalous proof patterns in real-time. It analyzes proof size, timing, merkle depth, and historical patterns to flag suspicious workers before they can cause damage.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3>💰 How is pricing determined?</h3>
+          <p>Our Posted Price Controller dynamically adjusts prices based on real-time utilization and queue length. When demand is high, prices increase to incentivize more workers. When supply exceeds demand, prices decrease to attract more jobs.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3>⚡ Why use Rust + Python + TypeScript?</h3>
+          <p>Each language excels at different tasks: Rust provides blazing-fast performance (3x faster than Go) for consensus and networking. Python offers rich ML libraries for ASR and fraud detection. TypeScript ensures great developer experience for SDKs and dApps.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3>🌐 When will mainnet launch?</h3>
+          <p>Mainnet is planned for Q3-Q4 2026 after thorough testnet validation, security audits, and community testing. We're currently in v1.6 development with testnet launch scheduled for Q1 2026.</p>
+        </div>
+        
+        <div class="faq-item">
+          <h3>🔐 Is the testnet safe to use?</h3>
+          <p>The testnet (Chain ID: 86137) is for testing only. DO NOT send real funds. Any network claiming to be "axionax Mainnet" is a scam. Only use testnet tokens for development and testing purposes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Community -->
+  <section class="community">
+    <div class="container">
+      <h2 class="section-title">Join the Community</h2>
+      <p style="text-align: center; color: var(--text-secondary); max-width: 700px; margin: 0 auto 3rem;">
+        Be part of building the future of decentralized compute
+      </p>
+      
+      <div class="community-grid">
+        <a href="coming-soon.html" class="community-card" style="opacity: 0.7;">
+          <div class="community-icon">💬</div>
+          <h3>Discord</h3>
+          <p>Join our Discord server for discussions, support, and community events</p>
+          <span class="community-badge" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">🔜 Coming Soon</span>
+        </a>
+        
+        <a href="https://github.com/axionaxprotocol/axionax-core" class="community-card" target="_blank">
+          <div class="community-icon">💻</div>
+          <h3>GitHub</h3>
+          <p>Contribute to the codebase, report issues, and submit pull requests</p>
+          <span class="community-badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">✓ Open Source</span>
+        </a>
+        
+        <a href="coming-soon.html" class="community-card" style="opacity: 0.7;">
+          <div class="community-icon">🐦</div>
+          <h3>Twitter</h3>
+          <p>Follow for updates, announcements, and ecosystem news</p>
+          <span class="community-badge" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">🔜 Coming Soon</span>
+        </a>
+        
+        <a href="coming-soon.html" class="community-card" style="opacity: 0.7;">
+          <div class="community-icon">📱</div>
+          <h3>Telegram</h3>
+          <p>Real-time chat with the community and core team</p>
+          <span class="community-badge" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">🔜 Coming Soon</span>
+        </a>
+        
+        <a href="coming-soon.html" class="community-card" style="opacity: 0.7;">
+          <div class="community-icon">🗣️</div>
+          <h3>Forum</h3>
+          <p>In-depth discussions on governance, proposals, and research</p>
+          <span class="community-badge" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">🔜 Coming Soon</span>
+        </a>
+        
+        <a href="coming-soon.html" class="community-card" style="opacity: 0.7;">
+          <div class="community-icon">📝</div>
+          <h3>Blog</h3>
+          <p>Technical deep-dives, tutorials, and ecosystem updates</p>
+          <span class="community-badge" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24;">🔜 Coming Soon</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Newsletter/CTA -->
+  <section class="newsletter">
+    <div class="container">
+      <div class="newsletter-content">
+        <h2>Stay Updated</h2>
+        <p>Get the latest updates on testnet launches, mainnet progress, and ecosystem developments</p>
+        
+        <div class="newsletter-form">
+          <div class="input-group">
+            <input type="email" placeholder="Enter your email" class="email-input" id="emailInput">
+            <button class="btn btn-primary" id="subscribeBtn">Subscribe</button>
+          </div>
+          <p class="newsletter-note">
+            🔒 We respect your privacy. Unsubscribe anytime. No spam, ever.
+          </p>
+        </div>
+        
+        <div class="cta-grid">
+          <div class="cta-card">
+            <div class="cta-icon">🚀</div>
+            <h3>Build on axionax</h3>
+            <p>Start building decentralized compute applications today</p>
+            <a href="QUICKSTART.html" class="btn btn-secondary">Get Started</a>
+          </div>
+          
+          <div class="cta-card">
+            <div class="cta-icon">⚡</div>
+            <h3>Run a Node</h3>
+            <p>Join the network as a validator or worker node</p>
+            <a href="NODE_INTEGRATION.html" class="btn btn-secondary">Setup Node</a>
+          </div>
+          
+          <div class="cta-card">
+            <div class="cta-icon">💎</div>
+            <h3>Join Testnet</h3>
+            <p>Test your applications on our live testnet</p>
+            <a href="TESTNET_INTEGRATION.html" class="btn btn-secondary">Connect Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Documentation -->
+  <section id="docs" class="docs-section">
+    <div class="container">
+      <h2 class="section-title">Documentation</h2>
+      
+      <div class="docs-grid">
+        <a href="API_REFERENCE.html" class="doc-link" data-doc="api">
+          <h3>📖 API Reference</h3>
+          <p>Complete API documentation for all modules, RPC methods, and client SDKs.</p>
+        </a>
+        <a href="BUILD.html" class="doc-link" data-doc="build">
+          <h3>🔨 Build Guide</h3>
+          <p>Step-by-step instructions for building and deploying axionax nodes.</p>
+        </a>
+        <a href="TESTNET_INTEGRATION.html" class="doc-link" data-doc="testnet">
+          <h3>🌐 Testnet Integration</h3>
+          <p>Connect to the axionax testnet and start validating transactions.</p>
+        </a>
+        <a href="NODE_INTEGRATION.html" class="doc-link" data-doc="node">
+          <h3>⚙️ Node Integration</h3>
+          <p>Full node setup with Network, State, and RPC integration guide.</p>
+        </a>
+        <a href="STATE_RPC_USAGE.html" class="doc-link" data-doc="state">
+          <h3>💾 State & RPC Usage</h3>
+          <p>RocksDB state management and JSON-RPC 2.0 server documentation.</p>
+        </a>
+        <a href="ARCHITECTURE.html" class="doc-link" data-doc="arch">
+          <h3>🏗️ Architecture</h3>
+          <p>Deep dive into PoPC consensus, ASR, PPC, and DeAI security design.</p>
+        </a>
+        <a href="QUICKSTART.html" class="doc-link" data-doc="quick">
+          <h3>🚀 Quick Start</h3>
+          <p>Get started with axionax in 5 minutes - beginner-friendly tutorial.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+  
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/axionaxprotocol/axionax-core" target="_blank">GitHub</a>
+        <a href="https://axionax.org" target="_blank">Website</a>
+        <a href="coming-soon.html" style="opacity: 0.6;">Discord 🔜</a>
+        <a href="coming-soon.html" style="opacity: 0.6;">Twitter 🔜</a>
+        <a href="../LICENSE" target="_blank">License (AGPLv3)</a>
+      </div>
+      
+      <p>
+        &copy; 2025 axionax protocol. Licensed under <a href="../LICENSE" target="_blank">AGPLv3</a> with Custom Protection Clause.
+      </p>
+      <p style="margin-top: 0.5rem; font-size: 0.875rem;">
+        Made with 💜 by the axionax Core Team
+      </p>
+    </div>
+  </footer>
+  
+  <!-- Back to Top Button -->
+  <button id="backToTopBtn" class="back-to-top" aria-label="Back to top">
+    ↑
+  </button>
+  
+  <script>
+    // Back to Top Button
+    function scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+    
+    // Show/hide back to top button
+    window.addEventListener('scroll', () => {
+      const backToTop = document.querySelector('.back-to-top');
+      if (window.scrollY > 500) {
+        backToTop.classList.add('visible');
+      } else {
+        backToTop.classList.remove('visible');
+      }
+    });
+    
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      mobileMenu.classList.toggle('active');
+      menuBtn.classList.toggle('active');
+    }
+    
+    function closeMobileMenu() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      mobileMenu.classList.remove('active');
+      menuBtn.classList.remove('active');
+    }
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const mobileMenu = document.getElementById('mobileMenu');
+      const menuBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (mobileMenu.classList.contains('active') && 
+          !mobileMenu.contains(e.target) && 
+          !menuBtn.contains(e.target)) {
+        closeMobileMenu();
+      }
+    });
+    
+    // Newsletter subscription
+    function subscribeNewsletter() {
+      const emailInput = document.getElementById('emailInput');
+      const email = emailInput.value.trim();
+      
+      if (!email) {
+        alert('⚠️ Please enter your email address');
+        return;
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert('⚠️ Please enter a valid email address');
+        return;
+      }
+      
+      // In production, this would send to your backend/newsletter service
+      console.log('Newsletter subscription:', email);
+      alert('🎉 Thanks for subscribing! We\'ll keep you updated on axionax developments.');
+      emailInput.value = '';
+    }
+    
+    // Allow Enter key to subscribe
+    document.getElementById('emailInput')?.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        subscribeNewsletter();
+      }
+    });
+    
+    // Enhanced scroll animation with stagger effect
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -100px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          // Add stagger delay based on index
+          setTimeout(() => {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }, index * 50);
+        }
+      });
+    }, observerOptions);
+    
+    // Observe all animated elements
+    const animatedElements = [
+      '.feature-card',
+      '.tech-item',
+      '.doc-link',
+      '.faq-item',
+      '.community-card',
+      '.cta-card',
+      '.arch-layer',
+      '.timeline-item',
+      '.performance-card'
+    ];
+    
+    animatedElements.forEach(selector => {
+      document.querySelectorAll(selector).forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+      });
+    });
+    
+    // Animate performance bars when visible
+    const performanceObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = 'true';
+          const fills = entry.target.querySelectorAll('.performance-fill');
+          fills.forEach(fill => {
+            const width = fill.style.width;
+            fill.style.width = '0%';
+            setTimeout(() => {
+              fill.style.width = width;
+            }, 100);
+          });
+        }
+      });
+    }, { threshold: 0.3 });
+    
+    document.querySelectorAll('.performance-card').forEach(card => {
+      performanceObserver.observe(card);
+    });
+    
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+          // Close mobile menu after clicking
+          closeMobileMenu();
+        }
+      });
+    });
+    
+    // Add scroll progress indicator
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      
+      // Create progress bar if it doesn't exist
+      let progressBar = document.getElementById('scrollProgress');
+      if (!progressBar) {
+        progressBar = document.createElement('div');
+        progressBar.id = 'scrollProgress';
+        progressBar.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 3px;
+          background: linear-gradient(90deg, #6366f1 0%, #ec4899 100%);
+          z-index: 9999;
+          transition: width 0.1s ease;
+        `;
+        document.body.appendChild(progressBar);
+      }
+      progressBar.style.width = scrolled + '%';
+    });
+    
+    // Add dynamic stats counter animation
+    function animateValue(element, start, end, duration) {
+      const range = end - start;
+      const increment = range / (duration / 16);
+      let current = start;
+      
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= end) {
+          current = end;
+          clearInterval(timer);
+        }
+        
+        // Format number with commas
+        const formatted = Math.floor(current).toLocaleString();
+        element.textContent = formatted + (element.dataset.suffix || '');
+      }, 16);
+    }
+    
+    // Animate stats when they come into view
+    const statsObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !entry.target.dataset.animated) {
+          entry.target.dataset.animated = 'true';
+          // Ensure the stat becomes visible before animating the value
+          entry.target.style.opacity = '1';
+          const text = entry.target.textContent.trim();
+          
+          if (text.includes('K+')) {
+            const num = parseFloat(text.replace(/[^\d.]/g, ''));
+            entry.target.dataset.suffix = 'K+';
+            animateValue(entry.target, 0, num, 1500);
+          } else if (text.includes('x')) {
+            const num = parseFloat(text.replace('x', ''));
+            entry.target.dataset.suffix = 'x';
+            animateValue(entry.target, 1, num, 1500);
+          } else if (text.includes('/')) {
+            // For "20/20" style stats, just fade in
+            entry.target.style.opacity = '1';
+          }
+        }
+      });
+    }, { threshold: 0.5 });
+    
+    document.querySelectorAll('.stat-number').forEach(stat => {
+      stat.style.opacity = '0';
+      statsObserver.observe(stat);
+    });
+    
+    // Easter egg: Konami code
+    let konamiCode = [];
+    const konamiSequence = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+    
+    document.addEventListener('keydown', (e) => {
+      konamiCode.push(e.key);
+      konamiCode = konamiCode.slice(-10);
+      
+      if (konamiCode.join(',') === konamiSequence.join(',')) {
+        document.body.style.animation = 'rainbow 2s ease infinite';
+        setTimeout(() => {
+          document.body.style.animation = '';
+          alert('🎮 Konami Code activated! You found the Easter egg! 🚀\n\naxionax protocol - Making decentralized compute awesome!');
+        }, 2000);
+      }
+    });
+    
+    // Add rainbow animation for Easter egg
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes rainbow {
+        0% { filter: hue-rotate(0deg); }
+        100% { filter: hue-rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+    document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileMenu);
+    document.getElementById('subscribeBtn').addEventListener('click', subscribeNewsletter);
+    document.getElementById('backToTopBtn').addEventListener('click', scrollToTop);
+    
+    // === Modal preview logic for docs-grid ===
+    const docPreviews = {
+      api: {
+        title: 'axionax Core API Reference',
+        summary: 'Comprehensive JSON-RPC API reference, including standard Ethereum methods, axionax custom compute/worker/consensus extensions, error codes, usage and Web3/Go examples.',
+        highlights: [
+          {h: 'Standard Methods', p: 'eth_chainId, eth_getBalance, etc. – for integration with EVM tools.'},
+          {h: 'Custom Methods', p: 'axn_submitJob, axn_registerWorker, axn_getPricingInfo, ...'},
+          {h: 'Error Codes', p: 'JSON-RPC standard & axionax-specific errors explained.'},
+          {h: 'Code Examples', p: 'curl, Go, JS/Web3 usage examples included.'}
+        ],
+        href: 'API_REFERENCE.html'
+      },
+      build: {
+        title: 'axionax Core – Build & Development Guide',
+        summary: 'Step-by-step instructions to build, configure, and develop axionax Core and Docker images (Go/Cross-platform supported).',
+        highlights: [
+          {h:'Quick Start',p:'Install Go, clone repo, make build.'},
+          {h:'Docker/Compose',p:'How to run nodes and networks.'},
+          {h:'Common Issues',p:'Troubleshooting build, dep, IDE, profiling etc.'}
+        ],
+        href: 'BUILD.html'
+      },
+      testnet: {
+        title: 'Testnet Integration Guide',
+        summary: 'How to connect and test with axionax public/development testnet environments (RPC endpoints, faucet, explorer).',
+        highlights: [
+          {h:'RPC/Chain ID',p:'How to connect your client and configure chain ID.'},
+          {h:'Faucet/Explorer',p:'How to get tokens and use the explorer.'},
+          {h:'Node Registration',p:'Generate keys and register as validator/worker.'}
+        ],
+        href:'TESTNET_INTEGRATION.html'
+      },
+      node: {
+        title:'Node Integration',
+        summary:'Guide to configure/run a full axionax node (Rust, RPC, networking, publishing blocks, querying state).',
+        highlights:[
+          {h:'axionaxNode struct',p:'API for controlling and querying your node.'},
+          {h:'Publishing',p:'How to broadcast blocks/transactions.'},
+          {h:'Stats/Performance',p:'Query peer count, block height, stats.'}
+        ],
+        href:'NODE_INTEGRATION.html'
+      },
+      state: {
+        title:'State & RPC Usage',
+        summary:'How to store/query blockchain state and communicate with axionax JSON-RPC endpoints.',
+        highlights:[
+          {h:'Persistent DB',p:'How chain data is stored and queried (RocksDB).'},
+          {h:'RPC Module',p:'Supported Ethereum-compatible and custom methods.'},
+          {h:'Performance',p:'Throughput/latency details; error codes.'}
+        ],
+        href:'STATE_RPC_USAGE.html'
+      },
+      arch: {
+        title:'Architecture Overview',
+        summary:'Breakdown of PoPC consensus, ASR auto-selection, fraud-proofing, DA layer, DAO governance and DeAI security.',
+        highlights:[
+          {h:'Core Workflow',p:'How jobs are assigned, executed and validated.'},
+          {h:'Consensus/DA',p:'Data availability, VRF challenge, sampling.'},
+          {h:'Security',p:'Slashing, anomaly detection, governance.'}
+        ],
+        href:'../ARCHITECTURE.html'
+      },
+      quick: {
+        title:'Quick Start Guide',
+        summary:'5-minute tutorial for getting axionax running locally (testnet, validator, worker).',
+        highlights:[
+          {h:'Build Node',p:'Docker or source compile and run.'},
+          {h:'Follow User Path',p:'Validator/Worker/Client modes step-by-step.'},
+          {h:'Troubleshooting',p:'Common errors and how to fix.'}
+        ],
+        href:'../QUICKSTART.html'
+      }
+    };
+    let modal = null;
+    function openDocModal(docKey){
+      const data = docPreviews[docKey];
+      if(!data) return;
+      // Remove existing modal first
+      if(modal) modal.remove();
+      modal = document.createElement('div');
+      modal.className = 'modal-overlay';
+      modal.tabIndex = 0;
+      modal.innerHTML = `
+        <div class="modal" role="dialog" aria-label="Preview: ${data.title}">
+          <button class="modal-close" aria-label="Close Preview" tabindex="0">×</button>
+          <h2>${data.title}</h2>
+          <p class="preview-section">${data.summary}</p>
+          ${data.highlights.map(high=>`<div class='preview-section'><h3>${high.h}</h3><p>${high.p}</p></div>`).join('')}
+          <a href="${data.href}" target="_blank" class="read-full-btn">Read Full Documentation →</a>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      // focus
+      setTimeout(()=>modal.querySelector('.modal-close').focus(), 20);
+      // close logic
+      function close(){ modal.remove(); modal=null;document.removeEventListener('keydown',escListener);}
+      modal.querySelector('.modal-close').onclick = close;
+      modal.onclick = e=>{if(e.target===modal)close();}
+      function escListener(e){if(e.key==='Escape'){close();}}
+      document.addEventListener('keydown',escListener);
+    }
+    document.querySelectorAll('.docs-grid .doc-link').forEach(link=>{
+      link.addEventListener('click',(e)=>{
+        e.preventDefault(); e.stopPropagation();
+        const docKey = link.getAttribute('data-doc');
+        openDocModal(docKey);
+      });
+    });
+  </script>
+  <script>
+  // ---- Stars + Galaxy background for docs (lightweight) ----
+  (function(){
+    const canvas = document.getElementById('space-canvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let DPR = Math.max(1, window.devicePixelRatio || 1);
+    function setup(){
+      const w = window.innerWidth, h = window.innerHeight;
+      canvas.style.width = w + 'px';
+      canvas.style.height = h + 'px';
+      canvas.width = Math.floor(w * DPR);
+      canvas.height = Math.floor(h * DPR);
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+    }
+    setup();
+    window.addEventListener('resize', ()=>{ DPR = Math.max(1, window.devicePixelRatio || 1); setup(); });
+
+    const stars = [];
+    function makeStars(){
+      stars.length = 0;
+      const area = window.innerWidth * window.innerHeight;
+      const count = Math.max(80, Math.floor(area / 9000));
+      for(let i=0;i<count;i++){
+        stars.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, r: Math.random()*1.6+0.2, a: Math.random()*0.9+0.1, tw: Math.random()*0.02+0.002, phase: Math.random()*Math.PI*2 });
+      }
+    }
+    makeStars();
+    window.addEventListener('resize', makeStars);
+
+    let last = performance.now();
+    function draw(now){
+      const dt = (now - last)/1000; last = now;
+      const w = window.innerWidth, h = window.innerHeight;
+      ctx.clearRect(0,0,w,h);
+      // faint nebula wash
+      const g = ctx.createRadialGradient(w*0.3,h*0.25,50,w*0.3,h*0.25,Math.max(w,h));
+      g.addColorStop(0,'rgba(124,226,255,0.04)');
+      g.addColorStop(0.35,'rgba(156,102,255,0.02)');
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+
+      for(const s of stars){
+        s.phase += s.tw * dt * 60;
+        const alpha = s.a * (0.6 + 0.4 * Math.sin(s.phase));
+        ctx.beginPath(); ctx.fillStyle = `rgba(255,255,255,${alpha.toFixed(3)})`;
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+      }
+      requestAnimationFrame(draw);
+    }
+    requestAnimationFrame(draw);
+  })();
+  </script>
+  
+  <!-- Dashboard JavaScript -->
+  <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

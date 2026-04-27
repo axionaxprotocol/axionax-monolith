@@ -1,0 +1,101 @@
+# Axionax Development Services
+# Docker Compose configuration for local development
+
+version: '3.8'
+
+services:
+  # ============================================
+  # PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: axionax-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: axionax
+      POSTGRES_PASSWORD: axionax
+      POSTGRES_DB: axionax_testnet
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U axionax -d axionax_testnet']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # Redis Cache (Optional)
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: axionax-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # API Service
+  # ============================================
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: axionax-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://axionax:axionax@postgres:5432/axionax_testnet
+      REDIS_URL: redis://redis:6379
+      PORT: 3001
+      HOST: 0.0.0.0
+      RPC_URL: https://axionax.org/rpc/
+      CHAIN_ID: 86137
+      INDEXER_START_BLOCK: 0
+      INDEXER_BATCH_SIZE: 100
+      INDEXER_POLL_INTERVAL: 5000
+    ports:
+      - '3001:3001'
+    volumes:
+      - ./apps/api/src:/app/src:ro
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3001/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # Adminer (Database UI)
+  # ============================================
+  adminer:
+    image: adminer:4
+    container_name: axionax-adminer
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - '8080:8080'
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: pepa-linha-dark
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    name: axionax-network

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axionax Protocol - 2026 Master Pitch Deck</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            background-color: #000000;
+            background-image:
+              linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center top;
+            display: grid;
+            gap: 40px;
+            grid-template-columns: 1fr;
+            margin: 0;
+            padding: 40px 0;
+            place-items: center;
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .slide-container {
+            align-items: center;
+            background-color: #0A0A0A;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            height: 720px;
+            justify-content: flex-start;
+            overflow: hidden;
+            padding: 60px 80px;
+            position: relative;
+            width: 1280px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+        .slide-container > * { position: relative; z-index: 1; width: 100%; }
+        h1, h2, h3, h4 {
+            color: #FFFFFF;
+            font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
+            margin: 0;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+        h1 { font-size: 72px; text-align: center; }
+        h1 span { color: #3b82f6; }
+        .slide-title { 
+            font-size: 32px; 
+            margin-bottom: 40px; 
+            padding-bottom: 20px; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+        }
+        h3 { font-size: 24px; margin-bottom: 12px; color: rgba(255, 255, 255, 0.9); }
+        p, li, td, th {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .highlight { color: #3b82f6; font-weight: 500; }
+        .highlight-green { color: #10b981; font-weight: 500; }
+        .content-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .card {
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+        .card:hover { 
+            border-color: rgba(255, 255, 255, 0.1);
+            background-color: rgba(255, 255, 255, 0.04);
+            transform: translateY(-2px);
+        }
+        .card .icon { font-size: 32px; margin-bottom: 24px; color: #3b82f6; }
+        ul.custom-list { list-style: none; padding: 0; margin: 0; }
+        ul.custom-list li { position: relative; padding-left: 24px; margin-bottom: 16px; }
+        ul.custom-list li::before { 
+            content: ''; 
+            position: absolute; 
+            left: 0; 
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #3b82f6; 
+        }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 16px 20px; text-align: left; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        th { color: rgba(255, 255, 255, 0.4); font-family: 'Inter', sans-serif; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+        .hw-showcase { display: flex; align-items: center; gap: 40px; background: rgba(255, 255, 255, 0.02); padding: 30px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px;}
+        .hw-img { width: 220px; height: 220px; background: #000000; border-radius: 8px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.05); font-size: 48px; color: rgba(255, 255, 255, 0.2);}
+        .hw-details { flex: 1; }
+        .hw-tag { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+        .tag-t5 { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .tag-t4 { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .tag-t4p { background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .tag-tx { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); }
+        .timeline { display: flex; justify-content: space-between; position: relative; margin-top: 60px;}
+        .timeline::before { content: ''; position: absolute; top: 12px; left: 5%; width: 90%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 0; }
+        .tl-item { width: 22%; position: relative; z-index: 1; text-align: center; }
+        .tl-dot { width: 12px; height: 12px; background: #3b82f6; border-radius: 50%; margin: 6px auto 24px auto; box-shadow: 0 0 0 6px #0A0A0A; }
+        .tl-item h4 { color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-size: 18px; }
+        
+        /* Minimalist Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="slide-container" style="justify-content: center; text-align: center;">
+        <i class="fa-solid fa-network-wired" style="font-size: 80px; color: #3b82f6; margin-bottom: 30px;"></i>
+        <h1>Axionax <span>Protocol</span></h1>
+        <p style="font-size: 24px; color: rgba(255, 255, 255, 0.5); max-width: 800px; margin: 20px auto;">
+            The Decentralized Operating System for the Next Civilization.<br>
+            สร้างโครงข่ายประสาทเทียมระดับโลก ที่มนุษยชาติทุกคนเป็นเจ้าของร่วมกัน
+        </p>
+        <div style="margin-top: 40px; padding: 10px 20px; background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 30px; display: inline-block; color: #3b82f6; font-weight: 600;">
+            Master Pitch Deck | Series Seed 2026
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">The Vision: 400 ExaTOPS Global Superbrain</h2>
+        <div class="content-area grid-2" style="align-items: center;">
+            <div>
+                <h3 style="font-size: 48px; color: #FFFFFF; line-height: 1.2;">10,000,000 <span style="color: #3b82f6;">Nodes</span></h3>
+                <p style="font-size: 20px; margin-bottom: 30px;">
+                    หากเรามีโหนด 10 ล้านตัว (เฉลี่ย 40 TOPS/โหนด)<br>
+                    พลังประมวลผลรวมจะเท่ากับ <span class="highlight">400 ExaTOPS</span><br>
+                    เทียบเท่าชิป NVIDIA H100 จำนวน 100,000 ตัว!
+                </p>
+                <ul class="custom-list">
+                    <li><strong style="color:white;">The Earth Digital Twin:</strong> ประมวลผลภาพจาก CCTV/Drone ทั่วโลกแบบ Real-time</li>
+                    <li><strong style="color:white;">Personal Jarvis:</strong> ให้บริการ AI Assistant ส่วนตัวแก่ประชากร 2,000 ล้านคน</li>
+                    <li><strong style="color:white;">DeSci (Decentralized Science):</strong> จำลองการพับโปรตีนเพื่อค้นหายาใหม่ใน 1 สัปดาห์</li>
+                    <li><strong style="color:white;">The Metaverse:</strong> เรนเดอร์โลกเสมือนจริง 3D แบบ Distributed Rendering</li>
+                </ul>
+            </div>
+            <div class="card" style="text-align: center; padding: 50px;">
+                <i class="fa-solid fa-earth-americas" style="font-size: 100px; color: #3b82f6; margin-bottom: 30px;"></i>
+                <h3 style="color: white;">Global Superbrain</h3>
+                <p>ใหญ่กว่าโครงสร้างพื้นฐานของประเทศมหาอำนาจ แต่กระจายศูนย์และปลอดภัย 100%</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">Why Now? ตลาดและเทคโนโลยีกำลังบรรจบกัน</h2>
+        <div class="content-area grid-3">
+            <div class="card">
+                <div class="icon"><i class="fa-solid fa-microchip"></i></div>
+                <h3>Edge AI Hardware Ready</h3>
+                <p>การมาถึงของชิป NPU ยุคใหม่ เช่น <span class="highlight">Hailo-10H (M.2 NVMe)</span> และ <span class="highlight">AMD Ryzen AI (50 TOPS)</span> ทำให้ฮาร์ดแวร์ระดับผู้บริโภคสามารถรัน Generative AI (SLMs) ได้ด้วยตัวเองโดยไม่ต้องง้อ Cloud</p>
+            </div>
+            <div class="card">
+                <div class="icon" style="color: #10b981;"><i class="fa-solid fa-chart-line"></i></div>
+                <h3>DePIN Market Boom</h3>
+                <p>ตลาด Decentralized Physical Infrastructure เติบโตทะลุ <span class="highlight-green">$50 Billion+</span> นักลงทุนสถาบันเทเงินให้โปรเจกต์ที่มี "โครงสร้างพื้นฐานที่สร้างรายได้จริง" (Real Yield) มากกว่าแค่เก็งกำไร</p>
+            </div>
+            <div class="card">
+                <div class="icon" style="color: #f59e0b;"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>The Trust Crisis in AI</h3>
+                <p>องค์กรไม่กล้าส่งข้อมูลความลับขึ้น Cloud ของ Big Tech โลกกำลังต้องการ <span class="highlight" style="color:#f59e0b;">Verifiable AI</span> (AI ที่ตรวจสอบความถูกต้องได้) ซึ่งสถาปัตยกรรมกระจายศูนย์ของเราตอบโจทย์นี้ได้ 100%</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">Architecture: The 5-Tier Geo-Hierarchy</h2>
+        <div class="content-area">
+            <p style="text-align: center; margin-bottom: 30px; font-size: 18px;">ระบบเครือข่ายที่ออกแบบมาเพื่อสเกลระดับ 10 ล้านโหนด โดยไม่คอขวด</p>
+            <div class="grid-5" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
+                <div class="card" style="padding: 20px; text-align: center; border-top: 4px solid #10b981;">
+                    <i class="fa-solid fa-laptop-code icon" style="color: #10b981; font-size: 30px;"></i>
+                    <h4 style="margin-bottom: 10px;">Tier 5<br>Edge Worker</h4>
+                    <p style="font-size: 13px;">โหนดตามบ้าน (Consumer)<br>รัน AI Agents ที่ปลายทาง (Latency &lt; 10ms)</p>
+                </div>
+                <div class="card" style="padding: 20px; text-align: center; border-top: 4px solid #3b82f6;">
+                    <i class="fa-solid fa-server icon" style="color: #3b82f6; font-size: 30px;"></i>
+                    <h4 style="margin-bottom: 10px;">Tier 4<br>Aggregator</h4>
+                    <p style="font-size: 13px;">โฮมออฟฟิศ/สตูดิโอ<br>รวบรวมข้อมูลและทำ ZK-Rollups ระดับเมือง</p>
+                </div>
+                <div class="card" style="padding: 20px; text-align: center; border-top: 4px solid #f59e0b;">
+                    <i class="fa-solid fa-building-shield icon" style="color: #f59e0b; font-size: 30px;"></i>
+                    <h4 style="margin-bottom: 10px;">Tier 3<br>Gateway</h4>
+                    <p style="font-size: 13px;">Enterprise Appliance<br>ดูแล Data Sovereignty กฎหมายข้อมูลระดับประเทศ</p>
+                </div>
+                <div class="card" style="padding: 20px; text-align: center; border-top: 4px solid #ef4444;">
+                    <i class="fa-solid fa-database icon" style="color: #ef4444; font-size: 30px;"></i>
+                    <h4 style="margin-bottom: 10px;">Tier 2<br>Titan</h4>
+                    <p style="font-size: 13px;">GPU Clusters / AI Factory<br>เทรน Foundation Models ขนาดใหญ่ระดับภูมิภาค</p>
+                </div>
+                <div class="card" style="padding: 20px; text-align: center; border-top: 4px solid #a855f7;">
+                    <i class="fa-solid fa-satellite-dish icon" style="color: #a855f7; font-size: 30px;"></i>
+                    <h4 style="margin-bottom: 10px;">Tier 1<br>Apex</h4>
+                    <p style="font-size: 13px;">Photonic/Space Nodes<br>รักษาความปลอดภัยสูงสุดและ Finality ของโลก</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">The "Monolith Tower" Hardware Standard</h2>
+        <div class="content-area grid-2" style="align-items: center;">
+            <div class="card" style="text-align: center; padding: 50px;">
+                <h1 style="color: white; font-size: 60px; margin-bottom: 10px;">15 x 15 x 8.5 <span style="font-size: 30px; color:rgba(255,255,255,0.4);">cm</span></h1>
+                <h3 style="color: #3b82f6;">The Magic Dimensions</h3>
+                <p style="margin-top: 20px;">
+                    เคสอลูมิเนียมเรียบหรูที่ออกแบบมาเพื่อแก้ปัญหาความร้อนและรองรับฮาร์ดแวร์ระดับท็อป (Universal Design)
+                </p>
+            </div>
+            <div>
+                <ul class="custom-list">
+                    <li><strong style="color:white;">Compact & Premium:</strong> วางบนโต๊ะทำงานได้สวยงาม ไม่เกะกะ</li>
+                    <li><strong style="color:white;">Thermal Supremacy:</strong> ความสูง 8.5 ซม. เป็นช่องว่างที่เพอร์เฟกต์สำหรับติดตั้งพัดลม 120mm Exhaust Fan ดึงลมร้อนออกด้านบน (The Chimney Effect)</li>
+                    <li><strong style="color:white;">Universal Fit:</strong> ออกแบบครั้งเดียว รองรับได้ตั้งแต่บอร์ด Raspberry Pi เล็กๆ ไปจนถึง Mini PC รุ่นท็อป ลดต้นทุนแม่พิมพ์การผลิต</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">Consumer Lineup (Tier 5 & Tier 4)</h2>
+        <div class="content-area">
+            <div class="hw-showcase">
+                <div class="hw-img"><i class="fa-solid fa-cube"></i></div>
+                <div class="hw-details">
+                    <span class="hw-tag tag-t5">Tier 5: Mass Market</span>
+                    <h3 style="color: white; margin-bottom: 5px;">Monolith Scout+</h3>
+                    <p class="highlight-green">Hardware: Raspberry Pi 5 + M.2 NVMe HAT + Hailo-10H (40 TOPS)</p>
+                    <p>โหนดที่เข้าถึงง่ายที่สุด (~$130) มี RAM 8GB เพียงพอสำหรับการรัน SLMs (Llama-3 8B) เพื่อทำหน้าที่เป็น AI Agent ส่วนตัว มีพื้นที่ภายในเคส 15cm เหลือเฟือ ทำให้ระบายความร้อนได้ยอดเยี่ยม ทำงานได้ 24/7</p>
+                </div>
+            </div>
+            <div class="hw-showcase">
+                <div class="hw-img"><i class="fa-solid fa-cubes"></i></div>
+                <div class="hw-details">
+                    <span class="hw-tag tag-t4">Tier 4: Balanced Worker</span>
+                    <h3 style="color: white; margin-bottom: 5px;">Monolith Vanguard</h3>
+                    <p style="color: #3b82f6; font-weight: 500;">Hardware: BMAX B11 Power (Intel Core Ultra 7 155H)</p>
+                    <p>จุดสมดุลของเทคโนโลยี มี <strong style="color:white;">Intel AI Boost NPU (11 TOPS)</strong> ในตัว ประหยัดไฟกว่า CPU ทั่วไป และรองรับงานกราฟิก 3D เบาๆ ด้วย Intel Arc สำหรับผู้ใช้โฮมออฟฟิศที่ต้องการขุดเหรียญและทำงาน</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">Premium & Custom Nodes</h2>
+        <div class="content-area">
+            <div class="hw-showcase" style="border-top: 4px solid #f59e0b;">
+                <div class="hw-img" style="color: #f59e0b;"><i class="fa-solid fa-fire-flame-curved"></i></div>
+                <div class="hw-details">
+                    <span class="hw-tag tag-t4p">Tier 4 Premium: The Flagship</span>
+                    <h3 style="color: white; margin-bottom: 5px;">Monolith Fusion</h3>
+                    <p class="highlight" style="color:#f59e0b;">Hardware: TOPC TR9 (AMD Ryzen AI 7 Pro 360)</p>
+                    <p>ที่สุดของขุมพลังในขนาด 15x15x8.5cm! มาพร้อมชิป <strong style="color:white;">XDNA 2 NPU (50 TOPS)</strong> ซึ่งเป็น NPU บน PC ที่แรงที่สุดในโลก ณ ตอนนี้ ผสานกับ GPU Radeon 880M เกิดมาเพื่อรัน LLM และเรนเดอร์กราฟิกขั้นสุด</p>
+                </div>
+            </div>
+            <div class="hw-showcase" style="border-top: 4px solid #a855f7;">
+                <div class="hw-img" style="color: #a855f7;"><i class="fa-brands fa-apple"></i></div>
+                <div class="hw-details">
+                    <span class="hw-tag tag-tx">Custom Hybrid Node (R&D)</span>
+                    <h3 style="color: white; margin-bottom: 5px;">The Silicon Archon</h3>
+                    <p style="color: #a855f7; font-weight: 500;">Hardware: Mac Mini M1 + External Hailo-10H (Thunderbolt 3)</p>
+                    <p>โหนดสาย "Geek" ที่ใช้ระบบ Asahi Linux ดึงพลังประหยัดไฟของ Apple Silicon M1 (Unified Memory) มาจัดการระบบ ผสานกับแบนด์วิดท์มหาศาลของ Thunderbolt เพื่อส่งข้อมูลให้ Hailo คำนวณ AI (Efficiency Champion)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">Enterprise Infrastructure (Tier 3 to 1)</h2>
+        <div class="content-area">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tier</th>
+                        <th>Codename</th>
+                        <th>Form Factor</th>
+                        <th>Hardware / Key Capability</th>
+                        <th>Target Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="highlight" style="color:#f59e0b">T3</span></td>
+                        <td><strong style="color:white;">Arbiter Pro</strong></td>
+                        <td>2U Short-Depth Rack</td>
+                        <td>AMD EPYC + NVMe Array (Caching)</td>
+                        <td>ติดตั้งตึกสำนักงาน/ISP, คุม Data Sovereignty</td>
+                    </tr>
+                    <tr>
+                        <td><span class="highlight" style="color:#ef4444">T2</span></td>
+                        <td><strong style="color:white;">Hyperion Cluster</strong></td>
+                        <td>42U / Immersion Tank</td>
+                        <td>Liquid-cooled NVIDIA/AMD GPU Arrays</td>
+                        <td>AI Factory สำหรับเทรน LLM ระดับภูมิภาค</td>
+                    </tr>
+                    <tr>
+                        <td><span class="highlight" style="color:#a855f7">T1</span></td>
+                        <td><strong style="color:white;">The Apex</strong></td>
+                        <td>Monolith Vault (Custom)</td>
+                        <td>Photonic Chips + Quantum Security</td>
+                        <td>Global Root, ป้องกันภัยพิบัติ, อัปสเตตโลก</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="card" style="margin-top: 30px; text-align: center; padding: 20px;">
+                <p style="margin: 0; font-style: italic;">"ระดับ Tier 3 ขึ้นไป จะเปลี่ยนผ่านจากการขายฮาร์ดแวร์แบบ Consumer (B2C) ไปสู่การเป็น Enterprise Solution (B2B) เต็มรูปแบบ"</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">The Secret Sauce: Consensus & Security</h2>
+        <div class="content-area grid-2">
+            <div class="card">
+                <div class="icon" style="color: #3b82f6;"><i class="fa-solid fa-link"></i></div>
+                <h3 style="color: white;">PoPC (Proof of Probabilistic Checking)</h3>
+                <p>กลไกฉันทามติแบบใหม่ (Consensus Mechanism) ของ Axionax ที่ออกแบบมาเพื่อ AI โดยเฉพาะ</p>
+                <ul class="custom-list" style="margin-top: 15px;">
+                    <li>ใช้คณิตศาสตร์ <strong style="color:white;">Probabilistic Checking</strong> สุ่มตรวจความถูกต้อง</li>
+                    <li>ยิ่งโหนดเพิ่ม ระบบยิ่งเสถียร โดยไม่ทำให้เกิดคอขวด (Infinite Scalability)</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="icon" style="color: #ef4444;"><i class="fa-solid fa-eye"></i></div>
+                <h3 style="color: white;">The 7 Sentinels (Verifiable AI)</h3>
+                <p>ระบบภูมิคุ้มกันเครือข่ายที่มี AI ฝังอยู่เป็น "ผู้คุมกฎ" (Native Immune System)</p>
+                <ul class="custom-list" style="margin-top: 15px;">
+                    <li><strong style="color:white;">AION-VX:</strong> ตรวจสอบมิติเวลา (Temporal Truth)</li>
+                    <li><strong style="color:white;">ORION-VX:</strong> ตรวจจับการโกงผลลัพธ์ (Fraud Detection)</li>
+                    <li><strong style="color:white;">THEMIS-VX:</strong> ศาลฎีกาตัดสินข้อพิพาทของระบบ</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">Business Model & Tokenomics</h2>
+        <div class="content-area grid-3">
+            <div class="card" style="border-top: 4px solid #10b981;">
+                <h3 style="color: white; font-size: 20px;">1. Compute Commission</h3>
+                <p>หักค่าธรรมเนียม <strong style="color:white;">5-10%</strong> จากทุกๆ ธุรกรรมการจ้างงาน AI บน Compute Marketplace นี่คือแหล่งรายได้ที่ยั่งยืนที่สุด (Real Yield) จากการใช้งานจริงของฝั่ง Demand</p>
+            </div>
+            <div class="card" style="border-top: 4px solid #3b82f6;">
+                <h3 style="color: white; font-size: 20px;">2. Hardware Margins</h3>
+                <p>กำไร <strong style="color:white;">20-30%</strong> จากการขายเครื่องซีรีส์ Monolith (Scout, Vanguard, Fusion) สู่ตลาด Global เพื่อให้ผู้ใช้ทั่วไปซื้อไปสร้าง Passive Income</p>
+            </div>
+            <div class="card" style="border-top: 4px solid #f59e0b;">
+                <h3 style="color: white; font-size: 20px;">3. Enterprise API</h3>
+                <p>เก็บค่าบริการรายเดือน (SaaS) จากลูกค้าองค์กรที่ต้องการใช้เครือข่ายเพื่อประมวลผลข้อมูลความลับผ่านระบบ ZK-Rollups (Off-cloud Private AI)</p>
+            </div>
+        </div>
+        <div class="card" style="margin-top: 20px; padding: 20px 30px; display: flex; align-items: center; gap: 30px; background: rgba(59, 130, 246, 0.1); border-color: #3b82f6;">
+            <i class="fa-brands fa-ethereum" style="font-size: 40px; color: #3b82f6;"></i>
+            <div>
+                <h4 style="font-size: 20px; margin-bottom: 5px; color: white;">AXX Token Utility (Deflationary Model)</h4>
+                <p style="margin: 0; font-size: 14px;">ใช้จ่ายเป็น Gas Fee บนเชน, สื่อกลางชำระค่าเช่า AI Compute, และใช้ Staking สำหรับ Node Validators (มีการเผาเหรียญเมื่อระบบถูกใช้งาน)</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container">
+        <h2 class="slide-title">The Ascension Plan (Roadmap)</h2>
+        <div class="content-area">
+            <div class="timeline">
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <h4>Q1-Q2 2026<br><span style="color:#3b82f6; font-size: 16px; font-weight: 500;">The Incarnation</span></h4>
+                    <p style="font-size: 14px;">เปิดตัว Public Testnet<br>เปิดพรีออเดอร์ Monolith Scout+ และ Fusion ล็อตแรก</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <h4>Q3-Q4 2026<br><span style="color:#3b82f6; font-size: 16px; font-weight: 500;">Genesis</span></h4>
+                    <p style="font-size: 14px;">Mainnet Launch<br>AXX Token Listing<br>เปิดใช้งาน AI Compute Marketplace เต็มรูปแบบ</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <h4>2027<br><span style="color:#3b82f6; font-size: 16px; font-weight: 500;">Evolution</span></h4>
+                    <p style="font-size: 14px;">เจาะตลาด B2B<br>ขยายเครือข่าย Tier 3 (Arbiter Pro) ร่วมกับ Enterprise Partners</p>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot"></div>
+                    <h4>2028+<br><span style="color:#3b82f6; font-size: 16px; font-weight: 500;">Ascension</span></h4>
+                    <p style="font-size: 14px;">เชื่อมต่อโครงข่ายสู่ Tier 1 และ Space Nodes<br>บรรลุเป้าหมาย Earth Digital Twin</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-container" style="justify-content: center; text-align: center;">
+        <h1 style="font-size: 90px;">Join the <span>Grid</span></h1>
+        <p style="font-size: 24px; color: rgba(255, 255, 255, 0.5); margin-top: 20px; margin-bottom: 40px;">
+            Empowering the Future, One Node at a Time.
+        </p>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; color: #3b82f6; letter-spacing: 2px; font-weight: 600;">
+            invest@axionax.network &nbsp;&nbsp;|&nbsp;&nbsp; axionax.network
+        </div>
+    </div>
+</body>
+</html>

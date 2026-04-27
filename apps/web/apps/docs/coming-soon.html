@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting to Axionax Testnet</title>
+  <script>
+    // Redirect to the live testnet services
+    window.location.href = 'https://axionax.org';
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      margin: 0;
+    }
+    .container {
+      max-width: 600px;
+      text-align: center;
+    }
+    .emoji {
+      font-size: 80px;
+      margin-bottom: 2rem;
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.8; }
+    }
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    p {
+      color: #94a3b8;
+      margin-bottom: 2rem;
+    }
+    a {
+      color: #6366f1;
+      text-decoration: none;
+    }
+    a:hover {
+      color: #8b5cf6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="emoji">�</div>
+    <h1>Genesis Public Testnet is Live!</h1>
+    <p>Redirecting to <a href="https://axionax.org">axionax.org</a>...</p>
+    <p style="font-size: 0.875rem;">
+      <a href="https://rpc.axionax.org">RPC</a> • 
+      <a href="https://faucet.axionax.org">Faucet</a> • 
+      <a href="https://explorer.axionax.org">Explorer</a>
+    </p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,99 @@
+{
+  "name": "axionax-web-universe",
+  "version": "1.9.0",
+  "private": true,
+  "description": "Axionax Web Universe - Frontend Applications, SDK, Documentation & Marketplace Monorepo",
+  "author": "Axionax Protocol <team@axionax.org>",
+  "license": "MIT",
+  "homepage": "https://axionax.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/axionaxprotocol/axionax-web-universe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/axionaxprotocol/axionax-web-universe/issues"
+  },
+  "keywords": [
+    "blockchain",
+    "layer1",
+    "defi",
+    "dapp",
+    "web3",
+    "monorepo",
+    "nextjs",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --recursive --parallel --stream run dev",
+    "build": "pnpm --recursive run build",
+    "start": "pnpm --recursive --parallel run start",
+    "test": "pnpm --recursive run test",
+    "test:watch": "pnpm --recursive run test:watch",
+    "test:coverage": "pnpm --recursive run test:coverage",
+    "test:e2e": "pnpm --filter @axionax/web test:e2e",
+    "test:e2e:ui": "pnpm --filter @axionax/web test:e2e:ui",
+    "lint": "pnpm --recursive run lint",
+    "lint:fix": "pnpm --recursive run lint --fix",
+    "type-check": "pnpm --recursive run type-check",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,md,mdx,css,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,md,mdx,css,yml,yaml}\"",
+    "clean": "pnpm --recursive run clean && rm -rf node_modules",
+    "clean:build": "pnpm --recursive exec rm -rf dist out build .next",
+    "clean:modules": "pnpm --recursive exec rm -rf node_modules && rm -rf node_modules",
+    "clean:cache": "pnpm --recursive exec rm -rf .turbo .cache",
+    "clean:all": "pnpm run clean:build && pnpm run clean:modules && pnpm run clean:cache",
+    "deps:check": "pnpm --recursive outdated",
+    "deps:update": "pnpm --recursive update --latest",
+    "security:audit": "pnpm audit --audit-level=moderate",
+    "security:fix": "pnpm audit fix",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "api:dev": "pnpm --filter @axionax/api dev",
+    "api:build": "pnpm --filter @axionax/api build",
+    "indexer:start": "pnpm --filter @axionax/api dev",
+    "genesis:generate": "pnpm --filter @axionax/genesis-generator start",
+    "db:migrate": "pnpm --filter @axionax/api db:migrate",
+    "db:studio": "pnpm --filter @axionax/api db:studio",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish",
+    "preinstall": "npx only-allow pnpm",
+    "prepare": "husky install || true",
+    "git:check-secrets": "node scripts/check-forbidden-env-in-git.mjs commit"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.8",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.8.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "tar": ">=7.5.7",
+      "esbuild": ">=0.25.0",
+      "qs": ">=6.14.1",
+      "glob": ">=10.5.0",
+      "react": "^18.3.1",
+      "react-dom": "^18.3.1"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,mdx,css,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}

@@ -1,0 +1,97 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+    - generic [ref=e2]:
+        - banner [ref=e3]:
+            - link "Axionax Axionax" [ref=e4] [cursor=pointer]:
+                - /url: /
+                - img "Axionax" [ref=e5]
+                - generic [ref=e6]: Axionax
+            - generic [ref=e7]:
+                - link "Docs" [ref=e8] [cursor=pointer]:
+                    - /url: /docs
+                - button "Add Network" [ref=e9] [cursor=pointer]
+                - button "Switch to light mode" [ref=e10] [cursor=pointer]:
+                    - img [ref=e11]
+                - button "Install MetaMask" [ref=e13] [cursor=pointer]:
+                    - img [ref=e14]
+                    - text: Install MetaMask
+        - navigation [ref=e16]:
+            - link "Home" [ref=e17] [cursor=pointer]:
+                - /url: /
+            - link "Workers" [ref=e18] [cursor=pointer]:
+                - /url: /marketplace
+            - link "Explorer" [ref=e19] [cursor=pointer]:
+                - /url: /explorer
+            - link "Faucet" [ref=e20] [cursor=pointer]:
+                - /url: /faucet
+            - link "Validators" [ref=e21] [cursor=pointer]:
+                - /url: /validators
+            - link "Wallet" [ref=e22] [cursor=pointer]:
+                - /url: /wallet
+            - link "Dashboard" [ref=e23] [cursor=pointer]:
+                - /url: /dashboard
+            - link "Join Network" [ref=e24] [cursor=pointer]:
+                - /url: /join
+            - link "Airdrop" [ref=e25] [cursor=pointer]:
+                - /url: /airdrop
+            - link "Docs" [ref=e26] [cursor=pointer]:
+                - /url: /docs
+        - main [ref=e27]:
+            - generic [ref=e30]:
+                - generic [ref=e31]:
+                    - generic [ref=e32]:
+                        - heading "Testnet Faucet" [level=1] [ref=e33]
+                        - generic "This is demo/mock data — API or validator not responding" [ref=e35]:
+                            - generic [ref=e37]: Demo
+                            - generic [ref=e38]: / Balance
+                    - paragraph [ref=e39]: Get free testnet AXX tokens for development and testing
+                - generic [ref=e42]:
+                    - generic [ref=e43]:
+                        - paragraph [ref=e44]: 🏦 Faucet Balance
+                        - paragraph [ref=e45]: 1.00M AXX
+                    - generic [ref=e46]:
+                        - paragraph [ref=e47]: Per Request
+                        - paragraph [ref=e48]: 10,000 AXX
+                - generic [ref=e49]:
+                    - heading "Claim Testnet Tokens" [level=3] [ref=e51]
+                    - generic [ref=e53]:
+                        - generic [ref=e54]:
+                            - generic [ref=e55]: Your Wallet Address
+                            - textbox "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb4" [active] [ref=e56]: invalid-address
+                            - paragraph [ref=e57]: ⚠️ Invalid Ethereum address format
+                        - button "Claim 10,000 AXX" [disabled] [ref=e58]
+                - generic [ref=e59]:
+                    - heading "Faucet Information" [level=3] [ref=e61]
+                    - generic [ref=e63]:
+                        - generic [ref=e64]:
+                            - generic [ref=e65]: 💰
+                            - generic [ref=e66]:
+                                - strong [ref=e67]: 'Amount:'
+                                - text: 10,000 AXXt per request (for validator testing)
+                        - generic [ref=e68]:
+                            - generic [ref=e69]: ⏰
+                            - generic [ref=e70]:
+                                - strong [ref=e71]: 'Cooldown:'
+                                - text: 24 hours between requests per address
+                        - generic [ref=e72]:
+                            - generic [ref=e73]: 🔗
+                            - generic [ref=e74]:
+                                - strong [ref=e75]: 'Network:'
+                                - text: 'Axionax Testnet (Chain ID: 86137)'
+                        - generic [ref=e77]:
+                            - strong [ref=e78]: 'Staking:'
+                            - text: Use these tokens to test staking as Validator/Worker
+                        - generic [ref=e79]:
+                            - generic [ref=e80]: ✨
+                            - generic [ref=e81]:
+                                - strong [ref=e82]: 'Mode:'
+                                - text: Simulation - Claims are recorded and will be allocated when Mainnet launches
+                - paragraph [ref=e84]:
+                    - text: 🌌 Need more tokens? Join our
+                    - link "Discord" [ref=e85] [cursor=pointer]:
+                        - /url: https://discord.gg/axionax
+                    - text: for developer support.
+    - alert [ref=e86]
+```

@@ -1,0 +1,22 @@
+---
+description: Rules for Decentralized AI Worker Nodes and Scripts
+globs: **/*.py, requirements.txt
+---
+# 🧠 AXIONAX DEAI - AI INTEGRATION SPECIALIST
+
+## 🧠 Role
+You are a Senior AI Infrastructure Engineer. You specialize in Python, PyTorch, Distributed Computing, and API integrations (Gemini, Vertex AI).
+
+## ⚡ Golden Rules for Python DeAI
+
+### 1. 🏷️ Type Safety
+- You MUST use strict Python type hints for all function arguments and return types (e.g., `def process_task(job_id: str, payload: dict) -> bool:`).
+- Use `Pydantic` or `dataclasses` for data validation when receiving payloads from the Rust Core or RPC.
+
+### 2. 🔌 Rust-Python Interop
+- Ensure JSON schemas or FFI bindings match the Rust definitions exactly.
+- Handle connection drops and retries gracefully when the Python worker communicates with the Validator node.
+
+### 3. ☁️ AI Resource Management
+- Optimize inference code. If calling external APIs (Gemini 3 Pro, etc.), implement robust retry mechanisms with exponential backoff.
+- Never hardcode API keys. Always use environment variables (`os.environ.get`).

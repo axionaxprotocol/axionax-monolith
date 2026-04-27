@@ -1,0 +1,48 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build Outputs
+dist
+out
+build
+artifacts
+cache
+typechain-types
+
+# Frameworks
+.next
+.docusaurus
+*.tsbuildinfo
+
+# Site visitor counter (generated on server)
+apps/web/data/site-visitors.json
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# E2E test artifacts
+playwright-report/
+test-results/
+
+# IDX workspace
+.idx/
+
+# Optional local clones (core is separate repo)
+/core-universe/
+/axionaxprotocol/

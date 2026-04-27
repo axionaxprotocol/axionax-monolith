@@ -1,0 +1,217 @@
+# Axionax Full Stack Development
+# Runs web services + optional local blockchain.
+# For local node: clone https://github.com/axionaxprotocol/axionax-core-universe.git to ./core-universe first.
+
+version: '3.8'
+
+services:
+  # ============================================
+  # 🦀 Blockchain Node (optional; needs core-universe cloned)
+  # ============================================
+  # axionax-node:
+  #   build:
+  #     context: ./core-universe/core
+  #     dockerfile: ../../ops/deploy/Dockerfile
+  #   container_name: axionax-node-dev
+  #   restart: unless-stopped
+  #   ports:
+  #     - "8545:8545"
+  #     - "8546:8546"
+  #     - "30303:30303"
+  #     - "9100:9100"
+  #   volumes:
+  #     - node_data:/data
+  #     - ./core-universe/core:/app/core:ro
+  #   environment:
+  #     - RUST_LOG=info
+  #     - CHAIN_ID=86137
+  #     - NETWORK=testnet
+  #     - RPC_HOST=0.0.0.0
+  #     - RPC_PORT=8545
+  #     - WS_PORT=8546
+  #     - P2P_PORT=30303
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-sf", "http://localhost:8545", "-X", "POST", "-H", "Content-Type: application/json", "-d", "{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   networks:
+  #     - axionax-dev
+
+  # ============================================
+  # 🗄️ PostgreSQL Database
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: axionax-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: axionax
+      POSTGRES_PASSWORD: axionax_dev_2026
+      POSTGRES_DB: axionax_testnet
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U axionax -d axionax_testnet']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - axionax-dev
+
+  # ============================================
+  # 📦 Redis Cache
+  # ============================================
+  redis:
+    image: redis:7-alpine
+    container_name: axionax-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - axionax-dev
+
+  # ============================================
+  # 🌐 Web Interface (Next.js)
+  # ============================================
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: axionax-web-dev
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - '3000:3000'
+    environment:
+      - NEXT_PUBLIC_RPC_URL=http://axionax-node:8545
+      - NEXT_PUBLIC_WS_URL=ws://axionax-node:8546
+      - NEXT_PUBLIC_CHAIN_ID=86137
+      - NODE_ENV=development
+    volumes:
+      - ./apps/web/src:/app/src:ro
+      - ./apps/web/public:/app/public:ro
+    networks:
+      - axionax-dev
+
+  # ============================================
+  # 🛒 Marketplace (Vite + React)
+  # ============================================
+  marketplace:
+    build:
+      context: ./apps/marketplace
+      dockerfile: Dockerfile
+    container_name: axionax-marketplace-dev
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - '5173:5173'
+    environment:
+      - VITE_RPC_URL=http://axionax-node:8545
+      - VITE_CHAIN_ID=86137
+    volumes:
+      - ./apps/marketplace/src:/app/src:ro
+    networks:
+      - axionax-dev
+
+  # ============================================
+  # 💧 Faucet API
+  # ============================================
+  faucet:
+    build:
+      context: ./apps/faucet-api
+      dockerfile: Dockerfile
+    container_name: axionax-faucet-dev
+    restart: unless-stopped
+    depends_on:
+      - redis
+    ports:
+      - '3002:3002'
+    environment:
+      - RPC_URL=http://axionax-node:8545
+      - REDIS_URL=redis://redis:6379
+      - FAUCET_AMOUNT=100
+      - COOLDOWN_HOURS=24
+      - PORT=3002
+    networks:
+      - axionax-dev
+
+  # ============================================
+  # 📊 Prometheus (Monitoring)
+  # ============================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: axionax-prometheus
+    restart: unless-stopped
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./apps/web/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - axionax-dev
+
+  # ============================================
+  # 📈 Grafana (Dashboards)
+  # ============================================
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: axionax-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    ports:
+      - '3030:3000'
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=axionax
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - axionax-dev
+
+  # ============================================
+  # 🔧 Adminer (Database UI)
+  # ============================================
+  adminer:
+    image: adminer:4
+    container_name: axionax-adminer
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - '8080:8080'
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: pepa-linha-dark
+    networks:
+      - axionax-dev
+
+volumes:
+  node_data:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  axionax-dev:
+    name: axionax-dev-network
+    driver: bridge

@@ -1,0 +1,28 @@
+# Docker
+.dockerignore
+node_modules
+npm-debug.log
+.next
+out
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+nginx/logs/
+
+# SSL Certificates
+nginx/ssl/*.pem
+nginx/ssl/*.key
+
+# Database
+postgres-data/
+redis-data/
+
+# OS
+.DS_Store
+Thumbs.db

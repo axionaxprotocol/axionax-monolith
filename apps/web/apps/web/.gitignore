@@ -1,0 +1,13 @@
+﻿node_modules
+.next
+out
+dist
+.env*.local
+.vercel
+
+# Build artifacts
+*.tar.gz
+*.tgz
+
+# Snyk Security Extension - AI Rules (auto-generated)
+.github\instructions\snyk_rules.instructions.md
