@@ -1,0 +1,14 @@
+# Clippy configuration for AxionAx Core
+
+# Deny warnings in CI
+warn-on-all-wildcard-imports = true
+
+# Complexity threshold
+cognitive-complexity-threshold = 30
+type-complexity-threshold = 500
+
+# Allow specific lints that are too strict
+disallowed-names = []
+
+# Max parameters
+too-many-arguments-threshold = 10

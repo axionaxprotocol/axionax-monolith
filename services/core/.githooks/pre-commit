@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Axionax Core — Pre-commit hook
+# Runs cargo fmt check and cargo clippy before each commit.
+# Install: git config core.hooksPath .githooks
+
+set -e
+
+echo "[pre-commit] Running cargo fmt --all -- --check..."
+cd core
+cargo fmt --all -- --check
+if [ $? -ne 0 ]; then
+    echo "[pre-commit] FAILED: cargo fmt — run 'cd core && cargo fmt --all' to fix"
+    exit 1
+fi
+
+echo "[pre-commit] Running cargo clippy --workspace --lib --tests -- -D warnings..."
+cargo clippy --workspace --lib --tests -- -D warnings 2>&1
+if [ $? -ne 0 ]; then
+    echo "[pre-commit] FAILED: cargo clippy — fix warnings before committing"
+    exit 1
+fi
+
+echo "[pre-commit] All checks passed."

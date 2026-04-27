@@ -1,0 +1,16 @@
+[package]
+name = "ppc"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description = "Posted Price Controller - Dynamic pricing for compute resources"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.0"

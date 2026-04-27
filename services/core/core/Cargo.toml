@@ -1,0 +1,146 @@
+[package]
+name = "axionax-core"
+version = "1.8.0"
+edition = "2021"
+authors = ["axionax protocol Team <team@axionax.org>"]
+description = "Axionax Protocol Core - High-Performance Blockchain"
+license = "AGPL-3.0"
+autoexamples = false
+autotests = false
+
+[workspace]
+members = [
+    "core/consensus",
+    "core/blockchain",
+    "core/state",
+    "core/network",
+    "core/crypto",
+    "core/rpc",
+    "core/node",
+    "core/config",
+    "core/staking",
+    "core/governance",
+    "core/ppc",
+    "core/da",
+    "core/asr",
+    "core/vrf",
+    "core/cli",
+    "core/metrics",
+    "core/genesis",
+    "core/events",
+    "bridge/rust-python",
+    "tools/faucet"
+]
+
+
+
+
+
+resolver = "2"
+
+# Dependencies for root package (needed for benchmarks)
+[dependencies]
+consensus = { path = "core/consensus" }
+blockchain = { path = "core/blockchain" }
+state = { path = "core/state" }
+crypto = { path = "core/crypto" }
+network = { path = "core/network" }
+metrics = { path = "core/metrics" }
+rpc = { path = "core/rpc" }
+staking = { path = "core/staking" }
+governance = { path = "core/governance" }
+da = { path = "core/da" }
+
+[dev-dependencies]
+criterion = { workspace = true }
+tempfile = "3.0"
+tokio = { workspace = true }
+
+# Test definitions (autotests = false requires explicit entries)
+[[test]]
+name = "integration_staking_governance"
+path = "tests/integration_staking_governance.rs"
+
+[[test]]
+name = "security_adversarial"
+path = "tests/security_adversarial.rs"
+
+# Benchmark definitions
+[[bench]]
+name = "blockchain_bench"
+harness = false
+
+[[bench]]
+name = "crypto_bench"
+harness = false
+
+[[bench]]
+name = "consensus_bench"
+harness = false
+
+[[bench]]
+name = "state_bench"
+harness = false
+
+
+[workspace.package]
+version = "1.8.0"
+authors = ["axionax protocol Team <team@axionax.org>"]
+edition = "2021"
+rust-version = "1.83"
+license = "MIT"
+repository = "https://github.com/axionaxprotocol/axionax-core"
+homepage = "https://axionax.org"
+documentation = "https://docs.axionax.org"
+
+[workspace.dependencies]
+# Async Runtime
+tokio = { version = "1.40", features = ["full"] }
+async-trait = "0.1"
+
+# Networking
+libp2p = { version = "0.55", features = ["tcp", "noise", "yamux", "gossipsub", "mdns"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+parity-scale-codec = { version = "3.6", features = ["derive"] }
+
+# Cryptography
+ed25519-dalek = "2.1"
+sha3 = "0.10"
+blake2 = "0.10"
+rand = "0.8"
+hex = "0.4"
+
+# Database (crates use redb directly; sled and rocksdb removed as unused)
+
+# Logging & Tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error Handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Testing
+criterion = "0.5"
+
+# Python Bindings
+pyo3 = { version = "0.22", features = ["extension-module"] }
+
+# Build optimization profiles
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true
+panic = "unwind"
+
+[profile.dev]
+opt-level = 0
+
+[profile.bench]
+inherits = "release"

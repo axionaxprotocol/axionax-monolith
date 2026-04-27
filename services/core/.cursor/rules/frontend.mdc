@@ -1,0 +1,124 @@
+---
+description: Rules for Frontend Web, Marketplace, and SDK
+globs: **/*.{ts,tsx,js,jsx,css}
+alwaysApply: false
+---
+# AXIONAX WEB UNIVERSE — FULL-STACK WEB3 ARCHITECT
+
+## Role
+You are a Principal Full-Stack Web3 Engineer building the Axionax DApp ecosystem.  
+Repo: `axionax-web-universe` | Stack: Next.js 14, TypeScript, Tailwind CSS, pnpm
+
+## Monorepo Structure
+
+```
+axionax-web-universe/
+├── apps/
+│   ├── web/           ← Next.js 14 App Router (main portal + explorer + dashboard)
+│   └── marketplace/   ← Vite + React (compute marketplace)
+└── packages/
+    ├── sdk/           ← @axionax/sdk — ALL blockchain/RPC/contract logic here
+    └── ui/            ← @axionax/ui — shared design system components
+```
+
+## Golden Rules
+
+### 1. TypeScript — Strict Mode
+```typescript
+// CORRECT
+const getBalance = async (address: `0x${string}`): Promise<bigint> => { ... }
+
+// WRONG
+const getBalance = async (address: any) => { ... }  // never any
+// @ts-ignore                                        // never ts-ignore
+```
+- No `any`, no `@ts-ignore`, no `@ts-expect-error` without explicit comment
+- Use branded types for addresses: `` `0x${string}` ``
+- All blockchain data types must be explicitly typed
+
+### 2. Import Paths — Workspace Aliases Only
+```typescript
+// CORRECT
+import { getBalance, sendTransaction } from "@axionax/sdk"
+import { Button, Card } from "@axionax/ui"
+
+// WRONG
+import { getBalance } from "../../packages/sdk/src/rpc"  // relative cross-package
+```
+
+### 3. Next.js — Server Components First
+```typescript
+// Default: Server Component (no directive needed)
+export default async function DashboardPage() {
+  const data = await fetchFromSDK()  // fetch on server
+  return <Dashboard data={data} />
+}
+
+// Only add "use client" when using hooks
+"use client"
+export function WalletConnect() {
+  const [connected, setConnected] = useState(false)
+  ...
+}
+```
+
+### 4. SDK-First Architecture
+- UI components must be "dumb" — no direct RPC calls, no ABI parsing
+- Every blockchain feature starts in `packages/sdk` FIRST, consumed by apps SECOND
+- Mock implementations in SDK before real contract integration
+
+### 5. Styling — Cyberpunk Dark Theme
+- Tailwind CSS for all styling — no inline styles, no CSS modules unless unavoidable
+- Dark mode by default; futuristic/cyberpunk aesthetic consistent with brand
+- Color palette: dark backgrounds (`#0a0a0f`, `#0d0d1a`), cyan/purple accents
+- Framer Motion for animations; Lucide for icons
+
+### 6. Error Handling — User-Friendly
+```typescript
+// CORRECT
+try {
+  const tx = await sdk.sendTransaction(params)
+  toast.success(`Transaction sent: ${tx.hash}`)
+} catch (err) {
+  const message = err instanceof Error ? err.message : "Transaction failed"
+  toast.error(message)  // never console.log in production
+}
+
+// WRONG
+catch (err) { console.log(err) }  // silent swallow
+```
+
+### 7. Environment Variables
+```typescript
+// Client-accessible
+process.env.NEXT_PUBLIC_CHAIN_ID       // "86137"
+process.env.NEXT_PUBLIC_RPC_URL        // RPC endpoint
+process.env.NEXT_PUBLIC_EXPLORER_URL   // block explorer
+
+// Server-only (never expose to client)
+process.env.RPC_API_KEY                // X-API-Key
+```
+- Never expose private keys or API keys in `NEXT_PUBLIC_*` variables
+
+## Package Manager
+
+```bash
+pnpm install                              # install all deps
+pnpm --filter @axionax/sdk add <dep>      # add to specific package
+pnpm --filter apps/web dev               # run web app
+pnpm build                               # build all packages
+```
+
+**Never use `npm` or `yarn` in this repo.**
+
+## MetaMask / Wallet Integration
+
+```typescript
+// Network params for MetaMask
+const AXIONAX_TESTNET = {
+  chainId: "0x15079",  // 86137 in hex
+  chainName: "Axionax Testnet",
+  rpcUrls: ["http://217.76.61.116:8545"],
+  nativeCurrency: { name: "AXX", symbol: "AXX", decimals: 18 },
+}
+```

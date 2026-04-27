@@ -1,0 +1,32 @@
+{
+  "rpc_url": "https://rpc.axionax.org",
+  "generated_at_utc": "2026-03-21T15:20:04.864427+00:00",
+  "scenarios": [
+    {
+      "name": "smoke",
+      "ok": true,
+      "summary": "smoke OK",
+      "metrics": {
+        "eth_chainId_ms": 903.12,
+        "eth_blockNumber_ms": 700.6,
+        "chain_id_hex": "0x15079",
+        "block_number_hex": "0x1af35"
+      }
+    },
+    {
+      "name": "light_usage",
+      "ok": true,
+      "summary": "light: 48 core ok, 0 core fail over 45s (p50 472ms)",
+      "metrics": {
+        "core_successes": 48,
+        "core_failures": 0,
+        "optional_attempts": 3,
+        "optional_ok": 0,
+        "latency_p50_ms": 472.43,
+        "latency_p95_ms": 648.79,
+        "latency_mean_ms": 489.81
+      }
+    }
+  ],
+  "overall_ok": true
+}

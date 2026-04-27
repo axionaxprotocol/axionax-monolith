@@ -1,0 +1,37 @@
+# Monolith MK-I Scout+ (Single Hailo) — Production
+# Use when you have a single Hailo (e.g., one AI HAT+ 2 unit)
+# Run: python core/deai/worker_node.py --config configs/monolith_scout_single.toml
+
+[worker]
+name = "monolith-mk1-scout"
+version = "1.0.0"
+environment = "production"
+
+[network]
+bootnodes = [
+    "https://rpc.axionax.org",
+    "https://rpc-au.axionax.org"
+]
+chain_id = 86137
+contract_address = "0x0000000000000000000000000000000000000000"
+
+[hardware]
+force_cpu = false
+compute_type = "NPU"
+npu_device_id = 0
+max_memory_gb = 4
+
+[limits]
+default_memory_mb = 2048
+max_memory_mb = 4096
+max_models_in_memory = 2
+
+[cache]
+enable_model_cache = true
+max_cache_size_gb = 2
+preload_on_startup = false
+
+[experimental]
+hardware_tier = 3
+compute_type = "NPU"
+task_role = "WORKER"

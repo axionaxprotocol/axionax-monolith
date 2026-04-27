@@ -1,0 +1,72 @@
+import requests
+import json
+import time
+from typing import Any, Dict, List, Optional
+
+class AxionaxRpcClient:
+    """
+    Simple JSON-RPC client for Axionax Chain
+    """
+    def __init__(self, rpc_url: str = "https://rpc.axionax.org"):
+        self.rpc_url = rpc_url
+        self.headers = {'content-type': 'application/json'}
+        self.id_counter = 0
+
+        if rpc_url.startswith("http://") and not rpc_url.startswith("http://127.0.0.1") and not rpc_url.startswith("http://localhost"):
+            import warnings
+            warnings.warn(
+                f"RPC URL '{rpc_url}' uses plaintext HTTP for a non-localhost address. "
+                "Use HTTPS to protect traffic in transit.",
+                stacklevel=2,
+            )
+
+    def _call(self, method: str, params: Optional[List[Any]] = None) -> Any:
+        if params is None:
+            params = []
+        self.id_counter += 1
+        payload = {
+            "jsonrpc": "2.0",
+            "method": method,
+            "params": params,
+            "id": self.id_counter
+        }
+        
+        try:
+            response = requests.post(
+                self.rpc_url, 
+                data=json.dumps(payload), 
+                headers=self.headers,
+                timeout=10
+            )
+            response.raise_for_status()
+            result = response.json()
+            
+            if "error" in result:
+                raise Exception(f"RPC Error: {result['error']}")
+                
+            return result["result"]
+            
+        except requests.exceptions.RequestException as e:
+            print(f"Connection Error: {e}")
+            return None
+
+    def get_block_number(self) -> int:
+        result = self._call("eth_blockNumber")
+        return int(result, 16) if result else 0
+
+    def get_balance(self, address: str) -> int:
+        result = self._call("eth_getBalance", [address, "latest"])
+        return int(result, 16) if result else 0
+
+    def get_logs(self, from_block: str, address: Optional[str] = None, topics: Optional[List[str]] = None) -> List[Dict]:
+        if topics is None:
+            topics = []
+        params = [{
+            "fromBlock": from_block,
+            "toBlock": "latest",
+            "topics": topics
+        }]
+        if address:
+            params[0]["address"] = address
+            
+        return self._call("eth_getLogs", params) or []

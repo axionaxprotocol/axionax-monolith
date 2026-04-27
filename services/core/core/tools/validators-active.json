@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Validator-EU-01",
+    "address": "0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326",
+    "stake": "25000000000000000000000000000",
+    "commission": 0.1,
+    "enode": "enode://GENERATED@217.76.61.116:30303",
+    "location": "EU",
+    "operator": "Axionax Genesis EU",
+    "ip": "217.76.61.116"
+  },
+  {
+    "name": "Validator-AU-01",
+    "address": "0x26e714016c6a91b791bb440ca8db6cd7c4d1e6cb",
+    "stake": "25000000000000000000000000000",
+    "commission": 0.1,
+    "enode": "enode://GENERATED@46.250.244.4:30303",
+    "location": "AU",
+    "operator": "Axionax Genesis AU",
+    "ip": "46.250.244.4"
+  }
+]

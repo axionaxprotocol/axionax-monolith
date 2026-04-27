@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            core/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock', 'core/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+      - name: Check format
+        run: cargo fmt --all -- --check
+      - name: Build
+        run: cargo build --workspace
+      - name: Clippy
+        run: cargo clippy --workspace -- -D warnings
+        continue-on-error: true
+      - name: Test
+        run: cargo test --workspace --no-fail-fast
+        continue-on-error: true
+      - name: Security (cargo audit)
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+        continue-on-error: true
+
+  python:
+    name: Python (DeAI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          cd core/deai
+          pip install -r requirements.txt
+      - name: Pytest
+        run: |
+          cd core/deai
+          python -m pytest . -v --tb=short --ignore=tests -q
+        continue-on-error: true
+      - name: Security (bandit)
+        run: |
+          pip install bandit
+          bandit -r core/deai -ll --skip B101 -q
+        continue-on-error: true

@@ -1,0 +1,88 @@
+---
+description: หลักการโปรโตคอล Axionax — Self-Sufficiency, Cyber Defense, Protocol Invariants
+globs: docs/**/*, README.md, RULES.md, SKILLS.md
+alwaysApply: false
+---
+
+# Axionax Protocol — Core Principles
+
+## 1. Self-Sufficiency (ทำงานได้โดยไม่พึ่งภายนอก)
+
+โปรโตคอลต้องสามารถทำงานได้โดยสมบูรณ์ด้วยตัวเอง:
+
+- **Runtime:** ไม่เรียก PyPI / npm / crates.io ขณะรัน; ไม่บังคับ third-party API
+- **Telemetry:** optional — ปิดได้ด้วย `--telemetry` ไม่ส่ง; node ยัง sync และ produce block ได้ปกติ
+- **Bootnodes/RPC:** เป็น node บน chain นี้ หรือที่ operator กำหนด (รองรับ air-gapped)
+- **Binaries:** node ทำงานจาก compiled binary + config + P2P เท่านั้น
+
+> รายละเอียด: `docs/SELF_SUFFICIENCY.md`
+
+---
+
+## 2. Cyber Defense via DeAI (7 Sentinels)
+
+โปรโตคอลป้องกันตัวเองจากภัยคุกคามผ่าน **7 Sentinel AI models** บน Sentinel nodes:
+
+| Sentinel | บทบาท | ตรวจสอบ |
+|----------|--------|----------|
+| AION-VX | Temporal integrity | Clock drift, event ordering attacks |
+| SERAPH-VX | Network defense | DDoS, eclipse attacks, abnormal traffic |
+| ORION-VX | Fraud detection | PoPC proof anomaly scoring (IsolationForest) |
+| DIAOCHAN-VX | Reputation scoring | Worker reliability over time |
+| VULCAN-VX | Hardware verification | Compute attestation, hardware fingerprint |
+| THEMIS-VX | Dispute resolution | Contested job result arbitration |
+| NOESIS-VX | GenAI core | Governance analysis, high-level reasoning |
+
+- **Local inference** — ตัดสินใจในเครือข่าย ไม่บังคับ external API
+- **PoPC sampling** — ตรวจ fraud ด้วยสถิติ ไม่ต้อง re-execute ทั้งหมด
+
+> รายละเอียด: `docs/CYBER_DEFENSE.md`
+
+---
+
+## 3. Protocol Invariants (ห้ามเปลี่ยนโดยไม่มีแผน Migration)
+
+สิ่งต่อไปนี้เป็น **canonical values** — เปลี่ยนแล้วจะ break backward compatibility:
+
+```
+Chain ID (testnet):    86137
+Chain ID (mainnet):    86150
+Block reward:          1_000_000_000_000_000_000 wei (1 AXX)
+Min validator stake:   10_000 * 10^18 (10,000 AXX)
+Finality threshold:    votes * 3 >= active_validators * 2  (≥2/3)
+PoPC sample size:      1000 (config: protocol.testnet.yaml)
+Transaction signing:   Ed25519, payload = from+to+value+gas_price+gas_limit+nonce+data
+Address format:        0x + 40 hex chars (Blake2s hash of Ed25519 public key)
+RPC port:              8545 (JSON-RPC 2.0)
+Health port:           8080 (HTTP)
+P2P port:              30303 (libp2p)
+```
+
+---
+
+## 4. Geo-Hierarchy Network Topology (5 Tiers)
+
+| Tier | Role | Scale |
+|------|------|-------|
+| Tier 5 (Edge) | Monolith Scout/Vanguard; general AI inference | 10M+ nodes |
+| Tier 4 (Metro) | Aggregate proofs from Tier 5, batching | Metro-level |
+| Tier 3 (National) | Traffic and data sovereignty | Country-level |
+| Tier 2 (Regional) | Large model training (LLM) | Super nodes |
+| Tier 1 (Global Root) | Space/Foundation nodes; global state root | Foundation |
+
+---
+
+## 5. Project Roadmap (Project Ascension)
+
+| Phase | Timeline | Focus |
+|-------|----------|-------|
+| Phase 1 (Incarnation) | Q1 2026 | Public testnet, Monolith Scout/Vanguard sales |
+| Phase 2 (Genesis) | Q3 2026 | Mainnet launch, AXX listing, live Marketplace |
+| Phase 3 (Evolution) | 2027 | Photonic chip, Enterprise API |
+| Phase 4 (Ascension) | 2028+ | Space nodes, Global Neural Grid |
+
+*Current status: Pre-Testnet Phase 2 (March 2026)*
+
+---
+
+*รายละเอียดเต็ม: `docs/SELF_SUFFICIENCY.md`, `docs/CYBER_DEFENSE.md`, `MASTER_SUMMARY.md`*

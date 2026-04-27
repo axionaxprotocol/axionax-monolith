@@ -1,0 +1,288 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {"name": "_axxToken", "type": "address"},
+      {"name": "_minStake", "type": "uint256"},
+      {"name": "_platformFeeRate", "type": "uint256"},
+      {"name": "_disputePeriod", "type": "uint256"}
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "registerWorker",
+    "inputs": [{"name": "stakeAmount", "type": "uint256"}],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "addStake",
+    "inputs": [{"name": "amount", "type": "uint256"}],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "deactivateWorker",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "createJob",
+    "inputs": [
+      {"name": "jobType", "type": "uint8"},
+      {"name": "reward", "type": "uint256"},
+      {"name": "timeout", "type": "uint256"},
+      {"name": "inputHash", "type": "bytes32"}
+    ],
+    "outputs": [{"name": "jobId", "type": "uint256"}],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "assignJob",
+    "inputs": [{"name": "jobId", "type": "uint256"}],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "submitResult",
+    "inputs": [
+      {"name": "jobId", "type": "uint256"},
+      {"name": "resultHash", "type": "bytes32"},
+      {"name": "proofHash", "type": "bytes32"}
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimReward",
+    "inputs": [{"name": "jobId", "type": "uint256"}],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "disputeJob",
+    "inputs": [{"name": "jobId", "type": "uint256"}],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "cancelJob",
+    "inputs": [{"name": "jobId", "type": "uint256"}],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "getJob",
+    "inputs": [{"name": "jobId", "type": "uint256"}],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {"name": "id", "type": "uint256"},
+          {"name": "submitter", "type": "address"},
+          {"name": "worker", "type": "address"},
+          {"name": "jobType", "type": "uint8"},
+          {"name": "status", "type": "uint8"},
+          {"name": "reward", "type": "uint256"},
+          {"name": "deposit", "type": "uint256"},
+          {"name": "timeout", "type": "uint256"},
+          {"name": "createdAt", "type": "uint256"},
+          {"name": "assignedAt", "type": "uint256"},
+          {"name": "completedAt", "type": "uint256"},
+          {"name": "inputHash", "type": "bytes32"},
+          {"name": "resultHash", "type": "bytes32"},
+          {"name": "proofHash", "type": "bytes32"}
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getWorker",
+    "inputs": [{"name": "addr", "type": "address"}],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "components": [
+          {"name": "addr", "type": "address"},
+          {"name": "stake", "type": "uint256"},
+          {"name": "reputation", "type": "uint256"},
+          {"name": "jobsCompleted", "type": "uint256"},
+          {"name": "jobsFailed", "type": "uint256"},
+          {"name": "active", "type": "bool"},
+          {"name": "registeredAt", "type": "uint256"}
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getActiveWorkers",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "address[]"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getPendingJobs",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256[]"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getSubmitterJobs",
+    "inputs": [{"name": "submitter", "type": "address"}],
+    "outputs": [{"name": "", "type": "uint256[]"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getWorkerJobs",
+    "inputs": [{"name": "worker", "type": "address"}],
+    "outputs": [{"name": "", "type": "uint256[]"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "axxToken",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "address"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "nextJobId",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "minStake",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "platformFeeRate",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "disputePeriod",
+    "inputs": [],
+    "outputs": [{"name": "", "type": "uint256"}],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "WorkerRegistered",
+    "inputs": [
+      {"name": "worker", "type": "address", "indexed": true},
+      {"name": "stake", "type": "uint256", "indexed": false}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "WorkerUpdated",
+    "inputs": [
+      {"name": "worker", "type": "address", "indexed": true},
+      {"name": "newStake", "type": "uint256", "indexed": false}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "WorkerDeactivated",
+    "inputs": [
+      {"name": "worker", "type": "address", "indexed": true}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "JobCreated",
+    "inputs": [
+      {"name": "jobId", "type": "uint256", "indexed": true},
+      {"name": "submitter", "type": "address", "indexed": true},
+      {"name": "jobType", "type": "uint8", "indexed": false},
+      {"name": "reward", "type": "uint256", "indexed": false},
+      {"name": "inputHash", "type": "bytes32", "indexed": false}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "JobAssigned",
+    "inputs": [
+      {"name": "jobId", "type": "uint256", "indexed": true},
+      {"name": "worker", "type": "address", "indexed": true},
+      {"name": "assignedAt", "type": "uint256", "indexed": false}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "JobCompleted",
+    "inputs": [
+      {"name": "jobId", "type": "uint256", "indexed": true},
+      {"name": "worker", "type": "address", "indexed": true},
+      {"name": "resultHash", "type": "bytes32", "indexed": false},
+      {"name": "proofHash", "type": "bytes32", "indexed": false}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "JobDisputed",
+    "inputs": [
+      {"name": "jobId", "type": "uint256", "indexed": true},
+      {"name": "disputer", "type": "address", "indexed": true}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "JobCancelled",
+    "inputs": [
+      {"name": "jobId", "type": "uint256", "indexed": true}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "JobRefunded",
+    "inputs": [
+      {"name": "jobId", "type": "uint256", "indexed": true}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "RewardClaimed",
+    "inputs": [
+      {"name": "jobId", "type": "uint256", "indexed": true},
+      {"name": "worker", "type": "address", "indexed": true},
+      {"name": "amount", "type": "uint256", "indexed": false}
+    ]
+  },
+  {
+    "type": "event",
+    "name": "SlashApplied",
+    "inputs": [
+      {"name": "worker", "type": "address", "indexed": true},
+      {"name": "amount", "type": "uint256", "indexed": false}
+    ]
+  }
+]

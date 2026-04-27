@@ -1,0 +1,8 @@
+{
+  "rpc": "https://rpc.axionax.org",
+  "duration_sec": 45.6,
+  "blocks_produced": 9,
+  "blocks_per_second": 0.1974,
+  "avg_block_time_sec": 4.7443,
+  "finality_target_met": false
+}

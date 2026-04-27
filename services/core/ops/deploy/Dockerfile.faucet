@@ -1,0 +1,22 @@
+# Build Faucet binary from core workspace
+FROM rust:1.90-slim-bookworm AS builder
+WORKDIR /build
+RUN apt-get update && apt-get install -y --no-install-recommends pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+
+COPY . .
+# Build inside core/ to avoid the outer root-level workspace conflict
+WORKDIR /build/core
+RUN cargo build --release -p axionax-faucet
+
+# Runtime image
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
+RUN adduser --system --uid 1000 faucet
+USER faucet
+WORKDIR /app
+COPY --from=builder /build/core/target/release/axionax-faucet /app/axionax-faucet
+ENV PORT=3002
+EXPOSE 3002
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -sf http://localhost:3002/health || exit 1
+ENTRYPOINT ["/app/axionax-faucet"]

@@ -1,0 +1,25 @@
+[package]
+name = "blockchain"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+ed25519-dalek = { workspace = true }
+
+# Persistent storage
+redb = "2"
+postcard = { version = "1", features = ["alloc"] }
+
+# Internal dependencies
+crypto = { path = "../crypto" }
+genesis = { path = "../genesis" }
+hex = "0.4"
+
+[dev-dependencies]
+tempfile = "3.8"

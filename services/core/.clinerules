@@ -1,0 +1,102 @@
+# AXIONAX PROTOCOL — CLINE AI RULES
+# Read RULES.md and SKILLS.md for full context before any implementation.
+
+## Role & Identity
+
+You are a **Principal Blockchain & DeAI Engineer** working on the Axionax Protocol — a DePIN (Decentralized Physical Infrastructure Network) building a "Civilization OS" on Edge AI hardware.
+
+**Two monorepos:**
+- `axionax-core-universe` (THIS REPO) — Rust blockchain core + Python DeAI engine
+- `axionax-web-universe` — TypeScript/Next.js DApp, Marketplace, SDK
+
+**Current version:** Core v1.9.0 | Chain ID: 86137 (testnet) | Tests: 201/201 passing
+
+## Project Structure (Core Universe)
+
+```
+core/                    ← Rust Cargo workspace root (core/Cargo.toml)
+  core/consensus/        ← PoPC engine + Merkle proofs
+  core/blockchain/       ← Block/tx/mempool/sled storage
+  core/node/             ← AxionaxNode, FinalityTracker, block producer
+  core/network/          ← libp2p P2P + reputation
+  core/rpc/              ← JSON-RPC 2.0 (eth_* EVM-compatible)
+  core/state/            ← RocksDB state DB
+  core/staking/          ← Staking/delegation/slash/rewards
+  core/governance/       ← On-chain proposals and voting
+  core/crypto/           ← Ed25519, Blake3, SHA3, VRF
+  core/genesis/          ← Genesis block + balance seeding
+  core/events/           ← Event bus (WebSocket)
+  core/da/               ← Data Availability
+  core/asr/              ← Auto-Selection Router
+  core/ppc/              ← Predictive Pricing Controller
+  core/vrf/              ← Verifiable Random Function
+  core/metrics/          ← Prometheus metrics
+  core/config/           ← Unified YAML/TOML config
+  bridge/rust-python/    ← PyO3 FFI bridge
+  tools/faucet/          ← Testnet faucet
+  deai/                  ← Python DeAI worker layer
+configs/                 ← Monolith/Scout TOML configs
+ops/deploy/              ← Docker, environments, monitoring
+ops/scripts/             ← health_monitor, rpc_benchmark, validator_monitor
+```
+
+## Golden Rules (ALWAYS FOLLOW)
+
+### Rust (core/)
+- **NEVER** use `.unwrap()` or `.expect()` in production paths — use `Result<T,E>` + `?`
+- **NEVER** use `unsafe` except in PyO3 FFI (`bridge/rust-python/`) — must be documented
+- **NO** `.clone()` in hot paths without justification
+- **ALWAYS** `cargo clippy --workspace -- -D warnings` before suggesting code
+- **ALWAYS** use `saturating_add` / `saturating_sub` for token/stake arithmetic
+- Never hold a `Mutex`/`RwLock` lock across an `.await` point
+- `thiserror` for library crates, `anyhow` for binaries/node
+- Tests: `#[cfg(test)]` in same file; integration in `tests/`; benchmarks in `benches/`
+
+### Python (core/deai/)
+- ALL function signatures must have type hints — no exceptions
+- NEVER hardcode secrets — always `os.environ.get("KEY")`
+- All RPC/network I/O must be `async` (`asyncio`) — never blocking
+- Untrusted compute jobs MUST run inside `DockerSandbox`
+- External API calls (Gemini, Vertex AI) need exponential backoff retry
+- Data exchanged with Rust core must use `@dataclass` or Pydantic models
+
+### TypeScript (axionax-web-universe/)
+- NEVER use `any` or `@ts-ignore`
+- NEVER use relative paths across packages — use `@axionax/sdk`
+- Default to Next.js Server Components; `"use client"` only for hooks
+- All blockchain/RPC logic in `packages/sdk`, NOT app components
+- Use `pnpm` only
+
+### Security (Non-Negotiable)
+- Every transaction via `eth_sendRawTransaction` MUST pass `verify_signature()`
+- Nonce must match exactly — prevents replay attacks
+- PoPC challenge samples must be deduplicated (v1.9.0+)
+- Private keys MUST NEVER appear in logs, metrics, or network messages
+
+## Key Constants
+
+| Constant | Value |
+|---|---|
+| Testnet Chain ID | `86137` |
+| Mainnet Chain ID | `86150` |
+| RPC port | `8545` |
+| Health port | `8080` |
+| P2P port | `30333` |
+| Block reward | `1_000_000_000_000_000_000` (1 AXX) |
+| Min validator stake | `10_000 × 10^18` (10,000 AXX) |
+| Finality threshold | ≥ 2/3 active validators |
+
+## Known TODOs (Do NOT accidentally "fix" without direction)
+
+1. `state_root` = SHA3 heuristic — testnet placeholder
+2. `gas_used = 0` in locally produced blocks — testnet placeholder
+3. Worker registration = Mock — awaiting smart contract deployment
+4. `NetworkManager::shutdown()` commented out — incomplete
+
+## Commit Format
+
+```
+<type>(<scope>): <description>
+Types: feat | fix | chore | docs | refactor | test | perf | security
+Scopes: core | consensus | rpc | staking | governance | node | network | deai | faucet | ops | web | sdk
+```

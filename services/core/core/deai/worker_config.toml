@@ -1,0 +1,131 @@
+# =============================================================================
+# Axionax DeAI Worker Configuration
+# Version: 1.9.0 (Optimized)
+# =============================================================================
+
+[worker]
+name = "axionax-worker-local"
+version = "1.9.0"
+environment = "development"
+
+# =============================================================================
+# Network Configuration
+# =============================================================================
+[network]
+# List of Bootnodes (Validators) to discover the network
+bootnodes = [
+    "https://rpc.axionax.org",       # EU Validator
+    "https://rpc-au.axionax.org"     # AU Validator
+]
+chain_id = 86137
+contract_address = "0x0000000000000000000000000000000000000000"  # Placeholder
+
+# Retry configuration for network resilience
+max_retries = 5
+retry_delay_seconds = 2
+connection_timeout_seconds = 30
+
+# =============================================================================
+# Hardware Configuration
+# =============================================================================
+[hardware]
+# CPU Settings
+force_cpu = false              # Set to true to force CPU-only mode
+
+# Memory Settings
+max_memory_gb = 60             # Max RAM usage (adjust based on your system)
+memory_fraction = 0.9          # Use 90% of available memory
+
+# GPU Settings (NVIDIA CUDA)
+cuda_device_id = 0             # GPU device ID (0 = first GPU)
+enable_tensor_cores = true     # Enable Tensor Cores for faster inference
+gpu_memory_fraction = 0.85     # Use 85% of GPU memory
+
+# =============================================================================
+# Performance Tuning
+# =============================================================================
+[performance]
+# Worker threading
+worker_threads = 8             # Number of worker threads for parallel jobs
+io_threads = 4                 # I/O threads for async operations
+
+# Batch processing
+default_batch_size = 32        # Default batch size for inference
+max_batch_size = 128           # Maximum batch size allowed
+prefetch_queue_size = 4        # Prefetch queue depth for pipelining
+
+# Optimization flags
+enable_jit_compilation = true  # Enable JIT compilation for models
+enable_mixed_precision = true  # Use FP16 where possible for speed
+enable_cudnn_benchmark = true  # Auto-tune cuDNN for best performance
+
+# =============================================================================
+# Model Caching Configuration
+# =============================================================================
+[cache]
+# Enable model caching for zero-latency inference
+enable_model_cache = true
+cache_dir = ".cache/models"
+max_cache_size_gb = 20         # Max disk cache size
+
+# Preloading - models loaded into memory at startup
+preload_on_startup = true
+preload_models = [
+    "default",                 # Default inference model
+    # "aion",                  # Sentinel Aion (uncomment when available)
+    # "diaochan",              # Sentinel DiaoChan (uncomment when available)
+]
+
+# Memory management
+keep_models_in_memory = true   # Keep frequently used models in RAM
+max_models_in_memory = 5       # Maximum models to keep in memory
+eviction_policy = "lru"        # LRU = Least Recently Used
+
+# =============================================================================
+# Resource Limits for Job Execution
+# =============================================================================
+[limits]
+# Default limits (applied if job doesn't specify)
+default_cpu_count = 4.0
+default_memory_mb = 4096       # 4GB
+default_timeout_seconds = 600  # 10 minutes
+
+# Maximum limits (job cannot exceed these)
+max_cpu_count = 8.0
+max_memory_mb = 32768          # 32GB
+max_timeout_seconds = 1800     # 30 minutes
+max_pids = 200                 # Maximum process count
+
+# Sandbox settings
+sandbox_network_disabled = true    # Always disable network in sandbox
+sandbox_read_only_root = true      # Read-only root filesystem
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+[logging]
+level = "INFO"                 # DEBUG, INFO, WARNING, ERROR
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+file = "logs/worker.log"
+max_file_size_mb = 100
+backup_count = 5
+
+# =============================================================================
+# Health & Monitoring
+# =============================================================================
+[monitoring]
+enable_metrics = true
+metrics_port = 9090            # Prometheus metrics endpoint
+health_check_interval_seconds = 30
+report_to_network = true       # Report health status to network
+
+# =============================================================================
+# [EVOLUTION] Experimental - Monolith Mark-II / Photonic
+# =============================================================================
+[experimental]
+# Optical bridge: enable when ACCEL/Taichi chip is available (simulation today)
+enable_optical_bridge = false
+# Hardware tier for ASR / Priority Validation: 1=PC, 2=Server, 3=Monolith
+hardware_tier = 1
+# Compute type: SILICON (default), PHOTONIC, HYBRID
+compute_type = "SILICON"

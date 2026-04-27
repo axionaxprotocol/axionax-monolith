@@ -1,0 +1,34 @@
+[worker]
+name = "monolith-mk1-sentinel"
+version = "1.0.0-hydra"
+environment = "production"
+
+[network]
+bootnodes = [
+    "https://rpc.axionax.org",
+    "https://rpc-au.axionax.org"
+]
+chain_id = 86137
+contract_address = "0x0000000000000000000000000000000000000000"
+
+[hardware]
+force_cpu = false
+# Use first Hailo device (/dev/hailo0)
+compute_type = "NPU"
+npu_device_id = 0
+max_memory_gb = 4
+
+[limits]
+default_memory_mb = 2048
+max_memory_mb = 4096
+max_models_in_memory = 2
+
+[cache]
+enable_model_cache = true
+max_cache_size_gb = 2
+preload_on_startup = false
+
+[experimental]
+hardware_tier = 3  # Monolith tier
+compute_type = "NPU"  # Align with [hardware]
+task_role = "SENTINEL"  # Security/Vision jobs only

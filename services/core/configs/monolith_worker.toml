@@ -1,0 +1,40 @@
+[worker]
+name = "monolith-mk1-worker"
+version = "1.0.0-hydra"
+environment = "production"
+
+[network]
+bootnodes = [
+    "https://rpc.axionax.org",
+    "https://rpc-au.axionax.org"
+]
+chain_id = 86137
+contract_address = "0x0000000000000000000000000000000000000000"
+
+[hardware]
+force_cpu = false
+# Use second Hailo device (/dev/hailo1)
+compute_type = "NPU"
+npu_device_id = 1
+max_memory_gb = 4
+
+[limits]
+# Scout/RPi: lighter limits than desktop
+default_memory_mb = 2048
+max_memory_mb = 4096
+max_models_in_memory = 2
+
+[cache]
+enable_model_cache = true
+max_cache_size_gb = 2
+preload_on_startup = false
+
+[experimental]
+hardware_tier = 3
+compute_type = "NPU"  # Align with [hardware]
+task_role = "WORKER"  # General compute jobs
+
+[fallback_compute]
+enable_vertex_ai_fallback = true
+vertex_project_id = "your-vertex-project-id"
+vertex_location = "us-central1"

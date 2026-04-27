@@ -1,0 +1,44 @@
+target/
+__pycache__/
+.venv/
+
+# ======================
+# Security - NEVER commit!
+# ======================
+worker_key.json
+*.keystore
+*.keystore.json
+.env
+.env.local
+.env.production
+**/identity.key
+# Keep .env.example committed; do not commit .env or .env.faucet
+ops/deploy/.env.faucet
+ops/deploy/.env.vps3-faucet
+ops/deploy/environments/testnet/public/faucet.env
+ops/deploy/environments/testnet/public/explorer.env
+ops/deploy/environments/testnet/public/.env.monitoring
+
+# Python
+*.py[cod]
+*$py.class
+*.so
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Built node package (optional; run scripts/make-node-package.py to create)
+axionax-node-package.zip
+
+# Local node state and test artifacts
+.local-node-state/
+.rpc-test.json

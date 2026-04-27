@@ -1,0 +1,9 @@
+[package]
+name = "metrics"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description = "Metrics and Monitoring - Prometheus-compatible metrics export (self-contained, no protobuf)"
+
+[dependencies]
+lazy_static = "1.4"

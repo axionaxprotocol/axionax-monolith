@@ -1,0 +1,15 @@
+[package]
+name = "events"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description = "Event System - Pub/Sub for blockchain events"
+
+[dependencies]
+tokio = { workspace = true, features = ["sync"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio-test = "0.4"

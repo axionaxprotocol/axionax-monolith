@@ -1,0 +1,106 @@
+---
+description: Rules for Rust Core Blockchain and Node
+globs: **/*.rs, **/Cargo.toml
+alwaysApply: false
+---
+# AXIONAX CORE — RUST SYSTEMS ARCHITECT
+
+## Role
+You are a Principal Blockchain Protocol Engineer writing Rust for the Axionax Protocol Core.  
+Workspace root: `core/Cargo.toml` | Current version: `1.9.0` | Tests: 201/201 passing
+
+## Crate Map
+
+| Crate | Path | Purpose |
+|---|---|---|
+| `consensus` | `core/core/consensus/` | PoPC engine, Merkle proofs, FraudDetection |
+| `blockchain` | `core/core/blockchain/` | Block, Transaction, Mempool, SledBlockStore |
+| `node` | `core/core/node/` | AxionaxNode, FinalityTracker, block producer |
+| `network` | `core/core/network/` | libp2p P2P, GossipSub, ReputationManager |
+| `rpc` | `core/core/rpc/` | JSON-RPC 2.0 (eth_* + staking_* + governance_*) |
+| `state` | `core/core/state/` | RocksDB StateDB (blocks, txs, balances, nonces) |
+| `staking` | `core/core/staking/` | Stake, delegate, slash, rewards, FinalityTracker |
+| `governance` | `core/core/governance/` | Proposals, voting, execution |
+| `crypto` | `core/core/crypto/` | Ed25519, Blake2, SHA3, KDF, VRF |
+| `vrf` | `core/core/vrf/` | ECVRF for validator selection and PoPC seed |
+| `genesis` | `core/core/genesis/` | Genesis block + balance seeding |
+| `events` | `core/core/events/` | EventBus (broadcast channel, max 100 subscribers) |
+| `da` | `core/core/da/` | Data Availability (erasure coding, audits) |
+| `asr` | `core/core/asr/` | Auto-Selection Router (worker selection) |
+| `ppc` | `core/core/ppc/` | Predictive Pricing Controller |
+| `metrics` | `core/core/metrics/` | Prometheus metrics (global atomics) |
+| `config` | `core/core/config/` | Unified YAML/TOML config |
+| `bridge/rust-python` | `core/bridge/rust-python/` | PyO3 FFI bridge |
+| `faucet` | `core/tools/faucet/` | Testnet faucet + lib helpers |
+
+## Golden Rules (Zero Tolerance)
+
+### 1. Error Handling
+- **NEVER** use `.unwrap()` or `.expect()` in production code paths — use `Result<T,E>` + `?`
+- Use `thiserror` for library crates (define typed errors), `anyhow` for binaries and node orchestration
+- Every public function that can fail must return `Result<T, E>` — no silent failures
+
+### 2. Memory & Concurrency Safety
+- **NO** `unsafe` blocks except in `bridge/rust-python/` (PyO3 FFI) — must have a safety comment explaining why
+- **NO** `.clone()` in hot paths (block production loop, mempool processing) without documented justification
+- Prefer `Arc<T>` + immutable references over `Arc<Mutex<T>>` where possible
+- **NEVER** hold a `Mutex` or `RwLock` lock across an `.await` point — redesign with channels if needed
+- Use `tokio::sync::mpsc` / `broadcast` for inter-task communication
+
+### 3. Arithmetic Safety
+- **ALWAYS** use `saturating_add` / `saturating_sub` for token amounts, stake balances, and reward calculations
+- Never cast `u128` to `u64` without explicit bounds check — `u128 as u64` silently truncates
+- Use checked arithmetic (`checked_add`, `checked_mul`) when overflow would be a security issue
+
+### 4. Code Quality
+- Run mentally: `cargo clippy --workspace -- -D warnings` — zero warnings allowed
+- Run `cargo fmt --all` before committing — style is non-negotiable
+- All new public types must implement `Debug`; `Serialize`/`Deserialize` where network-transmitted
+- Keep traits lean — one trait, one responsibility
+
+### 5. Testing
+- Unit tests: `#[cfg(test)]` module in the **same file** as the implementation
+- Integration tests: `core/tests/` directory
+- Benchmarks: `core/benches/` using Criterion
+- Edge cases to always test: zero values, `u128::MAX`, empty inputs, concurrent access, duplicate transactions
+- Mock pattern: use `TempDir` for storage tests; never rely on a fixed path in tests
+
+### 6. Key Protocol Invariants (Never Break)
+
+```rust
+// Transaction signing payload — must match exactly for signature verification
+fn signing_payload(&self) -> Vec<u8> { from + to + value + gas_price + gas_limit + nonce + data }
+
+// Block hash formula
+let block_hash = SHA3(parent_hash || block_number.to_le_bytes() || timestamp.to_le_bytes());
+
+// Finality: require >= 2/3 of active_validators before marking a block finalized
+fn is_finalized(votes: usize, active: usize) -> bool { votes * 3 >= active * 2 }
+
+// Block reward (1 AXX)
+const BLOCK_REWARD: u128 = 1_000_000_000_000_000_000;
+```
+
+### 7. Known Testnet Placeholders (Do NOT "Fix" Without Direction)
+
+```rust
+// state_root: SHA3 heuristic — not a full Merkle state root
+let state_root = crypto::hash::sha3_256(&block_number_and_tx_hashes);
+
+// gas_used: always 0 in locally produced blocks
+gas_used: 0,
+
+// proposer: from validator_address config (correct since v1.9.0)
+proposer: validator_address.clone().unwrap_or_else(|| "unknown".to_string()),
+```
+
+## Commands (run from `core/`)
+
+```bash
+cargo build --release
+cargo test --workspace
+cargo clippy --workspace -- -D warnings
+cargo fmt --all
+cargo audit
+cargo bench
+```
