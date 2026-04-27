@@ -289,12 +289,21 @@ impl AxionaxNode {
 
         // Background task: sync HealthState from real metrics every 5s
         let state_for_health = self.state.clone();
+        let network_for_health = self.network.clone();
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(5));
             loop {
                 interval.tick().await;
+                // Mirror the network manager's authoritative peer count into
+                // the Prometheus gauge so eth/net RPCs and /metrics see it.
+                let live_peers = {
+                    let net = network_for_health.lock().await;
+                    net.peer_count()
+                };
+                metrics::PEERS_CONNECTED.set(live_peers as i64);
+
                 let mut hs = health_state.write().await;
-                hs.peers_connected = metrics::PEERS_CONNECTED.get() as usize;
+                hs.peers_connected = live_peers;
                 hs.block_height = metrics::BLOCK_HEIGHT.get() as u64;
                 hs.database_ok = state_for_health.get_chain_height().is_ok();
                 hs.sync_ok = hs.block_height > 0 || hs.peers_connected > 0;
