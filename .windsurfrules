@@ -1,0 +1,38 @@
+---
+description: Context separation and behavioral rules for Web (Frontend) vs Core (Backend/Blockchain) development
+---
+
+# Axionax Monolith Windsurf Rules
+
+This project is a monorepo that contains both Web (Frontend) and Core (Blockchain/Backend) components.
+It is critical to maintain separation of concerns and avoid mixing contexts between these two domains.
+
+## 1. Domain Boundaries
+
+### Web Domain (`apps/web/`)
+- **Focus:** User Interface, Frontend logic, Web3 wallet integration, API consumption.
+- **Tech Stack:** TypeScript, React/Next.js (typically), Tailwind, viem/wagmi (for blockchain interaction).
+- **Rules:**
+  - DO NOT make changes to `services/core` when working on a web feature unless explicitly requested.
+  - DO NOT import directly from `services/core` or assume access to internal core database files.
+  - Always interact with Core via RPC endpoints or REST APIs.
+  - Focus on UI/UX, responsive design, and state management.
+
+### Core Domain (`services/core/`)
+- **Focus:** Blockchain node, Consensus, P2P network, RPC APIs, Smart Contracts.
+- **Tech Stack:** Python, Rust (Cargo), Smart Contracts.
+- **Rules:**
+  - DO NOT make changes to `apps/web` when working on core consensus or networking logic.
+  - Performance, security, and determinism are top priorities.
+  - Ensure RPC endpoints maintain backward compatibility if the Web team depends on them.
+
+## 2. Working Context
+- Before modifying a file, ALWAYS check its path. Is it in `apps/web` or `services/core`?
+- If a task involves BOTH domains (e.g., adding a new feature that requires a new RPC endpoint and a UI button):
+  1. Implement and test the Core RPC endpoint first.
+  2. Implement the Web UI to consume the new endpoint.
+
+## 3. General Rules
+- Prefer using the root `package.json` and `pnpm` for any top-level dependency management related to Node.js.
+- For Python/Rust dependencies in Core, use their respective package managers (`requirements.txt`, `Cargo.toml`).
+- Keep this context separation in mind when searching for files, grepping, or debugging.
