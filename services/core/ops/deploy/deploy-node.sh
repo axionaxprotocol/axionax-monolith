@@ -34,12 +34,24 @@ if [ -n "$BOOTSTRAP_NODE" ]; then
     echo "AXIONAX_BOOTSTRAP_NODES=$BOOTSTRAP_NODE" >> .env
 fi
 
+# Detect docker compose command
+echo "Detecting Docker Compose..."
+if docker compose version &>/dev/null; then
+    COMPOSE_CMD="docker compose"
+elif docker-compose version &>/dev/null; then
+    COMPOSE_CMD="docker-compose"
+else
+    echo "Error: docker compose not found. Please install Docker Compose."
+    exit 1
+fi
+echo "Using: $COMPOSE_CMD"
+
 # Build and start node
 echo "Building Docker image (this may take 10-20 minutes)..."
-docker compose -f docker-compose.yaml build
+$COMPOSE_CMD -f docker-compose.yaml build
 
 echo "Starting node..."
-docker compose -f docker-compose.yaml up -d
+$COMPOSE_CMD -f docker-compose.yaml up -d
 
 echo ""
 echo "=== Deployment Complete ==="
