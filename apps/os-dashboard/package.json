@@ -6,9 +6,11 @@
     "dev": "next dev -p 3030",
     "build": "next build",
     "start": "next start -p 3030",
-    "lint": "next lint"
+    "lint": "next lint",
+    "icons:resize": "node scripts/resize-icons.mjs"
   },
   "dependencies": {
+    "@axionax/sdk": "workspace:*",
     "next": "14.2.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -23,6 +25,7 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.45",
     "tailwindcss": "^3.4.10",
-    "typescript": "^5.5.4"
+    "typescript": "^5.5.4",
+    "sharp": "^0.33.5"
   }
 }
