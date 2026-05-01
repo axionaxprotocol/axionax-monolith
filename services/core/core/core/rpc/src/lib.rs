@@ -23,6 +23,7 @@ pub mod http_health;
 pub mod middleware;
 pub mod server;
 pub mod staking_rpc;
+pub mod ws_logs;
 
 pub use governance_rpc::{
     GovernanceRpcServer, GovernanceRpcServerImpl, GovernanceStatsResponse, ProposalResponse,

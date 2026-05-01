@@ -1,0 +1,28 @@
+---
+description: Axionax monorepo engineering standards
+alwaysApply: true
+---
+
+# Axionax Protocol Rule
+
+## Architecture
+- Check `packages/sdk` first for reusable business logic before implementing in apps.
+- Use workspace aliases only (for example `@axionax/sdk`), never cross-package relative imports.
+- Use `pnpm` for workspace dependency and script operations.
+
+## Frontend
+- Default to React Server Components; add `"use client"` only when hooks/browser APIs are required.
+- Use Tailwind CSS and keep dark, cyberpunk/futuristic styling as default.
+- Use `next/image` for UI images when possible.
+
+## Integration and Reliability
+- If node/validator access is unavailable, add SDK-level mock services to unblock UI development.
+- Handle RPC and transaction failures gracefully with clear user-facing feedback.
+
+## Rust Core Context
+- When tasks mention Core or Node, treat it as the Rust Substrate implementation.
+- Favor memory safety, predictable behavior, and performance-minded changes.
+
+## Working Style
+- Keep changes concise and practical; include TypeScript interfaces for new components.
+- After edits, verify imports and workspace references remain valid.
