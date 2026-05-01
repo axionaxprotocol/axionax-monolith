@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Sidebar } from "@/components/sidebar";
+import { MenuBar } from "@/components/menu-bar";
+import { Dock } from "@/components/dock";
 
 export const metadata: Metadata = {
   title: "Axionax OS",
@@ -15,12 +16,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-6xl px-6 py-8">{children}</div>
-          </main>
-        </div>
+        <MenuBar />
+        <main className="min-h-screen pt-12 pb-32">
+          <div className="mx-auto max-w-5xl px-6 py-6">{children}</div>
+        </main>
+        <Dock />
       </body>
     </html>
   );

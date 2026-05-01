@@ -25,17 +25,8 @@ const NAV = [
 export function Sidebar() {
   const pathname = usePathname();
   return (
-    <aside className="hidden md:flex w-60 shrink-0 flex-col border-r border-border bg-bg-card">
-      <div className="flex items-center gap-2 px-5 h-16 border-b border-border">
-        <div className="grid h-8 w-8 place-items-center rounded-lg bg-accent/10 text-accent">
-          <Zap size={18} />
-        </div>
-        <div className="leading-tight">
-          <div className="font-semibold">Axionax OS</div>
-          <div className="text-xs text-zinc-500">v0.1 alpha</div>
-        </div>
-      </div>
-      <nav className="flex-1 p-3 space-y-1">
+    <aside className="hidden md:flex sticky top-10 h-[calc(100vh-2.5rem)] w-20 shrink-0 flex-col items-center py-4">
+      <div className="glass rounded-2xl flex flex-col items-center gap-1 p-2">
         {NAV.map(({ href, label, icon: Icon }) => {
           const active =
             href === "/" ? pathname === "/" : pathname?.startsWith(href);
@@ -43,24 +34,25 @@ export function Sidebar() {
             <Link
               key={href}
               href={href}
+              title={label}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition",
+                "group relative grid h-12 w-12 place-items-center rounded-xl transition",
                 active
-                  ? "bg-accent/10 text-accent"
-                  : "text-zinc-400 hover:bg-bg-elev hover:text-zinc-100"
+                  ? "bg-accent/15 text-accent"
+                  : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
               )}
             >
-              <Icon size={16} />
-              {label}
+              <Icon size={18} />
+              <span className="pointer-events-none absolute left-full ml-2 whitespace-nowrap rounded-md bg-black/80 px-2 py-1 text-xs text-zinc-100 opacity-0 group-hover:opacity-100 transition">
+                {label}
+              </span>
             </Link>
           );
         })}
-      </nav>
-      <div className="p-3 border-t border-border text-xs text-zinc-500">
-        <div className="rounded-lg bg-bg-elev p-3">
-          <div className="font-medium text-zinc-300">Chain ID</div>
-          <div className="font-mono">86137 · testnet</div>
-        </div>
+      </div>
+      <div className="mt-auto glass rounded-2xl p-2 text-center text-[10px] text-zinc-500 leading-tight">
+        <div className="text-zinc-300 font-mono">86137</div>
+        <div>testnet</div>
       </div>
     </aside>
   );
