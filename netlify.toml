@@ -1,0 +1,8 @@
+[build]
+  base = "apps/os-dashboard"
+  command = "pnpm build"
+
+[build.environment]
+  NODE_VERSION = "20"
+  PNPM_VERSION = "10.32.1"
+  NEXT_TELEMETRY_DISABLED = "1"

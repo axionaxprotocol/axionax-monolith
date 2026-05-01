@@ -42,3 +42,16 @@ src/
 - Frontend-only app per repo rules (`apps/`). It must talk to `services/core`
   exclusively through RPC; never import core internals.
 - Designed to eventually be packaged inside a future `os/` Debian image.
+
+## Deploy to Netlify (free monitor hosting)
+
+1. Push this repository to GitHub/GitLab/Bitbucket.
+2. In Netlify, create a new site from that repository.
+3. Netlify auto-detects `netlify.toml` at repo root and uses:
+   - Base directory: `apps/os-dashboard`
+   - Build command: `pnpm build`
+4. Add required environment variables in Netlify Site Settings (recommended):
+   - `NEXT_PUBLIC_MONITOR_API_URL`
+   - `NEXT_PUBLIC_CHAIN_NAME`
+   - `NEXT_PUBLIC_REFRESH_MS`
+5. Trigger deploy and open the generated site URL.
