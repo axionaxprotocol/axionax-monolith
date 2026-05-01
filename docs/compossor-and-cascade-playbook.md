@@ -9,6 +9,16 @@
 
 For the recurring "nodes connect on localhost but not over public IPs" class of problem.
 
+### Session checklist (2026-05-01)
+
+- [x] Resolve duplicate Cargo workspace roots (`services/core/Cargo.toml` conflict).
+- [x] Add and run network handshake tests (`handshake_test`).
+- [x] Verify ignored mDNS handshake test passes with `--ignored`.
+- [x] Diagnose zero-peer state (empty `AXIONAX_BOOTSTRAP_NODES` + unreachable P2P path).
+- [x] Fix peer identity / bootstrap setup and confirm both nodes show `peers: 1`.
+- [x] Add runbook for `identity.key` and `AXIONAX_BOOTSTRAP_NODES` in `README.md`.
+- [x] Rename playbook to `docs/compossor-and-cascade-playbook.md` and update references.
+
 ### Analyze P2P discovery logic
 
 > Analyze the P2P discovery logic in `@services/core/core/core/network/src/`. Why would nodes fail to connect over public IPs while working fine on localhost? Check if the DHT/Kademlia or bootstrap node configuration needs explicit external IP handling (NAT traversal, AutoNAT, observed-address relays).
@@ -100,7 +110,7 @@ Keep docs aligned with the protocol's professional tone.
 
 ---
 
-_Last updated: 2026-04-30_
+_Last updated: 2026-05-01_
 
 ---
 
@@ -207,3 +217,53 @@ This forces Cascade to ground its analysis in the actual symptom rather than gue
 ---
 
 _Phase 2 added 2026-04-30. Sections will be reorganized when this list grows past §10._
+
+---
+
+## Definition of Done (Execution Checklist)
+
+Version focused on real-world execution across tech, testnet operations, finance, energy, and family cadence.
+
+### Phase 1: Testnet & Infrastructure
+
+- [ ] **P2P Discovery stability**
+  - DoD: `217.216.109.5` and `46.250.244.4` see each other as peers continuously for 24 hours.
+  - DoD: block sync does not stall, reorg remains within accepted bounds, auto-reconnect succeeds.
+  - Evidence: peer logs, sync-height graph, latency and packet-loss report.
+- [ ] **Hello DeAI completed**
+  - DoD: Python workload is sent end-to-end from a main node to a worker node.
+  - DoD: result hash, execution logs, and retry/failure path are captured.
+  - Evidence: demo script and runbook.
+- [ ] **Axionax OS (Obsidian Matte Black)**
+  - DoD: design tokens cover color, spacing, and typography.
+  - DoD: core dashboard pages are complete (node health, jobs, logs, wallet/actions).
+  - DoD: Lighthouse and responsive targets pass agreed thresholds.
+- [ ] **Monolith Core + Edge Node**
+  - DoD: Raspberry Pi 5 + Hailo-10H can register as a node on the network.
+  - DoD: inferencing benchmark runs at least one standard workload.
+  - Evidence: throughput-per-watt, thermal, and uptime report.
+
+### Phase 2: Cashflow & Expansion
+
+- [ ] **Prop Firm pipeline**
+  - DoD: EA passes defined risk policy (daily loss, max drawdown, consistency).
+  - DoD: PnL and risk dashboard is available to enforce discipline.
+- [ ] **One-click node packaging**
+  - DoD: a new user can deploy a node in 10-15 minutes.
+  - DoD: at least one clear packaging channel exists (PWA/Tauri/Image) with auto-update.
+  - Evidence: onboarding guide and fresh-machine test results.
+
+### Phase 3: Physical Realm
+
+- [ ] **Axionax Estate blueprint**
+  - DoD: version-1 masterplan for 10 rai is complete with zoning (compute, living, utility, security).
+- [ ] **Solar + BOI feasibility**
+  - DoD: CAPEX/OPEX table, payback period, and latest legal/BOI constraints are documented.
+  - DoD: 3-stage rollout plan exists (pilot -> partial -> full).
+
+### Daily Human OS
+
+- [ ] **Quality time**
+  - DoD: fixed daily/weekly time blocks with explicit no-work windows.
+- [ ] **Mindfulness and gratitude**
+  - DoD: 10-15 minute daily ritual plus one weekly reflection.

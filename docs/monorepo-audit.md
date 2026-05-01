@@ -1,6 +1,6 @@
 # Monorepo Structure Audit
 
-> **Scope:** `axionax-monolith` working tree, captured 2026-04-30.
+> **Scope:** `axionax-monolith` working tree, captured 2026-05-01.
 > **Goal:** identify drift, recommend a folder hierarchy that scales for an L1 protocol with both blockchain core and Web Universe.
 
 ---
@@ -18,9 +18,9 @@ axionax-monolith/
 │       │   ├── core/      # ← THIS triple-nest is a smell (see §3.1)
 │       │   ├── bridge/, deai/, contracts/, ...
 │       ├── ops/, scripts/, configs/, contracts/, docs/, ...
-├── packages/              # Empty stub
+├── packages/              # Shared packages (`sdk` active)
 ├── scripts/               # Repo-wide ops scripts (check-node-sync.sh, etc.)
-├── docs/                  # New cross-cutting docs (cascade-playbook.md)
+├── docs/                  # New cross-cutting docs (compossor-and-cascade-playbook.md)
 ├── package.json           # Root pnpm workspace manifest (version: 1.0.0)
 ├── pnpm-workspace.yaml    # `apps/*` + `packages/*` (services/core NOT a workspace)
 ├── pnpm-lock.yaml
@@ -89,11 +89,11 @@ The middle `core/` (Cargo workspace root) can then be flattened further in a fol
 
 **Recommendation:** keep services out of the pnpm workspace **unless** we add Node tooling that should share TypeScript types. If/when we do, add `services/*/package.json` selectively (not a wildcard) to avoid pulling in stray scripts.
 
-### 3.3 Empty `packages/`
+### 3.3 `packages/` started (SDK present)
 
-**Observed:** stub directory, no contents.
+**Observed:** `packages/sdk` now exists and is being used as the shared TypeScript boundary.
 
-**Recommendation:** populate it with a real shared package as soon as the dApp and the OS dashboard share more than three constants. First candidates:
+**Recommendation:** keep consolidating shared RPC/business logic into `@axionax/sdk`; add new packages only when justified (not by default). Next candidates when needed:
 
 ```
 packages/
@@ -102,14 +102,14 @@ packages/
 └── ui/                   # @axionax/ui — shared Tailwind + Radix component primitives
 ```
 
-Until then, leave it empty rather than scaffolding speculative packages.
+Keep avoiding speculative scaffolding; each new package should have a concrete consumer and CI check.
 
 ### 3.4 Two `scripts/` directories, two `docs/` directories
 
 **Observed:**
 - `scripts/` (root) — new, cross-cutting (`check-node-sync.sh`)
 - `services/core/scripts/` — node-operator scripts (`join-axionax.py`, `health-check.py`)
-- `docs/` (root) — new (`cascade-playbook.md`)
+- `docs/` (root) — new (`compossor-and-cascade-playbook.md`)
 - `services/core/docs/` — Core Universe docs (24 items)
 
 **Recommendation:** **keep both.** The split is meaningful:
@@ -201,7 +201,7 @@ axionax-monolith/
 | 1 | Move husky from `apps/web` → root, fix `pnpm install` | low | 30 min |
 | 2 | Add `[workspace.lints]` to Rust workspace `Cargo.toml` | low | 15 min |
 | 3 | Rename `services/core/core/core` → `crates/`, update `Cargo.toml` | medium | 1–2 hr (touches every `@` reference) |
-| 4 | Populate `packages/sdk` with the dashboard's `lib/rpc.ts` | low | 1 hr |
+| 4 | Expand `packages/sdk` coverage (migrate remaining duplicate RPC helpers) | low | 1-2 hr |
 | 5 | Add CI matrix: Rust workspace + pnpm workspace | low | 1 hr |
 | 6 | Document `scripts/` vs `services/core/scripts/` split in both READMEs | trivial | 10 min |
 
@@ -218,4 +218,4 @@ axionax-monolith/
 
 ---
 
-_Last updated: 2026-04-30. Maintained alongside `docs/cascade-playbook.md`._
+_Last updated: 2026-05-01. Maintained alongside `docs/compossor-and-cascade-playbook.md`._

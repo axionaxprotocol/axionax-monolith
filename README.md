@@ -27,7 +27,7 @@ axionax-monolith/
 │   └── os-dashboard/     # Self-hosted node OS UI (Next.js · Tailwind)
 ├── services/
 │   └── core/             # Blockchain core + DeAI worker (Rust · Python)
-├── packages/             # Shared TypeScript packages (SDK, types) — empty stub
+├── packages/             # Shared TypeScript packages (currently includes SDK)
 ├── docs/                 # Cross-cutting docs (playbook, audits, RFCs)
 └── scripts/              # Cross-cutting ops scripts (e.g. check-node-sync.sh)
 ```
@@ -105,6 +105,10 @@ python3 scripts/join-axionax.py
 
 P2P bootnodes are advertised via `AXIONAX_BOOTSTRAP_NODES` — see `services/core/configs/`.
 
+Current validated status (2026-05-01):
+- EU (`217.76.61.116`) and AU (`46.250.244.4`) nodes are connected and report `peers: 1`.
+- Cross-node handshake tests in `services/core/core/core/network/tests/handshake_test.rs` pass (including the ignored mDNS test when run explicitly).
+
 ### Key constants
 
 | | Value |
@@ -143,7 +147,34 @@ If your node sees zero peers across the public internet:
    ```
    Exit codes: `0` in-sync · `1` lagging · `2` ahead · `3` RPC error.
 
-Full diagnostics live in [`docs/cascade-playbook.md`](./docs/cascade-playbook.md) under *§1 Debugging — P2P & Network*.
+Full diagnostics live in [`docs/compossor-and-cascade-playbook.md`](./docs/compossor-and-cascade-playbook.md) under *§1 Debugging — P2P & Network*.
+
+### Runbook: `identity.key` + `AXIONAX_BOOTSTRAP_NODES`
+
+Use this when nodes show `peers: 0`, or logs include `Local peer ID` connection errors.
+
+1. **Ensure each node has a unique identity key.** If two machines accidentally share `/var/lib/axionax-node/identity.key`, they will fail to peer.
+2. **Set at least one valid bootstrap multiaddr** with peer id:
+   ```bash
+   export AXIONAX_BOOTSTRAP_NODES="/ip4/<BOOTSTRAP_IP>/tcp/30303/p2p/<BOOTSTRAP_PEER_ID>"
+   ```
+3. **Open network path end-to-end** on the bootstrap node (`30303/tcp`, and optionally `30303/udp` for QUIC).
+4. **Restart node and verify peer count**:
+   ```bash
+   curl -sX POST http://localhost:8545 \
+     -H 'Content-Type: application/json' \
+     -d '{"jsonrpc":"2.0","method":"system_status","params":[],"id":1}'
+   ```
+   Expect `result.peers > 0`.
+
+If identity collision is suspected, rotate one node key:
+
+```bash
+systemctl stop axionax-node
+cp /var/lib/axionax-node/identity.key /var/lib/axionax-node/identity.key.bak.$(date +%s)
+rm -f /var/lib/axionax-node/identity.key
+systemctl start axionax-node
+```
 
 ---
 
@@ -177,7 +208,7 @@ Useful commands:
 | | |
 |---|---|
 | **[`.windsurfrules`](./.windsurfrules)** | Web ↔ Core boundary rules for Cascade / Windsurf |
-| **[`docs/cascade-playbook.md`](./docs/cascade-playbook.md)** | Curated prompts for P2P, infra, scaling, docs |
+| **[`docs/compossor-and-cascade-playbook.md`](./docs/compossor-and-cascade-playbook.md)** | Curated prompts for P2P, infra, scaling, docs |
 | **[`docs/monorepo-audit.md`](./docs/monorepo-audit.md)** | Folder hierarchy review + migration plan |
 | **[`services/core/README.md`](./services/core/README.md)** | Detailed Core Universe setup |
 | **[`services/core/.windsurfrules`](./services/core/.windsurfrules)** | Rust/Python golden rules + key constants |
