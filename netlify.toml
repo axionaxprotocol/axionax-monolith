@@ -1,6 +1,6 @@
 [build]
-  base = "apps/os-dashboard"
-  command = "pnpm build"
+  command = "cd apps/os-dashboard && pnpm build"
+  publish = "apps/os-dashboard/.next"
 
 [build.environment]
   NODE_VERSION = "20"
