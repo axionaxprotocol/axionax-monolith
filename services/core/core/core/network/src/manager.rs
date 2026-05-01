@@ -2,14 +2,18 @@
 
 use futures::StreamExt;
 use libp2p::{
-    gossipsub, identity::Keypair, mdns, multiaddr::Protocol, swarm::SwarmEvent, Multiaddr, PeerId,
-    Swarm, SwarmBuilder,
+    core::ConnectedPoint, gossipsub, identify, identity::Keypair, mdns, multiaddr::Protocol,
+    swarm::SwarmEvent, Multiaddr, PeerId, Swarm, SwarmBuilder,
 };
 use std::path::Path;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use tokio::sync::mpsc;
 use tracing::{debug, error, info, warn};
+
+/// Interval between periodic P2P health summaries emitted by the swarm task.
+const P2P_HEALTH_INTERVAL: Duration = Duration::from_secs(30);
 
 use crate::{
     behaviour::AxionaxBehaviour,
@@ -175,6 +179,11 @@ impl NetworkManager {
 
         info!("Listening on {}", listen_addr);
 
+        // Apply external-address strategy. For Manual mode the operator has
+        // told us our public multiaddrs; advertising them lets remote peers
+        // dial back through NAT.
+        Self::apply_external_addr_strategy(&mut swarm, &self.config);
+
         // Subscribe to topics
         Self::subscribe_to_topics_swarm(&mut swarm)?;
 
@@ -211,6 +220,70 @@ impl NetworkManager {
         }
 
         Ok(())
+    }
+
+    /// Apply the configured [`ExternalAddrStrategy`].
+    ///
+    /// For [`ExternalAddrStrategy::Manual`] this calls `swarm.add_external_address`
+    /// for every entry the operator supplied (config or `AXIONAX_EXTERNAL_ADDRS`
+    /// env). Auto / Disabled are no-ops here — Auto relies on Identify to fill
+    /// the address book later, Disabled deliberately advertises nothing.
+    fn apply_external_addr_strategy(
+        swarm: &mut Swarm<AxionaxBehaviour>,
+        config: &NetworkConfig,
+    ) {
+        use crate::config::ExternalAddrStrategy;
+
+        if config.external_addr_strategy == ExternalAddrStrategy::Disabled {
+            info!(
+                target: "p2p",
+                "ExternalAddrStrategy::Disabled — node will not advertise an external address"
+            );
+            return;
+        }
+
+        // `resolved_external_addrs()` honours AXIONAX_EXTERNAL_ADDRS /
+        // AXIONAX_PUBLIC_IP env vars and auto-promotes Auto → effective
+        // Manual when one is set — see NetworkConfig::resolved_external_addrs.
+        let addrs = config.resolved_external_addrs();
+
+        if addrs.is_empty() {
+            match config.external_addr_strategy {
+                ExternalAddrStrategy::Manual => warn!(
+                    target: "p2p",
+                    "ExternalAddrStrategy::Manual selected but no external addrs \
+                     configured (set AXIONAX_EXTERNAL_ADDRS, AXIONAX_PUBLIC_IP, or \
+                     NetworkConfig.external_addrs)"
+                ),
+                ExternalAddrStrategy::Auto => debug!(
+                    target: "p2p",
+                    "ExternalAddrStrategy::Auto — relying on Identify-observed addresses \
+                     (set AXIONAX_PUBLIC_IP=<your public ip> to advertise explicitly)"
+                ),
+                ExternalAddrStrategy::Disabled => unreachable!(),
+            }
+            return;
+        }
+
+        for raw in &addrs {
+            match raw.parse::<Multiaddr>() {
+                Ok(addr) => {
+                    swarm.add_external_address(addr.clone());
+                    info!(
+                        target: "p2p",
+                        external_addr = %addr,
+                        source = ?config.external_addr_strategy,
+                        "Advertising external address"
+                    );
+                }
+                Err(e) => warn!(
+                    target: "p2p",
+                    invalid = %raw,
+                    error = %e,
+                    "Skipping invalid external address"
+                ),
+            }
+        }
     }
 
     /// Dial each configured bootstrap node, registering its address with the
@@ -319,6 +392,11 @@ async fn run_swarm_loop(
 ) {
     info!("Network swarm event loop running");
 
+    let mut health_tick = tokio::time::interval(P2P_HEALTH_INTERVAL);
+    // Skip the immediate first tick — we just started.
+    health_tick.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Delay);
+    let _ = health_tick.tick().await;
+
     loop {
         tokio::select! {
             event = swarm.select_next_some() => {
@@ -337,7 +415,43 @@ async fn run_swarm_loop(
                     }
                 }
             }
+            _ = health_tick.tick() => {
+                emit_p2p_health(&swarm, &peer_count);
+            }
         }
+    }
+}
+
+/// Periodic structured log of the node's P2P health.
+///
+/// Emits the local peer id, atomic peer count, the set of addresses the swarm
+/// is currently listening on, and a count of external addresses that remote
+/// peers have reported via Identify. This is the single most useful signal
+/// when debugging "nodes work on localhost but never connect over public IPs".
+fn emit_p2p_health(swarm: &Swarm<AxionaxBehaviour>, peer_count: &Arc<AtomicUsize>) {
+    let listeners: Vec<String> = swarm.listeners().map(|m| m.to_string()).collect();
+    let external_addrs: Vec<String> = swarm.external_addresses().map(|m| m.to_string()).collect();
+    let count = peer_count.load(Ordering::Relaxed);
+
+    info!(
+        target: "p2p::health",
+        peers = count,
+        listening = ?listeners,
+        external = ?external_addrs,
+        local_peer_id = %swarm.local_peer_id(),
+        "P2P health summary"
+    );
+
+    if external_addrs.is_empty() {
+        warn!(
+            target: "p2p::health",
+            "No external addresses observed yet — node may be behind NAT or firewall. \
+             Verify the host advertises a reachable /ip4/<PUBLIC_IP>/tcp/{} multiaddr.",
+            listeners
+                .iter()
+                .find_map(|s| s.split('/').nth(4))
+                .unwrap_or("<port>")
+        );
     }
 }
 
@@ -364,44 +478,133 @@ async fn handle_swarm_event(
 ) {
     match event {
         SwarmEvent::NewListenAddr { address, .. } => {
-            info!("Listening on {}", address);
+            info!(target: "p2p", listen_addr = %address, "Listening on new address");
+        }
+        SwarmEvent::ExpiredListenAddr { address, .. } => {
+            warn!(target: "p2p", listen_addr = %address, "Listen address expired");
+        }
+        SwarmEvent::ListenerClosed { addresses, reason, .. } => {
+            warn!(
+                target: "p2p",
+                ?addresses,
+                ?reason,
+                "Listener closed"
+            );
         }
         SwarmEvent::Behaviour(event) => {
             handle_behaviour_event(swarm, event, event_tx).await;
         }
-        SwarmEvent::ConnectionEstablished { peer_id, .. } => {
+        SwarmEvent::ConnectionEstablished {
+            peer_id,
+            connection_id,
+            endpoint,
+            num_established,
+            ..
+        } => {
             let n = peer_count.fetch_add(1, Ordering::Relaxed) + 1;
-            info!("Connected to peer: {} (total={})", peer_id, n);
+            let (direction, addr) = match &endpoint {
+                ConnectedPoint::Dialer { address, .. } => ("outgoing", address.to_string()),
+                ConnectedPoint::Listener { send_back_addr, .. } => {
+                    ("incoming", send_back_addr.to_string())
+                }
+            };
+            info!(
+                target: "p2p::conn",
+                %peer_id,
+                connection_id = ?connection_id,
+                direction,
+                addr,
+                num_established = num_established.get(),
+                total_peers = n,
+                "Peer connection established"
+            );
         }
-        SwarmEvent::ConnectionClosed { peer_id, cause, .. } => {
+        SwarmEvent::ConnectionClosed {
+            peer_id,
+            connection_id,
+            cause,
+            num_established,
+            ..
+        } => {
             // Saturating decrement
             let prev = peer_count.load(Ordering::Relaxed);
             let new = prev.saturating_sub(1);
             peer_count.store(new, Ordering::Relaxed);
             info!(
-                "Disconnected from peer {}: {:?} (total={})",
-                peer_id, cause, new
+                target: "p2p::conn",
+                %peer_id,
+                connection_id = ?connection_id,
+                cause = ?cause,
+                remaining_to_peer = num_established,
+                total_peers = new,
+                "Peer connection closed"
             );
         }
-        SwarmEvent::IncomingConnection { send_back_addr, .. } => {
-            debug!("Incoming connection from {}", send_back_addr);
-        }
-        SwarmEvent::OutgoingConnectionError { peer_id, error, .. } => {
-            if let Some(peer_id) = peer_id {
-                warn!("Outgoing connection error to {}: {}", peer_id, error);
-            } else {
-                warn!("Outgoing connection error: {}", error);
-            }
-        }
-        SwarmEvent::IncomingConnectionError {
+        SwarmEvent::IncomingConnection {
+            connection_id,
+            local_addr,
             send_back_addr,
+        } => {
+            debug!(
+                target: "p2p::conn",
+                connection_id = ?connection_id,
+                %local_addr,
+                %send_back_addr,
+                "Incoming connection"
+            );
+        }
+        SwarmEvent::OutgoingConnectionError {
+            peer_id,
+            connection_id,
             error,
-            ..
         } => {
             warn!(
-                "Incoming connection error from {}: {}",
-                send_back_addr, error
+                target: "p2p::conn",
+                connection_id = ?connection_id,
+                peer_id = ?peer_id,
+                %error,
+                "Outgoing connection error"
             );
+        }
+        SwarmEvent::IncomingConnectionError {
+            connection_id,
+            local_addr,
+            send_back_addr,
+            error,
+        } => {
+            warn!(
+                target: "p2p::conn",
+                connection_id = ?connection_id,
+                %local_addr,
+                %send_back_addr,
+                %error,
+                "Incoming connection error"
+            );
+        }
+        SwarmEvent::Dialing { peer_id, connection_id } => {
+            debug!(
+                target: "p2p::conn",
+                peer_id = ?peer_id,
+                connection_id = ?connection_id,
+                "Dialing peer"
+            );
+        }
+        SwarmEvent::NewExternalAddrCandidate { address } => {
+            info!(
+                target: "p2p",
+                %address,
+                "Discovered new external address candidate"
+            );
+        }
+        SwarmEvent::ExternalAddrConfirmed { address } => {
+            info!(
+                target: "p2p",
+                %address,
+                "External address confirmed (reachable from outside)"
+            );
+        }
+        SwarmEvent::ExternalAddrExpired { address } => {
+            warn!(target: "p2p", %address, "External address expired");
         }
         _ => {}
     }
@@ -446,17 +649,47 @@ async fn handle_behaviour_event(
         }
         AxionaxBehaviourEvent::Mdns(mdns::Event::Discovered(peers)) => {
             for (peer_id, addr) in peers {
-                debug!("mDNS discovered peer {} at {}", peer_id, addr);
+                debug!(target: "p2p::mdns", %peer_id, %addr, "mDNS discovered peer");
                 swarm.behaviour_mut().add_address(&peer_id, addr);
             }
         }
         AxionaxBehaviourEvent::Mdns(mdns::Event::Expired(peers)) => {
             for (peer_id, _addr) in peers {
-                debug!("mDNS expired peer {}", peer_id);
+                debug!(target: "p2p::mdns", %peer_id, "mDNS peer expired");
             }
         }
+        AxionaxBehaviourEvent::Identify(identify::Event::Received {
+            peer_id,
+            info,
+            ..
+        }) => {
+            // The peer told us which address *they* observed for us — this is
+            // the single most useful piece of information when debugging why
+            // a node behind NAT can't be reached on its public IP.
+            info!(
+                target: "p2p::identify",
+                %peer_id,
+                observed_addr = %info.observed_addr,
+                protocol_version = %info.protocol_version,
+                agent_version = %info.agent_version,
+                listen_addr_count = info.listen_addrs.len(),
+                "Identify received from peer"
+            );
+
+            // Feed observed addresses into Kademlia so the DHT learns reachable
+            // routes back to this peer.
+            for addr in &info.listen_addrs {
+                swarm.behaviour_mut().add_address(&peer_id, addr.clone());
+            }
+        }
+        AxionaxBehaviourEvent::Identify(identify::Event::Sent { peer_id, .. }) => {
+            debug!(target: "p2p::identify", %peer_id, "Identify sent to peer");
+        }
+        AxionaxBehaviourEvent::Identify(identify::Event::Error { peer_id, error, .. }) => {
+            warn!(target: "p2p::identify", %peer_id, %error, "Identify protocol error");
+        }
         _ => {
-            // Identify, Kademlia, Ping — handled automatically by libp2p
+            // Kademlia, Ping — handled automatically by libp2p; surface only on errors.
         }
     }
 }

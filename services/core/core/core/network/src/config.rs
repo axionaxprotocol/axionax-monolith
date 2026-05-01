@@ -52,6 +52,17 @@ pub struct NetworkConfig {
 
     /// Block time in seconds
     pub block_time_seconds: u64,
+
+    /// How to advertise the node's reachable address(es) to peers.
+    /// See [`ExternalAddrStrategy`] for trade-offs.
+    #[serde(default)]
+    pub external_addr_strategy: ExternalAddrStrategy,
+
+    /// Operator-supplied multiaddrs to advertise when
+    /// `external_addr_strategy = Manual`. Each entry must be a valid libp2p
+    /// multiaddr, e.g. `/ip4/203.0.113.7/tcp/30303`.
+    #[serde(default)]
+    pub external_addrs: Vec<String>,
 }
 
 /// Gossipsub validation mode
@@ -63,6 +74,30 @@ pub enum ValidationMode {
     Permissive,
     /// Strict validation
     Strict,
+}
+
+/// How the node should advertise its publicly-reachable address(es).
+///
+/// - **`Manual`**: operator-provided list of multiaddrs (e.g. `/ip4/1.2.3.4/tcp/30303`)
+///   sourced from `external_addrs` or the `AXIONAX_EXTERNAL_ADDRS` env var. Use
+///   this on VPS / cloud nodes where the public IP is known.
+/// - **`Auto`** (default): rely on libp2p `Identify` for peers to *report* the
+///   observed address. Works once at least one peer is reached but can't help
+///   bootstrap if the node is fully behind NAT.
+/// - **`Disabled`**: never advertise an external address (test harnesses,
+///   air-gapped runs).
+///
+/// > AutoNAT / STUN remain on the roadmap; Manual + Auto cover the >95% case
+/// > on the testnet today.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+pub enum ExternalAddrStrategy {
+    /// Use addresses from `NetworkConfig::external_addrs`.
+    Manual,
+    /// Let the Identify protocol discover the observed address.
+    #[default]
+    Auto,
+    /// Do not advertise any external address.
+    Disabled,
 }
 
 impl Default for NetworkConfig {
@@ -82,7 +117,68 @@ impl Default for NetworkConfig {
             chain_id: 86137, // axionax Testnet
             key_file: None,
             block_time_seconds: 5,
+            external_addr_strategy: ExternalAddrStrategy::Auto,
+            external_addrs: Vec::new(),
         }
+    }
+}
+
+impl NetworkConfig {
+    /// Resolve the effective list of external multiaddrs the node should
+    /// advertise.
+    ///
+    /// Resolution order (first wins):
+    ///
+    /// 1. `AXIONAX_EXTERNAL_ADDRS` — comma-separated multiaddrs.
+    ///    *Example:* `/ip4/46.250.244.4/tcp/30303,/ip4/46.250.244.4/udp/30303/quic-v1`
+    /// 2. `AXIONAX_PUBLIC_IP` — bare IPv4/IPv6 literal. We synthesize
+    ///    `/ip4/<IP>/tcp/<port>` from it. This is the convenient form for
+    ///    Docker / systemd operators who don't want to write multiaddrs.
+    /// 3. `self.external_addrs` from the config file.
+    ///
+    /// When `strategy = Auto` **and** one of the two envs is set, we treat
+    /// it as an opt-in to Manual mode so operators only need to set one
+    /// variable at runtime. When `strategy = Disabled`, nothing is returned
+    /// no matter what the env says — Disabled is explicit.
+    pub fn resolved_external_addrs(&self) -> Vec<String> {
+        if self.external_addr_strategy == ExternalAddrStrategy::Disabled {
+            return Vec::new();
+        }
+
+        // 1. AXIONAX_EXTERNAL_ADDRS — explicit multiaddr list
+        if let Ok(raw) = std::env::var("AXIONAX_EXTERNAL_ADDRS") {
+            let from_env: Vec<String> = raw
+                .split(',')
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .map(|s| s.to_string())
+                .collect();
+            if !from_env.is_empty() {
+                return from_env;
+            }
+        }
+
+        // 2. AXIONAX_PUBLIC_IP — bare IP, we synthesize the TCP multiaddr
+        if let Ok(ip) = std::env::var("AXIONAX_PUBLIC_IP") {
+            let ip = ip.trim();
+            if !ip.is_empty() {
+                return vec![format!("/ip4/{}/tcp/{}", ip, self.port)];
+            }
+        }
+
+        // 3. Static config file list — only used when strategy is Manual
+        if self.external_addr_strategy == ExternalAddrStrategy::Manual {
+            return self.external_addrs.clone();
+        }
+
+        Vec::new()
+    }
+
+    /// Whether this config will actually advertise an external address after
+    /// env resolution. `true` when strategy is Manual *or* when an env var
+    /// promotes Auto → Manual.
+    pub fn will_advertise_external(&self) -> bool {
+        !self.resolved_external_addrs().is_empty()
     }
 }
 
@@ -160,5 +256,25 @@ mod tests {
     fn test_listen_multiaddr() {
         let config = NetworkConfig::default();
         assert_eq!(config.listen_multiaddr(), "/ip4/0.0.0.0/tcp/30303");
+    }
+
+    #[test]
+    fn test_default_external_addr_strategy() {
+        let config = NetworkConfig::default();
+        assert_eq!(config.external_addr_strategy, ExternalAddrStrategy::Auto);
+        assert!(config.external_addrs.is_empty());
+        assert!(config.resolved_external_addrs().is_empty());
+    }
+
+    #[test]
+    fn test_manual_external_addrs_from_config() {
+        let config = NetworkConfig {
+            external_addr_strategy: ExternalAddrStrategy::Manual,
+            external_addrs: vec!["/ip4/203.0.113.7/tcp/30303".to_string()],
+            ..Default::default()
+        };
+        let addrs = config.resolved_external_addrs();
+        assert_eq!(addrs.len(), 1);
+        assert!(addrs[0].contains("203.0.113.7"));
     }
 }
