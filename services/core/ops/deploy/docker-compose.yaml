@@ -14,8 +14,11 @@ services:
     volumes:
       - node-data:/data
     environment:
-      - RUST_LOG=info
+      - RUST_LOG=info,p2p=info,p2p::health=info,p2p::conn=info,p2p::identify=info
       - CHAIN_ID=86137
+      # P2P Configuration
+      - AXIONAX_PUBLIC_IP=${AXIONAX_PUBLIC_IP}
+      - AXIONAX_BOOTSTRAP_NODES=${AXIONAX_BOOTSTRAP_NODES}
     restart: unless-stopped
   # Explorer: use image from GHCR or build from axionax-web-universe repo
   # explorer:
