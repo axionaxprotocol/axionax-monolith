@@ -108,6 +108,10 @@ def process_job(
                 }
                 result_file = queue_dir / f"result-{job_id}.json"
                 result_file.write_text(json.dumps(rec, indent=2), encoding="utf-8")
+                job["status"] = "completed"
+                job["result_hash"] = output_hash
+                job["result"] = rec["result"]
+                job_file.write_text(json.dumps(job, indent=2), encoding="utf-8")
                 return rec
 
             elif result.status == ExecutionStatus.TIMEOUT:
@@ -137,6 +141,11 @@ def process_job(
                 }
                 result_file = queue_dir / f"result-{job_id}.json"
                 result_file.write_text(json.dumps(rec, indent=2), encoding="utf-8")
+                job["status"] = "failed"
+                job["error"] = str(last_err)
+                job["result"] = None
+                job["result_hash"] = None
+                job_file.write_text(json.dumps(job, indent=2), encoding="utf-8")
                 return rec
 
     # Should not reach here

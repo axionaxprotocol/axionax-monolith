@@ -58,12 +58,14 @@ scp root@217.216.109.5:/root/axionax-core-universe/services/core/reports/deai-qu
 ```bash
 python -c "
 import json, hashlib, os
-for f in os.listdir('services/core/reports/deai-queue'):
+q = 'services/core/reports/deai-queue'
+for f in os.listdir(q):
     if f.startswith('result-') and f.endswith('.json'):
-        r = json.load(open(f'queuedir/{f}'))
+        r = json.load(open(os.path.join(q, f), encoding='utf-8'))
         out = r.get('result', {}).get('output', '') or ''
         h = hashlib.sha256(out.encode()).hexdigest()
-        print(f'{f}: result_hash={h[:16]}..  match={h == r.get(\"result_hash\")}')
+        match = h == (r.get('result_hash') or '')
+        print(f'{f}: output_hash={h[:16]}..  match={match}')
 "
 ```
 
