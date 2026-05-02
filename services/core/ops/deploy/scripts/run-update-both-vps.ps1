@@ -1,11 +1,11 @@
-# Run update on both Validator VPS (217.76.61.116, 46.250.244.4)
+# Run update on both Validator VPS (217.216.109.5, 46.250.244.4)
 # Usage: from repo root or from ops/deploy:
 #   .\scripts\run-update-both-vps.ps1
 #   .\scripts\run-update-both-vps.ps1 -User root -SkipApt
 
 param(
     [string]$User = "root",
-    [string]$Vps1 = "217.76.61.116",
+    [string]$Vps1 = "217.216.109.5",
     [string]$Vps2 = "46.250.244.4",
     [switch]$SkipApt,
     [switch]$DryRun

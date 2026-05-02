@@ -116,8 +116,7 @@ python3 scripts/update-node.py --full-deps
 
 | Validator | IP | RPC | Region |
 |-----------|-----|-----|--------|
-| #1 | 217.76.61.116 | `http://217.76.61.116:8545` | EU |
-| #2 | 46.250.244.4 | `http://46.250.244.4:8545` | AU |
+| #1 | 46.250.244.4 | `http://46.250.244.4:8545` | AU |
 
 - **Chain ID:** `86137`
 - **Phase:** Pre-Testnet (Phase 2)
@@ -128,7 +127,7 @@ python3 scripts/update-node.py --full-deps
 ```bash
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-  http://217.76.61.116:8545
+  http://46.250.244.4:8545
 ```
 
 **Run your own full node (anywhere on the Internet)** — no allowlist: build `axionax-node`, use the same genesis as testnet, set `AXIONAX_BOOTSTRAP_NODES`, open P2P port **30303**. Step-by-step: [docs/RUN_PUBLIC_FULL_NODE.md](docs/RUN_PUBLIC_FULL_NODE.md) · bootstrap list template: [docs/PUBLIC_TESTNET_BOOTSTRAPS.txt](docs/PUBLIC_TESTNET_BOOTSTRAPS.txt)

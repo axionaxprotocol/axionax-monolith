@@ -239,7 +239,7 @@ P2P_PORT=30303
 MAX_PEERS=50
 
 # Bootnodes (for peer discovery)
-BOOTNODES="enode://validator1@217.76.61.116:30303,enode://validator2@46.250.244.4:30303"
+BOOTNODES="enode://validator1@217.216.109.5:30303,enode://validator2@46.250.244.4:30303"
 
 # Logging
 LOG_LEVEL=info

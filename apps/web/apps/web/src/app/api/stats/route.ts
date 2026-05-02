@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 // RPC endpoints for validators
 const RPC_ENDPOINTS = {
-  eu: process.env.RPC_EU_URL || 'http://217.76.61.116:8545',
+  eu: process.env.RPC_EU_URL || 'http://217.216.109.5:8545',
   au: process.env.RPC_AU_URL || 'http://46.250.244.4:8545',
 };
 

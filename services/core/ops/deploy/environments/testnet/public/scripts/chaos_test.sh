@@ -19,7 +19,7 @@ set -euo pipefail
 
 # ── Defaults ────────────────────────────────────────────────────────────────
 CONTAINER_NAME="${CONTAINER_NAME:-axionax-validator}"  # docker container grep pattern
-MONITOR_RPC="${MONITOR_RPC:-http://217.76.61.116:8545}" # RPC on the OTHER validator to monitor
+MONITOR_RPC="${MONITOR_RPC:-http://217.216.109.5:8545}" # RPC on the OTHER validator to monitor
 LOCAL_RPC="http://127.0.0.1:8545"
 KILL_DURATION=30        # seconds the validator stays down
 RECOVERY_WAIT=45        # seconds to wait for recovery after restart

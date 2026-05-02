@@ -13,7 +13,7 @@ Status of the repo for Genesis public testnet launch and public use.
 | **Secrets / .gitignore** | ✅ | `.env`, `.env.local`, `.env.production`, `worker_key.json`, `*.keystore` in .gitignore — no secrets committed |
 | **LICENSE** | ✅ | core/ AGPLv3, ops/ & tools/ MIT; CONTRIBUTING.md present |
 | **Core docs** | ✅ | README (Quick Start, Network Testnet, Config), TESTNET_READINESS, docs (WALLET_AND_KEYS, ADD_NETWORK_AND_TOKEN, CONNECTIVITY_OVERVIEW, GENESIS_PUBLIC_TESTNET_PLAN) |
-| **Genesis & Chain** | ✅ | chain_id 86137, genesis in core/tools/genesis.json and Rust genesis; validators 217.76.61.116, 46.250.244.4 referenced in repo |
+| **Genesis & Chain** | ✅ | chain_id 86137, genesis in core/tools/genesis.json and Rust genesis; validators 217.216.109.5, 46.250.244.4 referenced in repo |
 | **Deploy / Ops** | ✅ | ops/deploy has docker-compose, nginx, scripts (update-validator-vps, verify-launch-ready), VPS_VALIDATOR_UPDATE |
 
 ---

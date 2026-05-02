@@ -12,7 +12,7 @@
 #   cd ~/axionax-core-universe && ./ops/deploy/environments/testnet/public/scripts/redeploy_testnet.sh
 #
 # Usage (from local machine via SSH):
-#   ssh root@217.76.61.116 "cd ~/axionax-core-universe && ./ops/deploy/environments/testnet/public/scripts/redeploy_testnet.sh"
+#   ssh root@217.216.109.5 "cd ~/axionax-core-universe && ./ops/deploy/environments/testnet/public/scripts/redeploy_testnet.sh"
 #   ssh root@46.250.244.4   "cd ~/axionax-core-universe && ./ops/deploy/environments/testnet/public/scripts/redeploy_testnet.sh"
 # ============================================================================
 set -euo pipefail

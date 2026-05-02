@@ -1088,7 +1088,7 @@ pnpm add @axionax/sdk
 import { createClient, getBalance, formatAXX } from '@axionax/sdk';
 
 const client = await createClient();
-// RPC: https://axionax.org/rpc/ or http://217.76.61.116:8545 (EU), http://46.250.244.4:8545 (AU)
+// RPC: https://axionax.org/rpc/ or http://217.216.109.5:8545 (EU), http://46.250.244.4:8545 (AU)
 // Chain ID: 86137
 
 // Use client for escrow, jobs, workers; use getBalance(provider, address) for token balance

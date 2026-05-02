@@ -118,7 +118,7 @@ pnpm build                               # build all packages
 const AXIONAX_TESTNET = {
   chainId: "0x15079",  // 86137 in hex
   chainName: "Axionax Testnet",
-  rpcUrls: ["http://217.76.61.116:8545"],
+  rpcUrls: ["http://217.216.109.5:8545"],
   nativeCurrency: { name: "AXX", symbol: "AXX", decimals: 18 },
 }
 ```

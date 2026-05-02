@@ -77,7 +77,7 @@ The following addresses receive allocations. Ensure private keys are secured:
 
 | Validator | IP | Address |
 |-----------|-----|---------|
-| EU-01 | 217.76.61.116 | `0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326` |
+| EU-01 | 217.216.109.5 | `0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326` |
 | AU-01 | 46.250.244.4 | `0x26e714016c6a91b791bb440ca8db6cd7c4d1e6cb` |
 
 Each receives 25,000,000,000 AXX (2.5% of supply) as bootstrap stake.

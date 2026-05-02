@@ -10,12 +10,12 @@
 
 - [ ] **Disk** — ตรวจพื้นที่ว่างบนแต่ละ VPS (ไม่ให้เต็ม)
   ```bash
-  ssh root@217.76.61.116 'df -h'
+  ssh root@217.216.109.5 'df -h'
   ssh root@46.250.244.4 'df -h'
   ```
 - [ ] **Memory** — ตรวจ RAM usage (ไม่ OOM)
   ```bash
-  ssh root@217.76.61.116 'free -h'
+  ssh root@217.216.109.5 'free -h'
   ssh root@46.250.244.4 'free -h'
   ```
 - [ ] **Container ทำงานต่อเนื่อง** — ไม่ restart บ่อย
@@ -41,18 +41,18 @@
 
 - [ ] **Chain ID ตรงกัน** — ทั้งสอง validator คืน 86137 (0x15079)
   ```bash
-  curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.76.61.116:8545
+  curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.216.109.5:8545
   curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://46.250.244.4:8545
   ```
 - [ ] **Block height ใกล้เคียงกัน** — ต่างกันไม่เกินหลักสิบเมื่อรอสักพัก
   ```bash
-  curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://217.76.61.116:8545
+  curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://217.216.109.5:8545
   curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://46.250.244.4:8545
   ```
 - [ ] **Block hash ตรงกันที่ความสูงเดียวกัน** — ไม่ fork
   ```bash
   # แทน <HEX_BLOCK> ด้วยความสูงเดียวกัน เช่น 0x64 (= 100)
-  curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["<HEX_BLOCK>",false],"id":1}' http://217.76.61.116:8545
+  curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["<HEX_BLOCK>",false],"id":1}' http://217.216.109.5:8545
   curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_getBlockByNumber","params":["<HEX_BLOCK>",false],"id":1}' http://46.250.244.4:8545
   # เปรียบเทียบ "hash" ใน response ต้องเหมือนกัน
   ```
@@ -96,7 +96,7 @@ Invoke-RestMethod -Uri $rpc -Method Post -Body $body -ContentType "application/j
 
 ```bash
 # เช็กทั้งสอง validator + public RPC
-for url in http://217.76.61.116:8545 http://46.250.244.4:8545 https://rpc.axionax.org; do
+for url in http://217.216.109.5:8545 http://46.250.244.4:8545 https://rpc.axionax.org; do
   echo -n "$url: "
   curl -s -X POST -H "Content-Type: application/json" \
     -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' "$url" | jq -r '.result'

@@ -110,7 +110,7 @@ Public testnet for community testing, validator onboarding, and dApp development
 | Native token      | AXX (18 decimals)                                                    |
 | Block time        | 2 s (from genesis)                                                   |
 | Genesis SHA-256   | `0xed1bdac7c278e5b4f58a1eceb7594a4238e39bb63e1018e38ec18a555c762b55` |
-| Validator #1 (EU) | `http://217.76.61.116:8545`                                          |
+| Validator #1 (EU) | `http://217.216.109.5:8545`                                          |
 | Validator #2 (AU) | `http://46.250.244.4:8545`                                           |
 | Reverse-proxy RPC | `https://rpc.axionax.org` (VPS 3 Nginx → VPS 1/2)                    |
 | Faucet            | `https://faucet.axionax.org` (VPS 3)                                 |

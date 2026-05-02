@@ -48,7 +48,7 @@ export const AXIONAX_TESTNET_RPC_NODES: readonly RpcNodeEndpoint[] = [
   {
     id: 'hetzner_eu',
     label: 'Hetzner EU',
-    url: T[1] ?? 'http://217.76.61.116:8545',
+    url: T[1] ?? 'http://217.216.109.5:8545',
   },
   {
     id: 'australia',

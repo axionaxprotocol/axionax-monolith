@@ -384,7 +384,7 @@ echo "ops/deploy/VPS_CONNECTION.txt" >> .gitignore
 **1. `core/deai/rpc_client.py` (line 10)**
 ```python
 # BEFORE:
-def __init__(self, rpc_url: str = "http://217.76.61.116:8545"):
+def __init__(self, rpc_url: str = "http://217.216.109.5:8545"):
 
 # AFTER:
 def __init__(self, rpc_url: str = "https://rpc.axionax.org"):
@@ -401,7 +401,7 @@ def __init__(self, rpc_url: str = "https://rpc.axionax.org"):
 ```toml
 # BEFORE:
 bootnodes = [
-    "http://217.76.61.116:8545",
+    "http://217.216.109.5:8545",
     "http://46.250.244.4:8545"
 ]
 
@@ -415,7 +415,7 @@ bootnodes = [
 **3. `configs/monolith_sentinel.toml`, `configs/monolith_worker.toml`, `configs/monolith_scout_single.toml`**
 ```toml
 # BEFORE:
-bootnodes = ["http://217.76.61.116:8545", "http://46.250.244.4:8545"]
+bootnodes = ["http://217.216.109.5:8545", "http://46.250.244.4:8545"]
 
 # AFTER:
 bootnodes = ["https://rpc.axionax.org", "https://rpc-au.axionax.org"]
@@ -731,7 +731,7 @@ add_header Access-Control-Allow-Origin $cors_origin always;
 **Finding:** DH-8, SL-1
 **Effort:** 0.5 วัน
 
-ไฟล์ที่ต้องแก้ (ทุกที่ที่มี `217.76.61.116`, `46.250.244.4`, `217.216.109.5`):
+ไฟล์ที่ต้องแก้ (ทุกที่ที่มี `217.216.109.5`, `46.250.244.4`, `217.216.109.5`):
 - `configs/monolith_sentinel.toml`
 - `configs/monolith_worker.toml`
 - `configs/monolith_scout_single.toml`
@@ -740,7 +740,7 @@ add_header Access-Control-Allow-Origin $cors_origin always;
 
 แทนที่ด้วย DNS:
 ```
-http://217.76.61.116:8545  → https://rpc-eu.axionax.org
+http://217.216.109.5:8545  → https://rpc-eu.axionax.org
 http://46.250.244.4:8545   → https://rpc-au.axionax.org
 ```
 

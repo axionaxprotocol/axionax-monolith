@@ -8,7 +8,7 @@ export default function InfrastructurePage(): React.JSX.Element {
       name: 'Validator EU (axionax-node)',
       port: 8545,
       status: 'healthy',
-      host: 'VPS 1 · 217.76.61.116',
+      host: 'VPS 1 · 217.216.109.5',
       details: 'Genesis validator + RPC (EU)',
     },
     {
@@ -134,7 +134,7 @@ export default function InfrastructurePage(): React.JSX.Element {
           <div className="mb-12 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="p-6 rounded-xl bg-white/[0.02] border border-white/10">
               <div className="text-muted text-xs uppercase tracking-widest mb-2">VPS 1 — Validator (EU)</div>
-              <div className="text-content font-mono mb-2">217.76.61.116</div>
+              <div className="text-content font-mono mb-2">217.216.109.5</div>
               <div className="text-muted text-sm">axionax-node · RPC 8545 · P2P 30303</div>
               <div className="text-muted text-xs mt-3">4 vCPU · 8 GB RAM · 75 GB SSD</div>
             </div>
@@ -254,7 +254,7 @@ export default function InfrastructurePage(): React.JSX.Element {
               </div>
               <p className="text-muted text-sm mb-4">Genesis validators online</p>
               <ul className="space-y-2 text-sm text-muted">
-                <li>• Validator EU (217.76.61.116)</li>
+                <li>• Validator EU (217.216.109.5)</li>
                 <li>• Validator AU (46.250.244.4)</li>
                 <li>• P2P 30303, RPC 8545</li>
               </ul>

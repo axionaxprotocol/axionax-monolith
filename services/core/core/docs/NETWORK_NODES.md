@@ -32,7 +32,7 @@ Nodes running `axionax-node` (or equivalent), mode set via config or `--role`.
 
 | IP | Region | RPC |
 |----|--------|-----|
-| 217.76.61.116 | EU | http://217.76.61.116:8545 |
+| 217.216.109.5 | EU | http://217.216.109.5:8545 |
 | 46.250.244.4 | AU | http://46.250.244.4:8545 |
 
 ### 1.2 RPC Node

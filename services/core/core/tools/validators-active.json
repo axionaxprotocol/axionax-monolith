@@ -4,10 +4,10 @@
     "address": "0xca0e4e60f8ce825dbb820c72a7e28e28cdae3326",
     "stake": "25000000000000000000000000000",
     "commission": 0.1,
-    "enode": "enode://GENERATED@217.76.61.116:30303",
+    "enode": "enode://GENERATED@217.216.109.5:30303",
     "location": "EU",
     "operator": "Axionax Genesis EU",
-    "ip": "217.76.61.116"
+    "ip": "217.216.109.5"
   },
   {
     "name": "Validator-AU-01",

@@ -99,7 +99,7 @@ def _get_allocations(faucet_address: str | None = None) -> dict:
                 "address": _evm_addr("axionax_genesis_validator_eu_217_76_61_116"),
                 "label": "Validator-EU-01",
                 "region": "EU",
-                "ip": "217.76.61.116",
+                "ip": "217.216.109.5",
             },
             {
                 "address": _evm_addr("axionax_genesis_validator_au_46_250_244_4"),

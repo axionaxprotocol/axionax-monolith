@@ -26,7 +26,7 @@ location /api/ {
 
 # Validator RPC (EU)
 location = /rpc/eu {
-  proxy_pass http://217.76.61.116:8545;
+  proxy_pass http://217.216.109.5:8545;
   proxy_http_version 1.1;
   proxy_set_header Host $host;
 }

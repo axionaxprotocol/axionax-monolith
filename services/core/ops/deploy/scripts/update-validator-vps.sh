@@ -1,11 +1,11 @@
 #!/bin/bash
 # =============================================================================
-# Update Validator VPS (217.76.61.116, 46.250.244.4)
+# Update Validator VPS (217.216.109.5, 46.250.244.4)
 # Run this script on each VPS: OS update, config (chain_id 86137), image, restart, RPC check
 #
 # Usage:
-#   scp ops/deploy/scripts/update-validator-vps.sh root@217.76.61.116:/tmp/
-#   ssh root@217.76.61.116 'bash /tmp/update-validator-vps.sh'
+#   scp ops/deploy/scripts/update-validator-vps.sh root@217.216.109.5:/tmp/
+#   ssh root@217.216.109.5 'bash /tmp/update-validator-vps.sh'
 #
 # Options: --skip-apt | --skip-pull | --dry-run
 # =============================================================================

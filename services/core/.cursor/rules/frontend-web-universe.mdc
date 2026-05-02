@@ -44,7 +44,7 @@ export const AXIONAX_TESTNET_CONFIG = {
   chainId: 86137,
   chainIdHex: "0x15079",
   name: "Axionax Testnet",
-  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL ?? "http://217.76.61.116:8545",
+  rpcUrl: process.env.NEXT_PUBLIC_RPC_URL ?? "http://217.216.109.5:8545",
   currency: { name: "AXX", symbol: "AXX", decimals: 18 },
   explorerUrl: process.env.NEXT_PUBLIC_EXPLORER_URL ?? "",
 }

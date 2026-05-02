@@ -11,7 +11,7 @@ services:
     environment:
       - NODE_ENV=production
       # Next.js reads NEXT_PUBLIC_* at runtime for RPC; RPC_URL is not used by apps/web.
-      - NEXT_PUBLIC_RPC_URL=http://217.76.61.116:8545
+      - NEXT_PUBLIC_RPC_URL=http://217.216.109.5:8545
       - FAUCET_PRIVATE_KEY=0xc83dbf46d17edc12c4d0993ba1f0d6bd1be69cd66a233be37a538d99db8cbf04
     healthcheck:
       test: ['CMD', 'wget', '-q', '--spider', 'http://localhost:3000']

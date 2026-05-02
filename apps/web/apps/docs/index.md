@@ -16,7 +16,7 @@ Welcome to the official documentation for Axionax Protocol — a next-generation
 
 | Layer              | Host                         | Status       | Details                                              |
 | ------------------ | ---------------------------- | ------------ | ---------------------------------------------------- |
-| **Validator EU**   | 217.76.61.116 (VPS 1)        | 🟢 Running   | `axionax-node` validator, RPC 8545, P2P 30303         |
+| **Validator EU**   | 217.216.109.5 (VPS 1)        | 🟢 Running   | `axionax-node` validator, RPC 8545, P2P 30303         |
 | **Validator AU**   | 46.250.244.4 (VPS 2)         | 🟢 Running   | `axionax-node` validator, RPC 8545, P2P 30303         |
 | **Infra hub**      | 217.216.109.5 (VPS 3)        | 🟢 Running   | Nginx + Faucet (+ optional Explorer), no chain node  |
 | **Public RPC**     | rpc.axionax.org              | 🟡 DNS pending | Reverse-proxy on VPS 3 → VPS 1/2                    |

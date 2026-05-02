@@ -11,7 +11,7 @@ How to add **Axionax Testnet** and the **AXX** token in MetaMask, Rabby, Coinbas
 | Item | Value |
 |------|-------|
 | **Network name** | Axionax Testnet |
-| **RPC URL** | `https://rpc.axionax.org` (or `http://217.76.61.116:8545` / `http://46.250.244.4:8545`) |
+| **RPC URL** | `https://rpc.axionax.org` (or `http://217.216.109.5:8545` / `http://46.250.244.4:8545`) |
 | **Chain ID** | `86137` |
 | **Currency symbol** | AXX |
 | **Decimals** | 18 |
@@ -103,7 +103,7 @@ A successful response includes `"success": true` and `tx_hash`; the AXX balance 
 | **Invalid address** | Must be EVM format: `0x` + 40 hex characters (42 total) — copy directly from MetaMask |
 | **24h cooldown** | Faucet limits one request per address per 24h — wait or use another address |
 | **Faucet out of funds** | Contact the team/community to refill the Faucet |
-| **RPC mismatch** | MetaMask must use **Axionax Testnet** (Chain ID 86137) and the RPC specified by the team (e.g. `http://217.76.61.116:8545`) |
+| **RPC mismatch** | MetaMask must use **Axionax Testnet** (Chain ID 86137) and the RPC specified by the team (e.g. `http://217.216.109.5:8545`) |
 
 ---
 

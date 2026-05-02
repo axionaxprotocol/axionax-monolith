@@ -57,10 +57,10 @@ def poll_jobs(self) -> List[ComputeJob]:
 ### 3. Secrets — Never Hardcode
 ```python
 # CORRECT
-rpc_url: str = os.environ.get("AXIONAX_RPC_URL", "http://217.76.61.116:8545")
+rpc_url: str = os.environ.get("AXIONAX_RPC_URL", "http://217.216.109.5:8545")
 
 # WRONG
-rpc_url = "http://217.76.61.116:8545"  # hardcoded
+rpc_url = "http://217.216.109.5:8545"  # hardcoded
 api_key = "sk-abc123"                   # NEVER
 ```
 
@@ -90,7 +90,7 @@ async def call_gemini_with_retry(prompt: str, max_retries: int = 3) -> str:
 
 | Variable | Default | Notes |
 |---|---|---|
-| `AXIONAX_RPC_URL` | `http://217.76.61.116:8545` | Primary RPC endpoint |
+| `AXIONAX_RPC_URL` | `http://217.216.109.5:8545` | Primary RPC endpoint |
 | `AXIONAX_BOOTNODES` | (from config) | Comma-separated RPC URLs |
 | `AXIONAX_CHAIN_ID` | `86137` | |
 | `AXIONAX_WALLET_PATH` | `worker_key.json` | Path to wallet file |

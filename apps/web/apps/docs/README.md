@@ -21,7 +21,7 @@ for high-performance decentralized compute markets.
 
 | VPS       | IP              | Role                        | Services                                                               |
 | --------- | --------------- | --------------------------- | ---------------------------------------------------------------------- |
-| **VPS 1** | 217.76.61.116   | Validator + RPC (EU)        | `axionax-node` (RPC 8545, P2P 30303)                                   |
+| **VPS 1** | 217.216.109.5   | Validator + RPC (EU)        | `axionax-node` (RPC 8545, P2P 30303)                                   |
 | **VPS 2** | 46.250.244.4    | Validator + RPC (AU)        | `axionax-node` (RPC 8545, P2P 30303)                                   |
 | **VPS 3** | 217.216.109.5   | Infra hub (no chain node)   | Nginx reverse-proxy, Faucet (3002), Postgres, Redis, optional Explorer |
 

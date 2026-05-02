@@ -152,7 +152,7 @@ pnpm dev
 
 **RPC Endpoints:**
 - **HTTPS**: https://axionax.org/rpc/
-- **EU Validator**: http://217.76.61.116:8545
+- **EU Validator**: http://217.216.109.5:8545
 - **AU Validator**: http://46.250.244.4:8545
 
 **Chain ID:** 86137 (0x15079)

@@ -449,7 +449,7 @@ def main() -> int:
     args = ap.parse_args()
 
     validators = args.validator or [
-        "http://217.76.61.116:8545",
+        "http://217.216.109.5:8545",
         "http://46.250.244.4:8545",
     ]
     if args.skip_validators:

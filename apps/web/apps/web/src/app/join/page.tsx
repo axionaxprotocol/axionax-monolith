@@ -408,12 +408,12 @@ sudo nginx -t && sudo systemctl reload nginx`,
               </label>
               <div className="flex items-center gap-2">
                 <code className="flex-1 bg-black/50 border border-white/5 rounded-lg px-4 py-3 font-mono text-xs text-content overflow-x-auto">
-                  enode://abc123...@217.76.61.116:30303
+                  enode://abc123...@217.216.109.5:30303
                 </code>
                 <button
                   onClick={() =>
                     copyToClipboard(
-                      'enode://abc123...@217.76.61.116:30303',
+                      'enode://abc123...@217.216.109.5:30303',
                       'bootnode'
                     )
                   }

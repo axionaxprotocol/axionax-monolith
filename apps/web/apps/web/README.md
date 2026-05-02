@@ -51,7 +51,7 @@ Recent updates:
 | Service               | Endpoint                     | Status    | Uptime |
 | --------------------- | ---------------------------- | --------- | ------ |
 | 🌐 **Website**        | https://axionax.org          | ✅ Online | 2d+    |
-| 🇪🇺 **EU Validator**   | http://217.76.61.116:8545    | ✅ Online | 2d+    |
+| 🇪🇺 **EU Validator**   | http://217.216.109.5:8545    | ✅ Online | 2d+    |
 | 🇦🇺 **AU Validator**   | http://46.250.244.4:8545     | ✅ Online | 2d+    |
 | 🔒 **HTTPS Proxy**    | https://axionax.org/rpc/     | ✅ Active | -      |
 | 📊 **Block Explorer** | https://axionax.org/explorer | ✅ Active | -      |
@@ -69,7 +69,7 @@ Recent updates:
 
 **Validators**:
 
-- EU: 217.76.61.116 (Germany)
+- EU: 217.216.109.5 (Germany)
 - AU: 46.250.244.4 (Australia)
 - Block time: 5 seconds
 - Network: Testnet (Chain ID: 86137)
@@ -454,7 +454,7 @@ const addNetwork = async () => {
 
 **Active Validators:**
 
-- 🇪🇺 **EU Node**: `http://217.76.61.116:8545` (Europe)
+- 🇪🇺 **EU Node**: `http://217.216.109.5:8545` (Europe)
 - 🇦🇺 **AU Node**: `http://46.250.244.4:8545` (Australia)
 
 **Web Interface:**

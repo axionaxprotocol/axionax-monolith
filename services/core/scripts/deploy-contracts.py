@@ -9,8 +9,8 @@ Prerequisites:
 
 Usage:
   python3 scripts/deploy-contracts.py                          # interactive
-  python3 scripts/deploy-contracts.py --rpc http://217.76.61.116:8545 --key 0x...
-  python3 scripts/deploy-contracts.py --rpc http://217.76.61.116:8545 --key 0x... --axx-token 0x...
+  python3 scripts/deploy-contracts.py --rpc http://217.216.109.5:8545 --key 0x...
+  python3 scripts/deploy-contracts.py --rpc http://217.216.109.5:8545 --key 0x... --axx-token 0x...
 
 Environment variables (alternative to CLI args):
   AXIONAX_RPC_URL          RPC endpoint
@@ -96,7 +96,7 @@ def main():
     from web3 import Web3
 
     ap = argparse.ArgumentParser(description="Deploy JobMarketplace to Axionax chain")
-    ap.add_argument("--rpc", default=os.environ.get("AXIONAX_RPC_URL", "http://217.76.61.116:8545"))
+    ap.add_argument("--rpc", default=os.environ.get("AXIONAX_RPC_URL", "http://217.216.109.5:8545"))
     ap.add_argument("--key", default=os.environ.get("DEPLOYER_PRIVATE_KEY", ""))
     ap.add_argument("--axx-token", default=os.environ.get("AXX_TOKEN_ADDRESS", ""))
     ap.add_argument("--chain-id", type=int, default=int(os.environ.get("AXIONAX_CHAIN_ID", "86137")))

@@ -99,14 +99,13 @@ python3 scripts/join-axionax.py
 
 | Validator | RPC | Region |
 |---|---|---|
-| #1 | `http://217.76.61.116:8545` | EU |
-| #2 | `http://46.250.244.4:8545` | AU |
-| #3 | `http://217.216.109.5:8545` | ES |
+| #1 | `http://46.250.244.4:8545` | AU |
+| #2 | `http://217.216.109.5:8545` | ES |
 
 P2P bootnodes are advertised via `AXIONAX_BOOTSTRAP_NODES` — see `services/core/configs/`.
 
 Current validated status (2026-05-01):
-- EU (`217.76.61.116`) and AU (`46.250.244.4`) nodes are connected and report `peers: 1`.
+- AU (`46.250.244.4`) and ES (`217.216.109.5`) nodes are connected and report `peers: 1`.
 - Cross-node handshake tests in `services/core/core/core/network/tests/handshake_test.rs` pass (including the ignored mDNS test when run explicitly).
 
 ### Key constants
@@ -143,7 +142,7 @@ If your node sees zero peers across the public internet:
    That `observed_addr` is what other peers see. If it's wrong, the node is mis-NATed.
 4. **Use the bundled health script** for sync drift:
    ```bash
-   ./scripts/check-node-sync.sh http://localhost:8545 http://217.76.61.116:8545 10
+   ./scripts/check-node-sync.sh http://localhost:8545 http://46.250.244.4:8545 10
    ```
    Exit codes: `0` in-sync · `1` lagging · `2` ahead · `3` RPC error.
 

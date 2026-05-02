@@ -1,4 +1,4 @@
-# VPS3 only: Testnet Faucet pointing to RPC on VPS1 (217.76.61.116)
+# VPS3 only: Testnet Faucet pointing to RPC on VPS1 (217.216.109.5)
 # Usage: copy to VPS3, set FAUCET_PRIVATE_KEY in .env, then:
 #   docker compose -f docker-compose.vps3-faucet.yml up -d
 
@@ -15,7 +15,7 @@ services:
       - "3002:3002"
     environment:
       - NODE_ENV=production
-      - RPC_URL=http://217.76.61.116:8545
+      - RPC_URL=http://217.216.109.5:8545
       - FAUCET_PRIVATE_KEY=${FAUCET_PRIVATE_KEY}
       - FAUCET_AMOUNT=100
       - RATE_LIMIT_MINUTES=1440

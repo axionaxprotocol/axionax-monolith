@@ -1,11 +1,11 @@
 # Distribute genesis.json to both Validator VPS (Week 1)
-# Run from repo root. Requires: SSH to root@217.76.61.116 and root@46.250.244.4
+# Run from repo root. Requires: SSH to root@217.216.109.5 and root@46.250.244.4
 # Usage: .\ops\deploy\scripts\distribute-genesis.ps1
-#        .\ops\deploy\scripts\distribute-genesis.ps1 -User root -Vps1 217.76.61.116 -Vps2 46.250.244.4
+#        .\ops\deploy\scripts\distribute-genesis.ps1 -User root -Vps1 217.216.109.5 -Vps2 46.250.244.4
 
 param(
     [string]$User = "root",
-    [string]$Vps1 = "217.76.61.116",
+    [string]$Vps1 = "217.216.109.5",
     [string]$Vps2 = "46.250.244.4"
 )
 

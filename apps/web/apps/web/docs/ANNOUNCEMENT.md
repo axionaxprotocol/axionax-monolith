@@ -76,7 +76,7 @@ Visit **https://axionax.org** to:
 https://rpc.axionax.org
 
 # Direct Validators
-EU: http://217.76.61.116:8545
+EU: http://217.216.109.5:8545
 AU: http://46.250.244.4:8545
 ```
 

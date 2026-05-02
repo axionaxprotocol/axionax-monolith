@@ -33,7 +33,7 @@ echo ""
 echo "[5] RPC via VPS1 (from VPS3)"
 curl -sf -o /dev/null -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
-  http://217.76.61.116:8545 2>/dev/null && echo "  RPC VPS1 reachable" || echo "  RPC VPS1 not reachable"
+  http://217.216.109.5:8545 2>/dev/null && echo "  RPC VPS1 reachable" || echo "  RPC VPS1 not reachable"
 
 echo ""
 echo "[6] Disk"

@@ -12,7 +12,7 @@ Rolling status of all Axionax Protocol testnet services across the three-VPS top
 
 | VPS       | IP              | Region     | Role                                  | Key services                                                    |
 | --------- | --------------- | ---------- | ------------------------------------- | --------------------------------------------------------------- |
-| **VPS 1** | 217.76.61.116   | Europe     | Validator #1 + RPC                    | `axionax-node` validator, RPC 8545, P2P 30303 - **OFFLINE**      |
+| **VPS 1** | 217.216.109.5   | Europe     | Validator #1 + RPC                    | `axionax-node` validator, RPC 8545, P2P 30303 - **OFFLINE**      |
 | **VPS 2** | 46.250.244.4    | Australia  | Validator #2 + RPC                    | `axionax-node` validator, RPC 8545, P2P 30303 - **ACTIVE**       |
 | **VPS 3** | 217.216.109.5   | Infra hub  | Reverse-proxy + Faucet (no chain node)| Nginx (SSL), Faucet (port 3002), Postgres, Redis, optional Explorer |
 
@@ -26,7 +26,7 @@ Rolling status of all Axionax Protocol testnet services across the three-VPS top
 
 | Service                | Port      | Host            | Status         | Description                                             |
 | ---------------------- | --------- | --------------- | -------------- | ------------------------------------------------------- |
-| **Validator EU**       | 8545/30303| 217.76.61.116   | ❌ Offline     | `axionax-node` (RPC + P2P) - currently offline          |
+| **Validator EU**       | 8545/30303| 217.216.109.5   | ❌ Offline     | `axionax-node` (RPC + P2P) - currently offline          |
 | **Validator AU**       | 8545/30303| 46.250.244.4    | ✅ Running     | `axionax-node` (RPC + P2P) - only active validator      |
 
 Health checks: `eth_chainId` must return `0x15079`; `eth_blockNumber` must advance on AU validator. P2P peer count = 0 (EU offline).
@@ -114,8 +114,8 @@ Containers deployed before the ulimit patch can hit axum's `accept error` at ste
 
 ```bash
 # From your workstation
-scp ops/deploy/scripts/fix-validator-ulimit.sh root@217.76.61.116:/tmp/
-ssh root@217.76.61.116 'bash /tmp/fix-validator-ulimit.sh axionax-validator-eu'
+scp ops/deploy/scripts/fix-validator-ulimit.sh root@217.216.109.5:/tmp/
+ssh root@217.216.109.5 'bash /tmp/fix-validator-ulimit.sh axionax-validator-eu'
 ```
 
 The script recreates the container with `--ulimit nofile=65536:65536`. New deploys from compose already include this.
@@ -123,7 +123,7 @@ The script recreates the container with `--ulimit nofile=65536:65536`. New deplo
 ### VPS 3 Faucet doesn't start
 
 - Check `FAUCET_PRIVATE_KEY` is set and matches an allocation in `core/tools/genesis.json`.
-- Verify `RPC_URL` points at a live validator (`http://217.76.61.116:8545`).
+- Verify `RPC_URL` points at a live validator (`http://217.216.109.5:8545`).
 - Use `ops/deploy/scripts/check-vps3.sh` (from core) to inspect container state:
 
 ```powershell
@@ -171,7 +171,7 @@ ssh root@217.216.109.5 'sed -i "s/\r$//" /tmp/check-vps3.sh; bash /tmp/check-vps
 
 **SSH targets** (solo maintainer):
 
-- VPS 1 (EU validator): `ssh root@217.76.61.116`
+- VPS 1 (EU validator): `ssh root@217.216.109.5`
 - VPS 2 (AU validator): `ssh root@46.250.244.4`
 - VPS 3 (infra hub):    `ssh root@217.216.109.5`
 
@@ -237,4 +237,4 @@ docker restart <container>
 
 **Last Status Check**: April 24, 2026  
 **Synced core ref**: `axionax-core-universe@28f42cf`  
-**Manual verification**: `curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.76.61.116:8545`
+**Manual verification**: `curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.216.109.5:8545`

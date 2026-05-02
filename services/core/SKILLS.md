@@ -161,7 +161,7 @@ Extended methods: `system_status`, `system_health`, `system_version`, `metrics_j
 - **Server Components first** — fetch data on server, pass to client; add `"use client"` only for interactivity.
 - **SDK-first business logic** — never put RPC calls or contract ABI in app components.
 - **Cyberpunk/Futuristic dark theme** — Tailwind CSS, dark mode default, consistent with brand identity.
-- **MetaMask integration** — Chain ID `86137`, RPC `http://217.76.61.116:8545`, token symbol `AXX`, decimals `18`.
+- **MetaMask integration** — Chain ID `86137`, RPC `http://217.216.109.5:8545`, token symbol `AXX`, decimals `18`.
 
 ---
 

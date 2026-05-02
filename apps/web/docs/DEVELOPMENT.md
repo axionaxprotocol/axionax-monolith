@@ -9,7 +9,7 @@
 | **axionax-web-universe** (this repo)                                                  | Frontend (Next.js, Marketplace), SDK, Faucet API, docs           |
 | **[axionax-core-universe](https://github.com/axionaxprotocol/axionax-core-universe)** | **Backend**: blockchain node, validators (EU/AU), consensus, ops |
 
-Validator node setup, persistence, Docker/volume config, and chain data live in **axionax-core-universe**. This repo only connects to validators via RPC (e.g. 217.76.61.116, 46.250.244.4).
+Validator node setup, persistence, Docker/volume config, and chain data live in **axionax-core-universe**. This repo only connects to validators via RPC (e.g. 217.216.109.5, 46.250.244.4).
 
 **Solo maintainer (dual repo):** when you change chain parameters in core, mirror them here and log the pair — see [SOLO_CORE_WEB_SYNC.md](SOLO_CORE_WEB_SYNC.md) and [CORE_WEB_COMPAT.md](CORE_WEB_COMPAT.md).
 
@@ -59,7 +59,7 @@ pnpm install
 #### 🌐 Web Only (Connect to Live Testnet)
 
 ```bash
-# Uses live validators (217.76.61.116, 46.250.244.4)
+# Uses live validators (217.216.109.5, 46.250.244.4)
 pnpm dev
 ```
 
@@ -187,7 +187,7 @@ cp apps/marketplace/.env.example apps/marketplace/.env
 RPC Endpoints:
 
 - **HTTPS (Recommended)**: https://axionax.org/rpc/
-- **EU Validator**: http://217.76.61.116:8545
+- **EU Validator**: http://217.216.109.5:8545
 - **AU Validator**: http://46.250.244.4:8545
 
 Chain ID: `86137` (0x15079)

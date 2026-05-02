@@ -39,7 +39,7 @@
 
 ### Validator Nodes (direct RPC fallback)
 
-- **EU Validator** (VPS 1): http://217.76.61.116:8545
+- **EU Validator** (VPS 1): http://217.216.109.5:8545
 - **AU Validator** (VPS 2): http://46.250.244.4:8545
 - **Infra hub** (VPS 3 — Nginx + Faucet, no chain node): 217.216.109.5
 
@@ -305,7 +305,7 @@ curl -X POST https://rpc.axionax.org \
   -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}'
 
 # ถ้าไม่ได้ลอง node สำรอง
-# EU: http://217.76.61.116:8545
+# EU: http://217.216.109.5:8545
 # AU: http://46.250.244.4:8545
 ```
 

@@ -97,7 +97,7 @@ Website manages blockchain connection directly, not via SDK.
 2. **Process**:
    - `Web3Context` calls `connectWallet()` from `lib/web3.ts`
    - Uses `window.ethereum` for account access
-   - Hardcoded RPCs: `https://axionax.org/rpc/`, `http://217.76.61.116:8545`
+   - Hardcoded RPCs: `https://axionax.org/rpc/`, `http://217.216.109.5:8545`
 3. **Output**: App state (`account`, `balance`) updated via `zustand` or Context
 
 ---
@@ -144,6 +144,6 @@ Website manages blockchain connection directly, not via SDK.
   - Primary connection point for frontend (e.g. `apps/web` fetches metrics)
 
 - **Validator Nodes**:
-  - `217.76.61.116` (EU Region)
+  - `217.216.109.5` (EU Region)
   - `46.250.244.4` (AU Region)
   - **Role**: Consensus and block production (Blockchain Core)

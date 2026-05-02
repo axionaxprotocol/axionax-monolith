@@ -11,7 +11,7 @@ import { createPublicClient, http, formatEther, type Block } from 'viem';
 // ============================================
 
 const RPC_URLS = {
-  eu: process.env.RPC_URL_EU || 'http://217.76.61.116:8545',
+  eu: process.env.RPC_URL_EU || 'http://217.216.109.5:8545',
   au: process.env.RPC_URL_AU || 'http://46.250.244.4:8545',
 };
 

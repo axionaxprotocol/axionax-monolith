@@ -41,7 +41,7 @@ setup options:
 
 Examples:
   ./axionax-node-bootstrap.sh build
-  sudo AXIONAX_BOOTSTRAP_NODES='/ip4/217.76.61.116/tcp/30303/p2p/12D3KooW...' \\
+  sudo AXIONAX_BOOTSTRAP_NODES='/ip4/217.216.109.5/tcp/30303/p2p/12D3KooW...' \\
     ./axionax-node-bootstrap.sh setup --role full --data-dir /var/lib/axionax-node
   sudo ./axionax-node-bootstrap.sh run --data-dir /var/lib/axionax-node
 EOF

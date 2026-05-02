@@ -28,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Added
 
 - ✅ **Testnet deployment** at https://axionax.org with SSL/HTTPS
-- 🌍 **2 validators online** (EU: 217.76.61.116, AU: 46.250.244.4)
+- 🌍 **2 validators online** (EU: 217.216.109.5, AU: 46.250.244.4)
 - 📊 **Live metrics dashboard** with real-time block height (5s refresh)
 - 🔄 **TanStack Query v5** integration for server state management
 - 🎨 **React 19** with Server Components support

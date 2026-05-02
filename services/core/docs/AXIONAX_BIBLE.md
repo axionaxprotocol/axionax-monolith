@@ -76,7 +76,7 @@ This repository contains many documents. This file is the central index: content
 | [GENESIS_PUBLIC_TESTNET_PLAN.md](GENESIS_PUBLIC_TESTNET_PLAN.md) | Genesis public testnet plan, VPS allocation (3 nodes), weekly timeline |
 | [CONNECTIVITY_OVERVIEW.md](CONNECTIVITY_OVERVIEW.md) | How Local full node, VPS Validator, and Frontend connect |
 | [ADD_NETWORK_AND_TOKEN.md](ADD_NETWORK_AND_TOKEN.md) | Add Axionax Testnet and AXX token in MetaMask; receive from Faucet |
-| [ops/deploy/VPS_VALIDATOR_UPDATE.md](../ops/deploy/VPS_VALIDATOR_UPDATE.md) | Validator VPS update (217.76.61.116, 46.250.244.4) and checklist |
+| [ops/deploy/VPS_VALIDATOR_UPDATE.md](../ops/deploy/VPS_VALIDATOR_UPDATE.md) | Validator VPS update (217.216.109.5, 46.250.244.4) and checklist |
 | [ops/deploy/VPS_FULL_NODE_RUNBOOK.md](../ops/deploy/VPS_FULL_NODE_RUNBOOK.md) | Run full node on VPS (chain_id 86137, RPC 8545, P2P 30303) |
 | [RUN_PUBLIC_FULL_NODE.md](RUN_PUBLIC_FULL_NODE.md) | Permissionless public testnet full node — genesis, bootstrap, build, verify (any operator worldwide) |
 | [PUBLIC_TESTNET_BOOTSTRAPS.txt](PUBLIC_TESTNET_BOOTSTRAPS.txt) | Maintainer-updated libp2p multiaddrs for `AXIONAX_BOOTSTRAP_NODES` |

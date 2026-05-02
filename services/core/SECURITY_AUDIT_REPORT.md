@@ -394,7 +394,7 @@ This audit reviewed the entire Axionax Protocol codebase. A total of **130 findi
 #### SL-1: Hardcoded Validator IPs in Genesis
 
 - **File:** `core/core/genesis/src/lib.rs` lines 329, 334
-- **Description:** Validator IPs `217.76.61.116`, `46.250.244.4` hardcoded in source code.
+- **Description:** Validator IPs `217.216.109.5`, `46.250.244.4` hardcoded in source code.
 - **Recommendation:** Move to external config.
 
 #### SL-2: Metrics Exposed Without Authentication
@@ -478,7 +478,7 @@ This audit reviewed the entire Axionax Protocol codebase. A total of **130 findi
 
 - **Files:** `core/deai/rpc_client.py` line 10, `core/deai/worker_config.toml` lines 17–19
 - **Category:** Insecure Communication
-- **Description:** RPC client defaults to `http://217.76.61.116:8545`. All RPC traffic — including signed transactions — is sent unencrypted.
+- **Description:** RPC client defaults to `http://217.216.109.5:8545`. All RPC traffic — including signed transactions — is sent unencrypted.
 - **Impact:** Man-in-the-middle attacks can intercept, modify, or replay transactions.
 - **Recommendation:** Use HTTPS/TLS for all RPC endpoints. Validate certificates.
 
@@ -715,7 +715,7 @@ This audit reviewed the entire Axionax Protocol codebase. A total of **130 findi
 #### DH-8: Production Validator IPs Hardcoded Throughout Codebase
 
 - **Files:** `configs/monolith_*.toml`, `VPS_CONNECTION.txt`, deployment scripts, documentation
-- **Description:** IPs `217.76.61.116`, `46.250.244.4`, `217.216.109.5` in ~15 files.
+- **Description:** IPs `217.216.109.5`, `46.250.244.4`, `217.216.109.5` in ~15 files.
 - **Recommendation:** Use DNS names; move IPs to private config.
 
 #### DH-9: Faucet Private Key Fallback to 0x01

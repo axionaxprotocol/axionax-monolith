@@ -9,7 +9,7 @@ Scripts to validate protocol targets:
 
 - Python 3.10+
 - `web3` (e.g. `pip install web3`)
-- Running Axionax RPC (e.g. `http://217.76.61.116:8545` or local node)
+- Running Axionax RPC (e.g. `http://217.216.109.5:8545` or local node)
 
 ## 1. Block timing & finality (no funded account)
 

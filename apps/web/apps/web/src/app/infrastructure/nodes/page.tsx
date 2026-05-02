@@ -25,7 +25,7 @@ const NODES = [
   {
     id: 'eu',
     name: 'EU Validator',
-    ip: '217.76.61.116',
+    ip: '217.216.109.5',
     rpcUrl: '/api/rpc/eu',
   },
   { id: 'au', name: 'AU Validator', ip: '46.250.244.4', rpcUrl: '/api/rpc/au' },

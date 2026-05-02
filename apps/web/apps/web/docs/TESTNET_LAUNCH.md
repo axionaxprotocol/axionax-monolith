@@ -33,7 +33,7 @@
 ```
 Public (HTTPS):    https://rpc.axionax.org
 WebSocket:         wss://rpc.axionax.org
-EU Validator:      http://217.76.61.116:8545
+EU Validator:      http://217.216.109.5:8545
 AU Validator:      http://46.250.244.4:8545
 ```
 
@@ -41,7 +41,7 @@ AU Validator:      http://46.250.244.4:8545
 
 | Region       | IP Address    | Status    | Uptime |
 | ------------ | ------------- | --------- | ------ |
-| 🇪🇺 Europe    | 217.76.61.116 | ❌ Offline | -      |
+| 🇪🇺 Europe    | 217.216.109.5 | ❌ Offline | -      |
 | 🇦🇺 Australia | 46.250.244.4  | ✅ Online | 2d+    |
 
 ---

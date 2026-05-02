@@ -1,6 +1,6 @@
 # Both VPS (Validator) — What to Update
 
-Checklist for updating both **Validator VPS**: **217.76.61.116** (EU) and **46.250.244.4** (AU)
+Checklist for updating both **Validator VPS**: **217.216.109.5** (EU) and **46.250.244.4** (AU)
 
 ---
 
@@ -10,11 +10,11 @@ From a machine with SSH access to both, run on **each VPS**:
 
 ```bash
 # Send the script to the VPS and run it (from the repo root on your machine)
-scp ops/deploy/scripts/update-validator-vps.sh root@217.76.61.116:/tmp/
+scp ops/deploy/scripts/update-validator-vps.sh root@217.216.109.5:/tmp/
 scp ops/deploy/scripts/update-validator-vps.sh root@46.250.244.4:/tmp/
 
 # Run on VPS 1 (EU)
-ssh root@217.76.61.116 'bash /tmp/update-validator-vps.sh'
+ssh root@217.216.109.5 'bash /tmp/update-validator-vps.sh'
 
 # Run on VPS 2 (AU)
 ssh root@46.250.244.4 'bash /tmp/update-validator-vps.sh'
@@ -87,7 +87,7 @@ On each VPS (or from another machine):
 # RPC
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-  http://217.76.61.116:8545
+  http://217.216.109.5:8545
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
   http://46.250.244.4:8545
@@ -121,4 +121,4 @@ From [TESTNET_DEPLOYMENT_PLAN](../tools/devtools/docs/TESTNET_DEPLOYMENT_PLAN.md
 | 3 | Check .env and firewall (8545, 8546, 30303) |
 | 4 | After updating: restart changed services and test RPC with curl |
 
-**In the repo:** No need to change the 2 validator IPs — 217.76.61.116 and 46.250.244.4 are already used in all configs and docs
+**In the repo:** No need to change the 2 validator IPs — 217.216.109.5 and 46.250.244.4 are already used in all configs and docs

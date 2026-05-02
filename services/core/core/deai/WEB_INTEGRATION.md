@@ -3,7 +3,7 @@
 This document provides the necessary constants and ABI for integrating the **axionax Frontend** with the DeAI Core.
 
 ## 🔗 Network Details
-- **RPC Endpoint (Primary)**: `http://217.76.61.116:8545` (EU Validator)
+- **RPC Endpoint (Primary)**: `http://217.216.109.5:8545` (EU Validator)
 - **RPC Endpoint (Backup)**: `http://46.250.244.4:8545` (AU Validator)
   > **✅ CONFIRMED**: These are the Oldest Validator Nodes, ensuring correct Block Height and consensus data.
 - **Chain ID**: `86137`

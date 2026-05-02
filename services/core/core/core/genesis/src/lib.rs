@@ -326,7 +326,7 @@ impl GenesisGenerator {
                     address: ADDR_VALIDATOR_EU.to_string(),
                     stake: validator_half,
                     public_key: "0x".to_string(),
-                    node_url: "http://217.76.61.116:30303".to_string(),
+                    node_url: "http://217.216.109.5:30303".to_string(),
                 },
                 GenesisValidator {
                     address: ADDR_VALIDATOR_AU.to_string(),

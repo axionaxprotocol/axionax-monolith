@@ -11,7 +11,7 @@
 | **Chain ID** | 86137 |
 | **Genesis file** | `core/tools/genesis.json` |
 | **Genesis SHA-256** | `0xed1bdac7c278e5b4f58a1eceb7594a4238e39bb63e1018e38ec18a555c762b55` |
-| **Validators** | Validator-EU-01 (217.76.61.116), Validator-AU-01 (46.250.244.4) |
+| **Validators** | Validator-EU-01 (217.216.109.5), Validator-AU-01 (46.250.244.4) |
 | **validators-active.json** | `core/tools/validators-active.json` (สำหรับ launch script) |
 
 ---
@@ -37,7 +37,7 @@ python create_genesis.py --verify
 
 ### 2. Distribute Genesis ไปยัง Validators
 
-**Option A — ใช้ launch script (ต้องมี validators-active.json และ SSH ไปยัง root@217.76.61.116, root@46.250.244.4):**
+**Option A — ใช้ launch script (ต้องมี validators-active.json และ SSH ไปยัง root@217.216.109.5, root@46.250.244.4):**
 
 ```bash
 cd core/tools
@@ -48,7 +48,7 @@ bash launch_genesis.sh
 **Option B — Manual:**
 
 ```bash
-scp core/tools/genesis.json root@217.76.61.116:~/.axionax/config/
+scp core/tools/genesis.json root@217.216.109.5:~/.axionax/config/
 scp core/tools/genesis.json root@46.250.244.4:~/.axionax/config/
 # บนแต่ละ VPS: sha256sum ~/.axionax/config/genesis.json ต้องตรงกับ 0xed1bdac7...
 ```
@@ -59,9 +59,9 @@ scp core/tools/genesis.json root@46.250.244.4:~/.axionax/config/
 
 ```bash
 # ส่งและรัน update script บนทั้งสอง VPS
-scp ops/deploy/scripts/update-validator-vps.sh root@217.76.61.116:/tmp/
+scp ops/deploy/scripts/update-validator-vps.sh root@217.216.109.5:/tmp/
 scp ops/deploy/scripts/update-validator-vps.sh root@46.250.244.4:/tmp/
-ssh root@217.76.61.116 'bash /tmp/update-validator-vps.sh'
+ssh root@217.216.109.5 'bash /tmp/update-validator-vps.sh'
 ssh root@46.250.244.4 'bash /tmp/update-validator-vps.sh'
 ```
 
@@ -79,13 +79,13 @@ ssh root@46.250.244.4 'bash /tmp/update-validator-vps.sh'
 # Chain ID
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
-  http://217.76.61.116:8545
+  http://217.216.109.5:8545
 # คาดหวัง: "result":"0x15079" (86137)
 
 # Block number (หลัง genesis แล้วควร > 0)
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-  http://217.76.61.116:8545
+  http://217.216.109.5:8545
 ```
 
 ทำซ้ำกับ `http://46.250.244.4:8545` และตรวจว่า block height สูงขึ้นใกล้เคียงกัน (sync กัน)
@@ -94,11 +94,11 @@ curl -s -X POST -H "Content-Type: application/json" \
 
 ```powershell
 # Chain ID ทั้งคู่ต้องได้ 0x15079 (86137)
-curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.76.61.116:8545
+curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://217.216.109.5:8545
 curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' http://46.250.244.4:8545
 
 # Block number — ถ้า sync กันตัวเลขควรใกล้เคียง (ต่างกันไม่เกินหลักสิบเมื่อรอสักพัก)
-curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://217.76.61.116:8545
+curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://217.216.109.5:8545
 curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' http://46.250.244.4:8545
 ```
 
@@ -152,8 +152,8 @@ echo '* soft nofile 65536' | sudo tee -a /etc/security/limits.conf
 echo '* hard nofile 65536' | sudo tee -a /etc/security/limits.conf
 
 # 2) แก้ container — ส่ง script ไปรันบน VPS (จากเครื่องคุณ)
-scp ops/deploy/scripts/fix-validator-ulimit.sh root@217.76.61.116:/tmp/
-ssh root@217.76.61.116 'bash /tmp/fix-validator-ulimit.sh axionax-validator-eu'
+scp ops/deploy/scripts/fix-validator-ulimit.sh root@217.216.109.5:/tmp/
+ssh root@217.216.109.5 'bash /tmp/fix-validator-ulimit.sh axionax-validator-eu'
 ```
 
 หรือถ้า SSH เข้า VPS อยู่แล้ว:

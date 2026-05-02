@@ -196,7 +196,7 @@
                                     - generic [ref=e191]:
                                         - generic [ref=e192]: '---'
                                         - generic [ref=e193]: Peers
-                                - code [ref=e195]: 217.76.61.116:8545
+                                - code [ref=e195]: 217.216.109.5:8545
                             - generic [ref=e196]:
                                 - generic [ref=e197]:
                                     - generic [ref=e198]:
@@ -311,7 +311,7 @@
                                     - generic [ref=e351]: 🇪🇺 Validator EU
                                     - generic [ref=e352]: Online
                                 - generic [ref=e353]:
-                                    - generic [ref=e354]: 'IP: 217.76.61.116'
+                                    - generic [ref=e354]: 'IP: 217.216.109.5'
                                     - generic [ref=e355]: 'Uptime: 29h+'
                                     - generic [ref=e356]: 'Container: axionax-validator-eu'
                             - generic [ref=e357]:

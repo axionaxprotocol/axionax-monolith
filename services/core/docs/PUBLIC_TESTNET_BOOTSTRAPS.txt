@@ -11,7 +11,7 @@
 # Source procedure: docs/SMOKE_TEST_PUBLIC_FULL_NODE.md (section "Publish bootstrap list").
 #
 # Example (replace PeerId with real value from validator logs: "Local peer ID:"):
-# /ip4/217.76.61.116/tcp/30303/p2p/12D3KooWREPLACE_ME_EU
+# /ip4/217.216.109.5/tcp/30303/p2p/12D3KooWREPLACE_ME_EU
 # /ip4/46.250.244.4/tcp/30303/p2p/12D3KooWREPLACE_ME_AU
 
 # ACTIVE BOOTSTRAPS (UNCOMMENTED LINES ONLY)

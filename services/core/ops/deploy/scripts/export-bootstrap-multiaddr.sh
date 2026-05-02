@@ -5,7 +5,7 @@ set -euo pipefail
 #   /ip4/<PUBLIC_IP>/tcp/<P2P_PORT>/p2p/<PEER_ID>
 #
 # Usage examples:
-#   ./export-bootstrap-multiaddr.sh --public-ip 217.76.61.116
+#   ./export-bootstrap-multiaddr.sh --public-ip 217.216.109.5
 #   ./export-bootstrap-multiaddr.sh --public-ip 46.250.244.4 --p2p-port 30303
 #
 # Optional env:

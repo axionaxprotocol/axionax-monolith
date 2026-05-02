@@ -30,7 +30,7 @@ export default function ApiReferenceDoc(): React.JSX.Element {
               <code>https://rpc.axionax.org</code>
             </li>
             <li>
-              <strong>EU Region:</strong> <code>http://217.76.61.116:8545</code>
+              <strong>EU Region:</strong> <code>http://217.216.109.5:8545</code>
             </li>
             <li>
               <strong>AU Region:</strong> <code>http://46.250.244.4:8545</code>

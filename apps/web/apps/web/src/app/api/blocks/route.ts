@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-const RPC_EU = process.env.RPC_EU_URL || 'http://217.76.61.116:8545';
+const RPC_EU = process.env.RPC_EU_URL || 'http://217.216.109.5:8545';
 const RPC_AU = process.env.RPC_AU_URL || 'http://46.250.244.4:8545';
 
 async function rpc(

@@ -31,7 +31,7 @@
 
 | VPS       | IP              | Role                                  | Services                                     |
 | --------- | --------------- | ------------------------------------- | -------------------------------------------- |
-| **VPS 1** | 217.76.61.116   | Validator #1 + RPC (EU)               | `axionax-node` (validator, RPC 8545, P2P 30303) |
+| **VPS 1** | 217.216.109.5   | Validator #1 + RPC (EU)               | `axionax-node` (validator, RPC 8545, P2P 30303) |
 | **VPS 2** | 46.250.244.4    | Validator #2 + RPC (AU)               | `axionax-node` (validator, RPC 8545, P2P 30303) |
 | **VPS 3** | 217.216.109.5   | Infra hub (no chain node)             | Nginx reverse-proxy, Faucet, Postgres, Redis, *optional* Explorer |
 
@@ -43,12 +43,12 @@
 # Chain ID (expect "0x15079" = 86137)
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}' \
-  http://217.76.61.116:8545
+  http://217.216.109.5:8545
 
 # Validator EU (primary)
 curl -s -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
-  http://217.76.61.116:8545
+  http://217.216.109.5:8545
 
 # Validator AU (secondary)
 curl -s -X POST -H "Content-Type: application/json" \
@@ -62,7 +62,7 @@ curl -s -X POST -H "Content-Type: application/json" \
 
 | Service           | Status     | Endpoint             | Description                                                              |
 | ----------------- | ---------- | -------------------- | ------------------------------------------------------------------------ |
-| **Validator EU**  | ❌ Offline | 217.76.61.116:8545   | Genesis validator node (VPS 1) - currently offline                       |
+| **Validator EU**  | ❌ Offline | 217.216.109.5:8545   | Genesis validator node (VPS 1) - currently offline                       |
 | **Validator AU**  | ✅ Running | 46.250.244.4:8545    | Genesis validator node (VPS 2) - only active validator                   |
 | **RPC Gateway**   | ✅ Running | rpc.axionax.org      | Nginx reverse-proxy on VPS 3 → VPS 2 (AU only)                          |
 | **Website**       | ✅ Running | axionax.org          | Main website (`apps/web`)                                                |
@@ -80,7 +80,7 @@ Tracked against [axionax-core-universe `docs/GENESIS_PUBLIC_TESTNET_PLAN.md`](ht
 ### Completed
 
 - [x] Genesis file produced (`core/tools/genesis.json`, SHA-256 `0xed1bdac7…c762b55`, chain_id 86137)
-- [x] Two validators in genesis allocation: EU (217.76.61.116), AU (46.250.244.4)
+- [x] Two validators in genesis allocation: EU (217.216.109.5), AU (46.250.244.4)
 - [ ] EU validator currently offline - only AU validator active
 - [x] Validator update scripts: `ops/deploy/scripts/update-validator-vps.sh`, `run-update-both-vps.ps1`
 - [x] VPS 3 Faucet compose (`docker-compose.vps3-faucet.yml`) + nginx example
@@ -161,7 +161,7 @@ See [VPS_VALIDATOR_SETUP.md](./VPS_VALIDATOR_SETUP.md) for detailed instructions
 ### Live Services
 
 - Website: https://axionax.org
-- RPC: https://rpc.axionax.org (or direct `http://217.76.61.116:8545` / `http://46.250.244.4:8545`)
+- RPC: https://rpc.axionax.org (or direct `http://217.216.109.5:8545` / `http://46.250.244.4:8545`)
 - Faucet: https://faucet.axionax.org
 - Explorer: https://explorer.axionax.org (if enabled on VPS 3)
 
