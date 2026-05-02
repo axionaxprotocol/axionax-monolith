@@ -28,14 +28,36 @@ list (or wire it to env vars) to point at your own RPC endpoints.
 src/
   app/                Next.js App Router pages
     page.tsx          Dashboard home
-    nodes/            Node detail
+    nodes/            Node health
+    jobs/             Jobs hub (DeAI / inference / Worker links)
     apps/             App store
     wallet/           Wallet
-    activity/         Activity feed
+    activity/         Activity feed (+ inference, models)
+    logs/             RPC-backed log tail (mock stream)
     settings/         Settings
   components/         UI building blocks (Sidebar, Card)
   lib/                rpc.ts (JSON-RPC client), cn.ts (tailwind merge)
 ```
+
+## Lighthouse (DoD)
+
+Agreed gates for CI / release checks:
+
+| Category       | Minimum score |
+|----------------|---------------|
+| Performance    | 85            |
+| Accessibility  | 90            |
+| Best practices | 90            |
+| SEO            | 90            |
+
+Run after a production build (starts Next on **port 3031** so it does not clash with `pnpm dev` on 3030; writes HTML + JSON):
+
+```bash
+cd apps/os-dashboard
+pnpm lighthouse:report
+```
+
+Reports are written to `lighthouse-results/` (`lhr.report.html`, `lhr.report.json`).
 
 ## Notes
 
@@ -45,13 +67,15 @@ src/
 
 ## Deploy to Netlify (free monitor hosting)
 
-1. Push this repository to GitHub/GitLab/Bitbucket.
-2. In Netlify, create a new site from that repository.
-3. Netlify auto-detects `netlify.toml` at repo root and uses:
-   - Base directory: `apps/os-dashboard`
-   - Build command: `pnpm build`
-4. Add required environment variables in Netlify Site Settings (recommended):
-   - `NEXT_PUBLIC_MONITOR_API_URL`
-   - `NEXT_PUBLIC_CHAIN_NAME`
-   - `NEXT_PUBLIC_REFRESH_MS`
-5. Trigger deploy and open the generated site URL.
+The repo root **`netlify.toml`** builds this app with:
+
+`pnpm install && pnpm --filter axionax-os-dashboard build`
+
+and **`@netlify/plugin-nextjs`** (workspace root devDependency). Do not deploy the
+`.next` folder as a plain static site without that runtime — routing and SSR will
+break and the UI will look missing or 404.
+
+1. Connect the **monorepo root** (not `apps/os-dashboard` only) so `pnpm-workspace.yaml` resolves `@axionax/sdk`.
+2. Leave **Base directory** empty in Netlify unless you know you need a subfolder; the root `netlify.toml` drives the build.
+3. Optional env vars in Site settings: `NEXT_PUBLIC_MONITOR_API_URL`, `NEXT_PUBLIC_CHAIN_NAME`, `NEXT_PUBLIC_REFRESH_MS`.
+4. Redeploy after pulling the fixed `netlify.toml`.

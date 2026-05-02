@@ -1,0 +1,4 @@
+# Ephemeral monitor output — regenerate with p2p_stability_monitor.py / DeAI demos
+p2p-stability-*/
+deai-demo-*/
+deai-queue/

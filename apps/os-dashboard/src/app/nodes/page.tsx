@@ -7,15 +7,15 @@ export const revalidate = 0;
 export default async function NodesPage() {
   const statuses = await Promise.all(DEFAULT_NODES.map(getNodeStatus));
   return (
-    <div className="space-y-6">
+    <div className="space-y-os-section">
       <header>
-        <h1 className="text-2xl font-semibold">Nodes</h1>
-        <p className="text-sm text-zinc-500">
+        <h1 className="text-headline font-semibold tracking-tight">Nodes</h1>
+        <p className="text-body text-zinc-500 mt-os-2 max-w-xl">
           Remote and local Axionax peers monitored by this OS.
         </p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-os-4">
         {statuses.map((s) => (
           <Card key={s.endpoint.id}>
             <div className="flex items-center justify-between">

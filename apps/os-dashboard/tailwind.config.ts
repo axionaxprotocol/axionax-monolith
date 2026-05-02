@@ -13,6 +13,10 @@ import type { Config } from "tailwindcss";
  *   text-zinc-500 on obsidian-950   =  4.5 : 1  (AA normal — caption-only)
  *   accent-ai    on obsidian-950    =  9.8 : 1  (AAA)
  *   accent-chain on obsidian-950    =  5.1 : 1  (AA)
+ *
+ * Spacing / type scale:
+ *   Use `p-os-4`, `gap-os-6`, `text-display`, `text-body`, etc. for Obsidian OS layout.
+ *   Default Tailwind spacing (rem) stays available — os-* is an additive 4px grid.
  */
 const config: Config = {
   content: ["./src/**/*.{ts,tsx,js,jsx,mdx}"],
@@ -87,6 +91,37 @@ const config: Config = {
       },
       transitionTimingFunction: {
         os: "cubic-bezier(0.2, 0.8, 0.2, 1)", // Apple-ish ease-out for window motion
+      },
+      spacing: {
+        "os-0": "0",
+        "os-px": "1px",
+        "os-0.5": "2px",
+        "os-1": "4px",
+        "os-2": "8px",
+        "os-3": "12px",
+        "os-4": "16px",
+        "os-5": "20px",
+        "os-6": "24px",
+        "os-8": "32px",
+        "os-10": "40px",
+        "os-12": "48px",
+        "os-16": "64px",
+        "os-section": "40px",
+        "os-panel": "24px",
+      },
+      fontSize: {
+        /** Hero / shell titles */
+        display: ["2.25rem", { lineHeight: "2.5rem", letterSpacing: "-0.02em" }],
+        headline: ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.015em" }],
+        title: ["1.125rem", { lineHeight: "1.5rem", letterSpacing: "-0.01em" }],
+        body: ["0.875rem", { lineHeight: "1.5rem" }],
+        caption: ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.06em" }],
+        overline: ["0.625rem", { lineHeight: "0.875rem", letterSpacing: "0.12em" }],
+      },
+      lineHeight: {
+        tight: "1.2",
+        normal: "1.5",
+        relaxed: "1.75",
       },
       keyframes: {
         "neon-pulse": {

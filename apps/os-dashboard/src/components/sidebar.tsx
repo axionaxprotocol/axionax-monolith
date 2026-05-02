@@ -5,20 +5,23 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Boxes,
+  Briefcase,
   Wallet,
   Server,
   Settings,
   Activity,
-  Zap,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/nodes", label: "Nodes", icon: Server },
+  { href: "/jobs", label: "Jobs", icon: Briefcase },
   { href: "/apps", label: "Apps", icon: Boxes },
   { href: "/wallet", label: "Wallet", icon: Wallet },
   { href: "/activity", label: "Activity", icon: Activity },
+  { href: "/logs", label: "Logs", icon: Terminal },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

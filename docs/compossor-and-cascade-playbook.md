@@ -216,7 +216,8 @@ This forces Cascade to ground its analysis in the actual symptom rather than gue
 
 ---
 
-_Phase 2 added 2026-04-30. Sections will be reorganized when this list grows past §10._
+_Phase 2 added 2026-04-30. Sections will be reorganized when this list grows past §10._  
+_Checklist execution updated 2026-05-02 (Hello DeAI + Axionax OS DoD)._
 
 ---
 
@@ -226,18 +227,35 @@ Version focused on real-world execution across tech, testnet operations, finance
 
 ### Phase 1: Testnet & Infrastructure
 
-- [ ] **P2P Discovery stability**
+- [ ] **P2P Discovery stability** (24h run is an ops window — automation + evidence layout are ready)
   - DoD: `217.216.109.5` and `46.250.244.4` see each other as peers continuously for 24 hours.
   - DoD: block sync does not stall, reorg remains within accepted bounds, auto-reconnect succeeds.
   - Evidence: peer logs, sync-height graph, latency and packet-loss report.
-- [ ] **Hello DeAI completed**
+  - Execution runbook (24h window):
+    - Command (from repo root):
+      - `python services/core/scripts/p2p_stability_monitor.py --duration-hours 24 --interval-seconds 30`
+      - Or wrappers: `bash services/core/scripts/run-p2p-stability-24h.sh` / `pwsh services/core/scripts/run-p2p-stability-24h.ps1` (optional env `AXIONAX_P2P_WEBHOOK`).
+    - Output folder:
+      - `services/core/reports/p2p-stability-<timestamp>/`
+    - Start both nodes with persistent logs (`journalctl -u axionax-node -f` or container logs) and NTP sync enabled.
+    - Poll every 30s from each node: `net_peerCount`, `eth_blockNumber`, and `system_status`; persist timeline in `sync-height.csv` and transition events in `peer-events.log`.
+    - Alert condition: `net_peerCount == 0` for more than 60s on either node.
+    - Sync-stall condition: block height unchanged for more than 120s while peer is still producing blocks.
+    - Reorg bound: canonical head rollback must stay within agreed limit (default <= 2 blocks unless ops changes this).
+    - Auto-reconnect passes when peer link recovers to `>= 1` peers within 90s after transient disconnect.
+  - Evidence package (attach to issue/PR):
+    - `peer-events.log`: connect/disconnect timeline from both validators.
+    - `sync-height.csv`: timestamp, node A height, node B height, delta.
+    - `network-quality.txt`: `mtr` or equivalent latency/packet-loss summary between `217.216.109.5` and `46.250.244.4`.
+    - `incident-notes.md`: any stalls/reconnects, root-cause note, and mitigation applied.
+- [x] **Hello DeAI completed**
   - DoD: Python workload is sent end-to-end from a main node to a worker node.
   - DoD: result hash, execution logs, and retry/failure path are captured.
   - Evidence: demo script and runbook.
-- [ ] **Axionax OS (Obsidian Matte Black)**
+- [x] **Axionax OS (Obsidian Matte Black)**
   - DoD: design tokens cover color, spacing, and typography.
   - DoD: core dashboard pages are complete (node health, jobs, logs, wallet/actions).
-  - DoD: Lighthouse and responsive targets pass agreed thresholds.
+  - DoD: Lighthouse and responsive targets pass agreed thresholds (`apps/os-dashboard`: `pnpm lighthouse:report`; gates in README).
 - [ ] **Monolith Core + Edge Node**
   - DoD: Raspberry Pi 5 + Hailo-10H can register as a node on the network.
   - DoD: inferencing benchmark runs at least one standard workload.

@@ -5,20 +5,24 @@ import { usePathname } from "next/navigation";
 import {
   Home,
   Server,
+  Briefcase,
   Boxes,
   Wallet,
   Activity,
   Settings,
   Search,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const DOCK_APPS = [
   { href: "/", label: "Home", Icon: Home, color: "from-violet-400 to-indigo-500" },
   { href: "/nodes", label: "Nodes", Icon: Server, color: "from-emerald-400 to-green-500" },
+  { href: "/jobs", label: "Jobs", Icon: Briefcase, color: "from-amber-400 to-yellow-500" },
   { href: "/apps", label: "Apps", Icon: Boxes, color: "from-rose-400 to-red-500" },
   { href: "/wallet", label: "Wallet", Icon: Wallet, color: "from-amber-400 to-orange-500" },
   { href: "/activity", label: "Activity", Icon: Activity, color: "from-cyan-400 to-blue-500" },
+  { href: "/logs", label: "Logs", Icon: Terminal, color: "from-lime-400 to-emerald-600" },
   { href: "/settings", label: "Settings", Icon: Settings, color: "from-zinc-400 to-zinc-600" },
 ];
 

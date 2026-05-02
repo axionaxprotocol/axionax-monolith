@@ -4,6 +4,9 @@
 
 :root {
   color-scheme: dark;
+  --motion-instant: 100ms;
+  --motion-fast: 150ms;
+  --motion-thoughtful: 400ms;
   /* Default: Aurora */
   --wp-base-from: #050810;
   --wp-base-to: #03060c;
