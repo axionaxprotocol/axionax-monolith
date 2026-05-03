@@ -161,45 +161,76 @@ function Titlebar({
     <div
       onMouseDown={onMouseDown}
       style={{ height: TITLEBAR_HEIGHT }}
-      className="flex items-center gap-2 px-3 cursor-grab active:cursor-grabbing border-b border-white/5 bg-white/[0.02]"
+      className="flex items-center gap-3 px-4 cursor-grab active:cursor-grabbing border-b border-white/5 bg-gradient-to-b from-white/[0.04] to-transparent"
     >
-      {/* Mac-style traffic lights */}
-      <div className="flex items-center gap-1.5">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          aria-label="Close"
-          className="group h-3 w-3 rounded-full bg-rose-500 hover:bg-rose-400 grid place-items-center"
-        >
-          <X size={8} className="text-rose-900 opacity-0 group-hover:opacity-100" />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onMinimize();
-          }}
-          aria-label="Minimize"
-          className="group h-3 w-3 rounded-full bg-amber-400 hover:bg-amber-300 grid place-items-center"
-        >
-          <Minus size={8} className="text-amber-900 opacity-0 group-hover:opacity-100" />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onMaximize();
-          }}
-          aria-label="Maximize"
-          className="group h-3 w-3 rounded-full bg-emerald-500 hover:bg-emerald-400 grid place-items-center"
-        >
-          <Maximize2 size={8} className="text-emerald-900 opacity-0 group-hover:opacity-100" />
-        </button>
+      {/* Modern traffic lights with subtle glow effects */}
+      <div className="flex items-center gap-2">
+        <TrafficLightButton
+          onClick={onClose}
+          ariaLabel="Close"
+          bgColor="bg-rose-500"
+          hoverColor="bg-rose-400"
+          glowColor="shadow-rose-500/50"
+          icon={<X size={7} className="text-rose-950" />}
+        />
+        <TrafficLightButton
+          onClick={onMinimize}
+          ariaLabel="Minimize"
+          bgColor="bg-amber-400"
+          hoverColor="bg-amber-300"
+          glowColor="shadow-amber-400/50"
+          icon={<Minus size={7} className="text-amber-950" />}
+        />
+        <TrafficLightButton
+          onClick={onMaximize}
+          ariaLabel="Maximize"
+          bgColor="bg-emerald-500"
+          hoverColor="bg-emerald-400"
+          glowColor="shadow-emerald-500/50"
+          icon={<Maximize2 size={7} className="text-emerald-950" />}
+        />
       </div>
-      <div className="flex-1 text-center text-xs text-zinc-300 font-medium truncate select-none">
-        {title}
+      
+      <div className="flex-1 text-center">
+        <span className="text-xs text-zinc-400 font-medium tracking-wide truncate select-none px-4 py-1 rounded-full bg-white/[0.03]">
+          {title}
+        </span>
       </div>
-      <span className="w-12" /> {/* balance the traffic-light cluster */}
+      
+      <span className="w-16" /> {/* balance the traffic-light cluster */}
     </div>
+  );
+}
+
+function TrafficLightButton({
+  onClick,
+  ariaLabel,
+  bgColor,
+  hoverColor,
+  glowColor,
+  icon,
+}: {
+  onClick: () => void;
+  ariaLabel: string;
+  bgColor: string;
+  hoverColor: string;
+  glowColor: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-label={ariaLabel}
+      className={`group relative h-3.5 w-3.5 rounded-full ${bgColor} hover:${hoverColor} 
+        transition-all duration-200 ease-out grid place-items-center
+        hover:scale-110 hover:shadow-lg ${glowColor}`}
+    >
+      <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-150 scale-75 group-hover:scale-100">
+        {icon}
+      </span>
+    </button>
   );
 }

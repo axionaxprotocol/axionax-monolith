@@ -58,13 +58,16 @@ const config: Config = {
       },
       boxShadow: {
         glass:
-          "0 1px 0 rgba(255,255,255,0.04) inset, 0 10px 30px rgba(0,0,0,0.35)",
+          "0 1px 0 rgba(255,255,255,0.08) inset, 0 4px 24px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.2)",
         "glass-strong":
-          "0 1px 0 rgba(255,255,255,0.06) inset, 0 16px 48px rgba(0,0,0,0.5)",
+          "0 1px 0 rgba(255,255,255,0.06) inset, 0 8px 32px rgba(0,0,0,0.5)",
         "icon-app":
-          "0 1px 0 rgba(255,255,255,0.12) inset, 0 8px 20px rgba(0,0,0,0.45)",
-        "neon-ai": "0 0 24px rgba(94, 234, 212, 0.55)",
-        "neon-chain": "0 0 24px rgba(99, 102, 241, 0.45)",
+          "0 1px 0 rgba(255,255,255,0.15) inset, 0 4px 12px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35)",
+        "neon-ai": "0 0 40px rgba(94, 234, 212, 0.35)",
+        "neon-chain": "0 0 40px rgba(99, 102, 241, 0.30)",
+        "neon-rose": "0 0 40px rgba(244, 114, 182, 0.30)",
+        "glow-sm": "0 0 20px rgba(255, 255, 255, 0.1)",
+        "glow-md": "0 0 40px rgba(255, 255, 255, 0.15)",
       },
       fontFamily: {
         sans: [
@@ -132,10 +135,30 @@ const config: Config = {
           from: { opacity: "0", transform: "translateY(4px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "slide-up": {
+          from: { opacity: "0", transform: "translateY(12px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.05)" },
+        },
       },
       animation: {
         "neon-pulse": "neon-pulse 2.5s ease-in-out infinite",
         "fade-in": "fade-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both",
+        "slide-up": "slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "scale-in": "scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "float": "float 4s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 3s ease-in-out infinite",
       },
     },
   },
