@@ -3,62 +3,54 @@ import { DEFAULT_NODES } from "@/lib/rpc";
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-os-section">
       <header>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-zinc-500">
+        <h1 className="text-headline font-semibold tracking-tight text-zinc-100">Settings</h1>
+        <p className="text-body text-zinc-500 mt-os-2 max-w-xl">
           Network, RPC and worker configuration.
         </p>
       </header>
 
       <Card>
-        <div className="font-semibold mb-3">Bootnodes</div>
-        <ul className="space-y-2 text-sm font-mono">
+        <div className="text-title font-semibold text-zinc-100 mb-os-4">Bootnodes</div>
+        <ul className="space-y-os-2">
           {DEFAULT_NODES.map((n) => (
             <li
               key={n.id}
-              className="flex items-center justify-between rounded-lg bg-bg-elev px-3 py-2"
+              className="flex items-center justify-between gap-os-3 rounded-os-md bg-white/[0.04] border border-white/5 px-os-4 py-os-3"
             >
-              <span>{n.url}</span>
-              <span className="text-xs text-zinc-500">{n.name}</span>
+              <span className="font-mono text-body text-zinc-200 truncate">{n.url}</span>
+              <span className="text-caption text-zinc-500 shrink-0">{n.name}</span>
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-xs text-zinc-500">
-          Edit <span className="font-mono">configs/monolith_worker.toml</span>{" "}
+        <p className="mt-os-4 text-caption text-zinc-500">
+          Edit{" "}
+          <code className="font-mono text-zinc-400">
+            configs/monolith_worker.toml
+          </code>{" "}
           to change.
         </p>
       </Card>
 
       <Card>
-        <div className="font-semibold mb-3">Network</div>
-        <dl className="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-zinc-500">
-              Chain ID
-            </dt>
-            <dd className="font-mono mt-1">86137</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-zinc-500">
-              Network
-            </dt>
-            <dd className="font-mono mt-1">axionax-testnet</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-zinc-500">
-              Block time
-            </dt>
-            <dd className="font-mono mt-1">3 s</dd>
-          </div>
-          <div>
-            <dt className="text-xs uppercase tracking-wide text-zinc-500">
-              VRF delay
-            </dt>
-            <dd className="font-mono mt-1">k = 2</dd>
-          </div>
+        <div className="text-title font-semibold text-zinc-100 mb-os-4">Network</div>
+        <dl className="grid grid-cols-2 gap-os-4">
+          <NetworkField label="Chain ID" value="86137" />
+          <NetworkField label="Network" value="axionax-testnet" />
+          <NetworkField label="Block time" value="3 s" />
+          <NetworkField label="VRF delay" value="k = 2" />
         </dl>
       </Card>
+    </div>
+  );
+}
+
+function NetworkField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="text-overline text-zinc-500">{label}</dt>
+      <dd className="mt-os-1 font-mono text-body text-zinc-200">{value}</dd>
     </div>
   );
 }

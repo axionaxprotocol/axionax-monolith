@@ -1,4 +1,5 @@
 import { Boxes, Cpu, Droplets, Eye, Shield, Workflow, type LucideIcon } from "lucide-react";
+import { Card } from "@/components/card";
 
 type App = {
   id: string;
@@ -54,60 +55,63 @@ const APPS: App[] = [
 
 export default function AppsPage() {
   return (
-    <div className="space-y-8">
-      <header className="flex items-end justify-between">
+    <div className="space-y-os-section">
+      <header className="flex items-end justify-between gap-os-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">App Store</h1>
-          <p className="text-sm text-zinc-500 mt-1">
+          <h1 className="text-headline font-semibold tracking-tight text-zinc-100">
+            App Store
+          </h1>
+          <p className="text-body text-zinc-500 mt-os-2 max-w-xl">
             Install and manage services on your node.
           </p>
         </div>
-        <span className="text-xs text-zinc-500 inline-flex items-center gap-1">
-          <Boxes size={14} /> {APPS.length} apps
+        <span className="inline-flex items-center gap-1.5 text-caption text-zinc-500 font-medium">
+          <Boxes size={13} strokeWidth={2} />
+          {APPS.length} apps
         </span>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {APPS.map((a) => {
-          const Icon = a.icon;
-          return (
-            <div
-              key={a.id}
-              className="glass rounded-2xl p-5 transition hover:bg-white/5"
-            >
-              <div className="flex items-start gap-4">
-                <div
-                  className={`app-icon-shadow shrink-0 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br ${a.color} text-white`}
-                >
-                  <Icon size={24} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="font-semibold truncate">{a.name}</div>
-                    {a.installed && (
-                      <span className="text-[10px] uppercase tracking-wide rounded-full bg-emerald-400/10 text-emerald-400 px-2 py-0.5">
-                        installed
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-zinc-400 mt-1 line-clamp-2">
-                    {a.desc}
-                  </p>
-                  <button
-                    className={
-                      a.installed
-                        ? "mt-3 rounded-full bg-white/5 text-zinc-200 px-4 py-1.5 text-xs hover:bg-white/10 transition"
-                        : "mt-3 rounded-full bg-accent text-bg-DEFAULT px-4 py-1.5 text-xs font-medium hover:bg-accent-dim transition"
-                    }
-                  >
-                    {a.installed ? "Open" : "Install"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-os-4">
+        {APPS.map((a) => (
+          <AppCard key={a.id} app={a} />
+        ))}
       </div>
     </div>
+  );
+}
+
+function AppCard({ app }: { app: App }) {
+  const Icon = app.icon;
+  return (
+    <Card interactive>
+      <div className="flex items-start gap-os-4">
+        <div
+          className={`app-icon-shadow shrink-0 grid h-14 w-14 place-items-center rounded-os-lg bg-gradient-to-br ${app.color} text-white`}
+        >
+          <Icon size={22} strokeWidth={2} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2">
+            <div className="font-semibold text-zinc-100 truncate">{app.name}</div>
+            {app.installed && (
+              <span className="text-[10px] uppercase tracking-wide rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 px-2 py-0.5 font-medium shrink-0">
+                installed
+              </span>
+            )}
+          </div>
+          <p className="text-body text-zinc-500 mt-os-1 line-clamp-2">{app.desc}</p>
+          <button
+            type="button"
+            className={
+              app.installed
+                ? "mt-os-3 rounded-full bg-white/5 hover:bg-white/10 text-zinc-200 px-os-4 py-1.5 text-caption font-medium transition-colors duration-fast"
+                : "mt-os-3 rounded-full bg-accent-ai text-obsidian-950 hover:bg-accent-dim px-os-4 py-1.5 text-caption font-semibold transition-colors duration-fast"
+            }
+          >
+            {app.installed ? "Open" : "Install"}
+          </button>
+        </div>
+      </div>
+    </Card>
   );
 }
