@@ -1,7 +1,10 @@
 # Core documentation
 
-Central docs for the Axionax Core Universe (blockchain, network, DeAI, hardware).  
-For the **project-wide master summary** (vision, tokenomics, roadmap), see [MASTER_SUMMARY.md](../MASTER_SUMMARY.md) at repo root.
+Central docs for the Axionax Core Universe (blockchain, network, DeAI, hardware).
+
+> **Cross-cutting docs (protocol-wide)**: See [`../../../docs/README.md`](../../../docs/README.md)  
+> **Web Universe docs**: See [`../../../apps/web/docs/README.md`](../../../apps/web/docs/README.md)  
+> **Project master summary**: See [MASTER_SUMMARY.md](../MASTER_SUMMARY.md) at repo root.
 
 ## Architecture & vision
 

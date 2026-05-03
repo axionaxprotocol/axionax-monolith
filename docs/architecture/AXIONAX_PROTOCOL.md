@@ -2,7 +2,7 @@
 
 เอกสารนี้แยกสถาปัตยกรรม axionax ออกเป็นส่วนย่อยตามสรุปเวอร์ชัน 1.9.0 เพื่อให้เห็นภาพรวมและรายละเอียดของแต่ละองค์ประกอบได้ชัดเจนขึ้น
 
-**Last Updated**: May 2, 2026 | **Protocol Version**: v1.9.0-testnet
+**Last Updated**: May 3, 2026 | **Protocol Version**: v1.9.0-testnet
 
 - วงจร L1 แบบูรณาการ: Execute → Validate PoPC → Data Availability → Settlement
 - ระบบตลาดที่ขับเคลื่อนโดยโปรโตคอล: ASR (K=64) และ Posted Price Controller
@@ -377,7 +377,7 @@ deai-queue/
 
 ---
 
-_Last updated: May 2, 2026_  
+_Last updated: May 3, 2026_  
 _Evidence from: deai_submit.py + deai_monitor.py decentralized flow_
 
 ---

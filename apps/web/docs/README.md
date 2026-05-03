@@ -28,4 +28,5 @@ Monorepo-level documentation and deployment guides.
 - [WHITEPAPER.md](../WHITEPAPER.md) — White Paper v2.1
 - [MASTER_SUMMARY.md](../MASTER_SUMMARY.md) — Project summary v2.1 (Vision, DePIN, Roadmap)
 
-**App/service docs:** [apps/web/docs/](../apps/web/docs/), [apps/docs/](../apps/docs/)
+**Cross-cutting docs:** [`../../docs/`](../../docs/) — Protocol-wide documentation  
+**Core docs:** [`../../services/core/core/docs/`](../../services/core/core/docs/) — Blockchain core documentation
