@@ -334,8 +334,8 @@ sudo systemctl start axionax-validator
 - [AXIONAX_PROTOCOL.md](../architecture/AXIONAX_PROTOCOL.md) — Complete protocol architecture, PoPC, VRF, DA, security
 
 **Additional Resources:**
-- [Node Hardware Specs](../../services/core/core/docs/NODE_SPECS.md)
-- [Network Nodes](../../services/core/core/docs/NETWORK_NODES.md)
+- [Node Hardware Specs](../core/NODE_SPECS.md)
+- [Network Nodes](../core/NETWORK_NODES.md)
 - [JSON-RPC API](../api/JSON_RPC.md)
 - [Glossary](../glossary.md)
 

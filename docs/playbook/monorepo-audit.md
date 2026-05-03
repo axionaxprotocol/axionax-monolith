@@ -110,7 +110,7 @@ Keep avoiding speculative scaffolding; each new package should have a concrete c
 - `scripts/` (root) — new, cross-cutting (`check-node-sync.sh`)
 - `services/core/scripts/` — node-operator scripts (`join-axionax.py`, `health-check.py`)
 - `docs/` (root) — new (`compossor-and-cascade-playbook.md`)
-- `services/core/docs/` — Core Universe docs (24 items)
+- `docs/core/` — Core Universe docs (centralized)
 
 **Recommendation:** **keep both.** The split is meaningful:
 - **Root** = "applies to the whole monolith / cross-domain"

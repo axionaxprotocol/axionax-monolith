@@ -19,8 +19,8 @@
 | Type | Location | Purpose |
 |------|----------|---------|
 | Cross-cutting docs | `docs/` | Protocol-wide documentation |
-| Web docs | `apps/web/docs/` | Frontend, dApp, marketplace guides |
-| Core docs | `services/core/docs/` | Blockchain, DeAI, node operations |
+| Web docs | `docs/web/` | Frontend, dApp, marketplace guides |
+| Core docs | `docs/core/` | Blockchain, DeAI, node operations |
 | Playbook | `docs/playbook/` | AI assistant guides |
 
 ---

@@ -459,8 +459,8 @@ python worker_node.py start
 - [AXIONAX_PROTOCOL.md](../architecture/AXIONAX_PROTOCOL.md) — Complete protocol architecture, ASR, PoPC, DA, security
 
 **Additional Resources:**
-- [Marketplace Worker Nodes](../../services/core/core/docs/MARKETPLACE_WORKER_NODES.md)
-- [Node Hardware Specs](../../services/core/core/docs/NODE_SPECS.md)
+- [Marketplace Worker Nodes](../core/MARKETPLACE_WORKER_NODES.md)
+- [Node Hardware Specs](../core/NODE_SPECS.md)
 - [JSON-RPC API](../api/JSON_RPC.md)
 - [Glossary](../glossary.md)
 

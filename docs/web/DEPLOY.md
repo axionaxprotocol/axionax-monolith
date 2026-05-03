@@ -10,7 +10,7 @@ Three main options: **CI → VPS** (auto on push), **GitHub Pages** (static), an
 - **Trigger:** Push to `develop` = deploy staging; push to `main` = deploy production
 - **Steps:** Build web app as standalone → rsync to VPS via SSH → (if configured) run restart command on server
 - **Setup:** Repo → Settings → Secrets and variables → Actions → select environment **staging** / **production** and add secrets: `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `REMOTE_PATH`, and optionally `DEPLOY_RESTART_CMD` (e.g. `pm2 restart axionax-web`)
-- Server and SSH setup details: [apps/web/docs/DEPLOYMENT.md](../apps/web/docs/DEPLOYMENT.md) section "CI/CD Deploy (GitHub Actions)"
+- Server and SSH setup details: [docs/web/DEPLOYMENT.md](./DEPLOYMENT.md) section "CI/CD Deploy (GitHub Actions)"
 
 ---
 
@@ -27,7 +27,7 @@ Three main options: **CI → VPS** (auto on push), **GitHub Pages** (static), an
 3. After push to `main` workflow runs and deploys
 4. URL at **Environments → github-pages** or `https://<org>.github.io/<repo>/`
 
-**Custom domain (e.g. axionax.org):** Add in Settings → Pages → Custom domain and configure CNAME per [docs/DNS_SETUP.md](../apps/web/docs/DNS_SETUP.md)
+**Custom domain (e.g. axionax.org):** Add in Settings → Pages → Custom domain and configure CNAME per [docs/web/DNS_SETUP.md](./DNS_SETUP.md)
 
 ---
 
@@ -131,4 +131,4 @@ From repo root:
   - **GitHub Pages:** Yes — push to `main` then enable Pages from **GitHub Actions** in Settings → Pages
   - **VPS:** Yes if you have server + SSH and update IP/path in scripts to match your server
 
-Full VPS details (Docker, Nginx, DNS): [apps/web/docs/DEPLOYMENT.md](../apps/web/docs/DEPLOYMENT.md)
+Full VPS details (Docker, Nginx, DNS): [docs/web/DEPLOYMENT.md](./DEPLOYMENT.md)

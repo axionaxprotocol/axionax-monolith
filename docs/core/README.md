@@ -4,7 +4,7 @@ Central docs for the Axionax Core Universe (blockchain, network, DeAI, hardware)
 
 > **Cross-cutting docs (protocol-wide)**: See [`../../../docs/README.md`](../../../docs/README.md)  
 > **Setup guides**: See [`../../../docs/guides/`](../../../docs/guides/) — Validator & worker setup guides  
-> **Web Universe docs**: See [`../../../apps/web/docs/README.md`](../../../apps/web/docs/README.md)  
+> **Web Universe docs**: See [`../web/README.md`](../web/README.md)  
 > **Project master summary**: See [MASTER_SUMMARY.md](../../../docs/MASTER_SUMMARY.md) at docs/.
 
 ## Architecture & vision

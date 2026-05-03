@@ -160,7 +160,7 @@ Run a validator node and earn block rewards (1 AXXt per block).
 - [TOKENOMICS.md](./TOKENOMICS.md) — Mainnet tokenomics (production plan)
 - [GOVERNANCE.md](./GOVERNANCE.md) — DAO governance structure
 - [ROADMAP.md](./ROADMAP.md) — Development timeline
-- [JOIN_TESTNET.md](../../apps/web/docs/web-integration/JOIN_TESTNET.md) — How to join testnet
+- [JOIN_TESTNET.md](../web/web-integration/JOIN_TESTNET.md) — How to join testnet
 
 ---
 

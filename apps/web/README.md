@@ -503,7 +503,7 @@ docker-compose up -d
 
 - Push/PR to `main` or `develop` runs: lint, type-check, build (web + marketplace), tests, security audit.
 - **Production deploy:** push to `develop` → deploy staging (rsync to VPS); push to `main` → deploy production (rsync to VPS).
-- `apps/web` build uses **standalone output** (single folder with `server.js`) then rsync via SSH. Set **secrets** for environment (staging/production): `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `REMOTE_PATH`, and optionally `DEPLOY_RESTART_CMD` (e.g. `pm2 restart axionax-web`). See [apps/web/docs/DEPLOYMENT.md#cicd-deploy-github-actions](apps/web/docs/DEPLOYMENT.md#-cicd-deploy-github-actions).
+- `apps/web` build uses **standalone output** (single folder with `server.js`) then rsync via SSH. Set **secrets** for environment (staging/production): `SSH_HOST`, `SSH_USER`, `SSH_PRIVATE_KEY`, `REMOTE_PATH`, and optionally `DEPLOY_RESTART_CMD` (e.g. `pm2 restart axionax-web`). See [docs/web/DEPLOYMENT.md#cicd-deploy-github-actions](../../docs/web/DEPLOYMENT.md#-cicd-deploy-github-actions).
 
 **Environment (production):**
 
@@ -515,16 +515,16 @@ docker-compose up -d
 
 | Target           | Method                                                                                                   | Notes                                                               |
 | ---------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| **CI → VPS**     | Set secrets, push `main`/`develop`                                                                       | Standalone + rsync per [DEPLOYMENT.md](apps/web/docs/DEPLOYMENT.md) |
+| **CI → VPS**     | Set secrets, push `main`/`develop`                                                                       | Standalone + rsync per [DEPLOYMENT.md](../../docs/web/DEPLOYMENT.md) |
 | **Vercel**       | Connect repo → build `pnpm --filter @axionax/web build`, root = repo root                                | API routes supported                                                |
-| **Node (VPS)**   | Build then `pnpm --filter @axionax/web start` or Docker per [DEPLOYMENT.md](apps/web/docs/DEPLOYMENT.md) | Full stack                                                          |
+| **Node (VPS)**   | Build then `pnpm --filter @axionax/web start` or Docker per [DEPLOYMENT.md](../../docs/web/DEPLOYMENT.md) | Full stack                                                          |
 | **GitHub Pages** | deploy-pages workflow — requires static export; app has `/api/*` so must separate API or static-only     | See [docs/DEPLOY.md](docs/DEPLOY.md)                                |
 
 **Before first deploy:**
 
 1. Set env per `.env.example` (at least `NEXT_PUBLIC_*`).
 2. Run `pnpm build` at root until it passes.
-3. For CI deploy to VPS: set environment secrets per table above and prepare server per [DEPLOYMENT.md § CI/CD Deploy](apps/web/docs/DEPLOYMENT.md#-cicd-deploy-github-actions).
+3. For CI deploy to VPS: set environment secrets per table above and prepare server per [DEPLOYMENT.md § CI/CD Deploy](../../docs/web/DEPLOYMENT.md#-cicd-deploy-github-actions).
 
 ---
 

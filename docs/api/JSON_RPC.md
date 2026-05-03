@@ -677,6 +677,6 @@ const pricing = await web3.currentProvider.send('axn_getPricingInfo', []);
 
 ## Additional Resources
 
-- [Testnet Integration Guide](../../apps/web/docs/web-integration/JOIN_TESTNET.md)
+- [Testnet Integration Guide](../web/web-integration/JOIN_TESTNET.md)
 - [Architecture Overview](../architecture/AXIONAX_PROTOCOL.md)
 - [GitHub Repository](https://github.com/axionaxprotocol/axionax-core)

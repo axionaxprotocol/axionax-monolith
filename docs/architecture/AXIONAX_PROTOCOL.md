@@ -384,7 +384,7 @@ _Evidence from: deai_submit.py + deai_monitor.py decentralized flow_
 
 ## Backend architecture (services/core)
 
-**Backend (Rust core + Python DeAI):** see `services/core/core/docs/ARCHITECTURE_OVERVIEW.md`
+**Backend (Rust core + Python DeAI):** see `docs/core/ARCHITECTURE_OVERVIEW.md`
 
 - Decentralized DeAI E2E: `deai_submit.py` → queue → `deai_monitor.py` → result hash
 - Frontend vs Backend: this file (v1.9.0) covers the Web Universe; `services/core/` covers the Core Universe.
