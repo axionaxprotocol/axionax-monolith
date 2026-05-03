@@ -27,7 +27,7 @@
 
 **axionax Web Universe** is a monorepo that consolidates frontend, documentation, SDK, and marketplace for **Axionax Protocol**. Uses pnpm workspaces for efficient dependency management.
 
-📄 **Project Summary:** [MASTER_SUMMARY.md](MASTER_SUMMARY.md) · **White Paper:** [WHITEPAPER.md](WHITEPAPER.md) · **Hosting:** [docs/HOSTING.md](docs/HOSTING.md)
+📄 **Project Summary:** [docs/MASTER_SUMMARY.md](../docs/MASTER_SUMMARY.md) · **White Paper:** [WHITEPAPER.md](WHITEPAPER.md) · **Hosting:** [docs/HOSTING.md](docs/HOSTING.md)
 
 **Dual repo (solo):** keep chain constants aligned with [axionax-core-universe](https://github.com/axionaxprotocol/axionax-core-universe) — workflow [docs/SOLO_CORE_WEB_SYNC.md](docs/SOLO_CORE_WEB_SYNC.md), pairing log [docs/CORE_WEB_COMPAT.md](docs/CORE_WEB_COMPAT.md), field map [packages/blockchain-utils/PARAMETERS_SYNC.md](packages/blockchain-utils/PARAMETERS_SYNC.md).
 
@@ -63,7 +63,6 @@ axionax-web-universe/
 │   └── ...
 │
 ├── deploy-vps.ps1        # VPS deploy (Windows, run from root)
-├── MASTER_SUMMARY.md     # Project summary (v2.1)
 ├── WHITEPAPER.md         # White Paper (v2.1)
 ├── pnpm-workspace.yaml
 ├── package.json

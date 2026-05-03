@@ -345,7 +345,7 @@ python3 -m pytest . -v --tb=short --ignore=tests
 | [**Add Network & Token (MetaMask)**](docs/ADD_NETWORK_AND_TOKEN.md) | Add Axionax Testnet and AXX in MetaMask; Faucet |
 | [**Connectivity Overview**](docs/CONNECTIVITY_OVERVIEW.md) | Local node, Validator, Frontend connectivity |
 | [**GitHub Readiness**](docs/GITHUB_READINESS.md) | Repository readiness for launch |
-| [**Master Summary**](MASTER_SUMMARY.md) | Vision, architecture, hardware, tokenomics, roadmap |
+| [**Master Summary**](../docs/MASTER_SUMMARY.md) | Vision, architecture, hardware, tokenomics, roadmap |
 | [**Self-Sufficiency**](docs/SELF_SUFFICIENCY.md) | Protocol runs without external API at runtime |
 | [**Cyber Defense (DeAI)**](docs/CYBER_DEFENSE.md) | Cyber defence via DeAI (7 Sentinels) |
 | [Architecture Overview](core/docs/ARCHITECTURE_OVERVIEW.md) | System architecture |

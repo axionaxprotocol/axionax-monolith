@@ -26,7 +26,8 @@ Monorepo-level documentation and deployment guides.
 **Canonical protocol docs:**
 
 - [WHITEPAPER.md](../WHITEPAPER.md) — White Paper v2.1
-- [MASTER_SUMMARY.md](../MASTER_SUMMARY.md) — Project summary v2.1 (Vision, DePIN, Roadmap)
+- [MASTER_SUMMARY.md](../../docs/MASTER_SUMMARY.md) — Project summary v2.1 (Vision, DePIN, Roadmap)
 
 **Cross-cutting docs:** [`../../docs/`](../../docs/) — Protocol-wide documentation  
+- **Setup guides:** [`../../docs/guides/`](../../docs/guides/) — Validator & worker setup guides  
 **Core docs:** [`../../services/core/core/docs/`](../../services/core/core/docs/) — Blockchain core documentation

@@ -7,20 +7,38 @@
 ## 2026-05-03 — Documentation Reorganization v2.0
 
 ### Added
-- **New structure**: `docs/` reorganized with `playbook/`, `architecture/`, `api/` subdirectories
+- **New structure**: `docs/` reorganized with `playbook/`, `architecture/`, `api/`, `guides/` subdirectories
 - **README.md**: Central documentation index at `docs/README.md`
+- **MASTER_SUMMARY.md**: Project overview (DePIN, Vision, Hardware, Roadmap) - consolidated from duplicates
 - **GLOSSARY.md**: Technical terms and definitions reference
 - **CHANGELOG.md**: This file — tracking documentation changes
 - **TOKENOMICS_TESTNET.md**: Complete testnet tokenomics guide
+- **CONTRIBUTING.md**: Documentation contribution guidelines
+- **guides/VALIDATOR_SETUP.md**: Complete validator node setup guide
+- **guides/WORKER_SETUP.md**: Complete worker node setup guide
 
 ### Changed
 - **ROADMAP.md**: Updated to v1.9.0-testnet, Phase 2 marked complete, Phase 3 in progress
-- **JSON_RPC.md**: Updated to v1.9.0, added live testnet endpoints (AU, ES validators)
-- **apps/web/docs/README.md**: Fixed broken links, removed reference to deleted `apps/docs/`
+- **JSON_RPC.md**: Updated to v1.9.0, added live testnet endpoints (AU, ES validators), merged WEBSOCKET.md content
+- **apps/web/docs/README.md**: Fixed broken links, added reference to guides section
+- **services/core/core/docs/README.md**: Added reference to setup guides section
 
 ### Removed
 - **apps/web/apps/docs/**: Deleted entire Jekyll site (50+ files including HTML artifacts, _config.yml, assets)
+- **apps/web/MASTER_SUMMARY.md**: Duplicate file (moved to docs/)
+- **services/core/MASTER_SUMMARY.md**: Duplicate file (moved to docs/)
+- **apps/web/docs/CONTRIBUTING.md**: Mislocated file (Core content in Web docs)
+- **apps/web/docs/**: Moved entire directory to docs/web/
+- **services/core/docs/**: Moved entire directory to docs/core/
+- **services/core/core/docs/**: Moved entire directory to docs/core/
 - Legacy duplicate documentation files
+
+### Complete Reorganization v3.0
+- **All docs now centralized at `docs/`**
+- **Web docs**: `docs/web/` (from `apps/web/docs/`)
+- **Core docs**: `docs/core/` (from `services/core/docs/` + `services/core/core/docs/`)
+- **Cross-cutting docs**: `docs/playbook/`, `docs/architecture/`, `docs/api/`, `docs/guides/`
+- **Root docs**: `docs/README.md`, `docs/MASTER_SUMMARY.md`, `docs/CONTRIBUTING.md`, `docs/CHANGELOG.md`, `docs/glossary.md`
 
 ### Migration
 - `docs/compossor-and-cascade-playbook.md` → `docs/playbook/`
