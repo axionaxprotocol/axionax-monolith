@@ -1,7 +1,39 @@
 version: '3.8'
 
 services:
-  # In-Memory State & Pub/Sub Broker for Propsentinel
+  # ============================================
+  # ⛓️ Core Blockchain Node (Rust)
+  # ============================================
+  axionax-node:
+    build:
+      context: ./services/core
+      dockerfile: core/ops/deploy/Dockerfile
+    container_name: axionax-node
+    restart: unless-stopped
+    ports:
+      - "8545:8545"     # JSON-RPC HTTP
+      - "8546:8546"     # JSON-RPC WebSocket
+      - "30303:30303"   # P2P
+      - "9100:9100"     # Prometheus metrics
+    volumes:
+      - node_data:/data
+    environment:
+      - RUST_LOG=info,axionax=debug
+      - CHAIN_ID=1337
+      - NETWORK=localnet
+      - RPC_HOST=0.0.0.0
+      - RPC_PORT=8545
+      - WS_PORT=8546
+      - P2P_PORT=30303
+      - BLOCK_TIME=1
+      - MAX_PEERS=50
+    networks:
+      - axionax-net
+
+  # ============================================
+  # 🛡️ Propsentinel Infrastructure
+  # ============================================
+  # In-Memory State & Pub/Sub Broker
   redis:
     image: redis:7-alpine
     container_name: axionax-redis
@@ -23,15 +55,17 @@ services:
       - REDIS_URL=redis://redis:6379
       - API_KEY=dev_secret_key_123
       - LOG_LEVEL=debug
+      - DATABASE_URL=postgresql+asyncpg://axionax:brutal_password@db:5432/propsentinel
     depends_on:
       - redis
+      - db
     volumes:
       - ./services/propsentinel:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8100 --reload --workers 4
     networks:
       - axionax-net
 
-  # Optional: PostgreSQL if persistence is needed later (currently using Redis)
+  # PostgreSQL for Persistence
   db:
     image: postgres:15-alpine
     container_name: axionax-db
@@ -52,3 +86,4 @@ networks:
 
 volumes:
   pgdata:
+  node_data:
