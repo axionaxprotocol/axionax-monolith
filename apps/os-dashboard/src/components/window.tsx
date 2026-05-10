@@ -1,15 +1,7 @@
 "use client";
 
 // Window chrome — draggable + resizable + matte-black glass.
-//
-// Reads from <WindowManagerProvider /> (lib/window-manager.tsx). Renders
-// every non-minimized window stacked by zIndex; drops back into a viewport
-// fill when `maximized`.
-//
-// Design intent:
-//   - Traffic-light controls stay mac-native (rose / amber / emerald).
-//   - Title is centered, muted, no pill — let the content breathe.
-//   - Resize handle is a corner chevron, not a grip, so it reads as OS-level.
+// Data-Dense Dashboard style.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Maximize2, Minus, X, type LucideIcon } from "lucide-react";
@@ -30,16 +22,14 @@ export function WindowLayer() {
   );
 }
 
-const TITLEBAR_HEIGHT = 36;
-const RESIZE_HANDLE = 14;
+const TITLEBAR_HEIGHT = 32; // tighter for data-dense
+const RESIZE_HANDLE = 12;
 
 function Window({ state }: { state: WindowState }) {
   const { focusWindow, closeWindow, toggleMinimize, toggleMaximize, moveWindow, resizeWindow } =
     useWindowManager();
   const ref = useRef<HTMLDivElement>(null);
 
-  // We track "drag" (move) and "resize" interactions in refs so the listeners
-  // installed on `window` always see fresh state without re-binding.
   const drag = useRef<null | { offsetX: number; offsetY: number }>(null);
   const resize = useRef<null | { startX: number; startY: number; w: number; h: number }>(null);
   const [interacting, setInteracting] = useState<"drag" | "resize" | null>(null);
@@ -101,13 +91,12 @@ function Window({ state }: { state: WindowState }) {
     };
   }, [interacting, moveWindow, resizeWindow, state.id]);
 
-  // Geometry: maximize forces full viewport; otherwise use stored coords.
   const style: React.CSSProperties = state.maximized
     ? {
-        top: 48,
-        left: 12,
-        right: 12,
-        bottom: 96, // leave room for the dock
+        top: 40, // right under menubar
+        left: 0,
+        right: 0,
+        bottom: 64, // leave room for dock
         zIndex: state.zIndex,
       }
     : {
@@ -122,7 +111,7 @@ function Window({ state }: { state: WindowState }) {
     <div
       ref={ref}
       style={style}
-      className={`fixed glass-strong rounded-os-xl shadow-glass-strong overflow-hidden flex flex-col animate-scale-in ${
+      className={`fixed bg-bg-card border border-border rounded-os-lg shadow-glass-xl overflow-hidden flex flex-col animate-scale-in ${
         interacting ? "select-none" : ""
       } ${state.maximized ? "" : "transition-shadow duration-base"}`}
       onMouseDown={() => focusWindow(state.id)}
@@ -136,7 +125,7 @@ function Window({ state }: { state: WindowState }) {
         onMaximize={() => toggleMaximize(state.id)}
         onClose={() => closeWindow(state.id)}
       />
-      <div className="flex-1 min-h-0 overflow-auto">{state.render()}</div>
+      <div className="flex-1 min-h-0 overflow-auto bg-bg-DEFAULT">{state.render()}</div>
       {!state.maximized && (
         <button
           type="button"
@@ -145,7 +134,7 @@ function Window({ state }: { state: WindowState }) {
           className="absolute bottom-0 right-0 cursor-se-resize focus:outline-none group"
           style={{ width: RESIZE_HANDLE, height: RESIZE_HANDLE }}
         >
-          <span className="block w-full h-full bg-gradient-to-br from-transparent via-transparent to-white/15 group-hover:to-white/30 transition-colors duration-fast" />
+          <span className="block w-full h-full bg-gradient-to-br from-transparent via-transparent to-white/10 group-hover:to-white/20 transition-colors duration-fast" />
         </button>
       )}
     </div>
@@ -169,21 +158,21 @@ function Titlebar({
     <div
       onMouseDown={onMouseDown}
       style={{ height: TITLEBAR_HEIGHT }}
-      className="flex items-center gap-3 px-os-4 cursor-grab active:cursor-grabbing border-b border-white/5 bg-gradient-to-b from-white/[0.04] to-transparent"
+      className="flex items-center gap-3 px-os-3 cursor-grab active:cursor-grabbing border-b border-border bg-bg-elev"
     >
       <div className="flex items-center gap-2">
-        <TrafficLight onClick={onClose} label="Close" base="bg-rose-500" hover="hover:bg-rose-400" Icon={X} />
-        <TrafficLight onClick={onMinimize} label="Minimize" base="bg-amber-400" hover="hover:bg-amber-300" Icon={Minus} />
-        <TrafficLight onClick={onMaximize} label="Maximize" base="bg-emerald-500" hover="hover:bg-emerald-400" Icon={Maximize2} />
+        <TrafficLight onClick={onClose} label="Close" base="bg-accent-danger" hover="hover:brightness-110" Icon={X} />
+        <TrafficLight onClick={onMinimize} label="Minimize" base="bg-accent-warn" hover="hover:brightness-110" Icon={Minus} />
+        <TrafficLight onClick={onMaximize} label="Maximize" base="bg-accent-ok" hover="hover:brightness-110" Icon={Maximize2} />
       </div>
 
       <div className="flex-1 text-center">
-        <span className="text-[11px] text-zinc-400 font-medium tracking-tight truncate select-none">
+        <span className="text-[10px] text-zinc-400 font-mono font-medium tracking-tight truncate select-none uppercase">
           {title}
         </span>
       </div>
 
-      <span className="w-16" aria-hidden="true" />
+      <span className="w-[52px]" aria-hidden="true" />
     </div>
   );
 }
@@ -209,12 +198,12 @@ function TrafficLight({
         onClick();
       }}
       aria-label={label}
-      className={`group relative h-3 w-3 rounded-full ${base} ${hover} transition-all duration-fast ease-os grid place-items-center hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60`}
+      className={`group relative h-2.5 w-2.5 rounded-full ${base} ${hover} transition-all duration-fast ease-os grid place-items-center focus:outline-none focus-visible:ring-1 focus-visible:ring-white/60`}
     >
       <Icon
-        size={7}
+        size={6}
         className="opacity-0 group-hover:opacity-70 text-black transition-opacity duration-fast"
-        strokeWidth={2.5}
+        strokeWidth={3}
       />
     </button>
   );

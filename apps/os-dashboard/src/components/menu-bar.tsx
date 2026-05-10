@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Activity, Bell, Search, Wifi } from "lucide-react";
+import { Activity, Bell, Search } from "lucide-react";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 
 /**
@@ -9,12 +9,6 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
  *
  * Information architecture (left → right):
  *   brand · menus · right cluster (status, actions, clock)
- *
- * Design intent:
- *   - Keep the bar a single source of "where am I?" signal.
- *   - Surface one live status (Testnet) + one live metric (network).
- *     Avoid parallel pills competing for attention.
- *   - Controls are icon-only, 32×32, with hover tints only.
  */
 export function MenuBar() {
   const [time, setTime] = useState<string>("");
@@ -43,32 +37,32 @@ export function MenuBar() {
   }, []);
 
   return (
-    <div className="fixed top-0 inset-x-0 z-40 h-11 glass-strong border-b border-white/5">
-      <div className="flex h-full items-center px-os-5 text-xs text-zinc-300">
+    <div className="fixed top-0 inset-x-0 z-40 h-10 bg-bg-elev border-b border-border shadow-glass">
+      <div className="flex h-full items-center px-os-4 text-[11px] text-zinc-300">
         {/* Brand */}
         <div className="flex items-center gap-2.5 font-semibold tracking-tight">
-          <div className="relative">
+          <div className="relative flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.png"
               alt="Axionax"
-              className="h-5 w-5 object-contain invert brightness-125 contrast-125 drop-shadow-[0_0_8px_rgba(94,234,212,0.8)]"
+              className="h-4 w-4 object-contain invert brightness-125 contrast-125 drop-shadow-[0_0_8px_rgba(94,234,212,0.8)]"
             />
             <span
-              className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(34,197,94,0.8)] animate-pulse"
+              className="absolute -top-0.5 -right-0.5 h-1.5 w-1.5 rounded-full bg-accent-ok shadow-[0_0_6px_rgba(34,197,94,0.5)] animate-pulse"
               aria-label="Node online"
             />
           </div>
-          <span className="text-zinc-100">Axionax OS</span>
+          <span className="text-zinc-100 font-mono tracking-tight uppercase">Axionax OS</span>
         </div>
 
         {/* App menus */}
-        <nav className="ml-os-6 flex items-center gap-0.5 text-zinc-400" aria-label="Application menu">
+        <nav className="ml-os-6 flex items-center gap-1 text-zinc-400" aria-label="Application menu">
           {["File", "View", "Network", "Help"].map((item) => (
             <button
               key={item}
               type="button"
-              className="px-3 py-1 rounded-md hover:bg-white/5 hover:text-zinc-100 transition-colors duration-fast"
+              className="px-2 py-1 rounded-os-sm hover:bg-white/5 hover:text-zinc-100 transition-colors duration-fast"
             >
               {item}
             </button>
@@ -76,25 +70,25 @@ export function MenuBar() {
         </nav>
 
         {/* Right cluster */}
-        <div className="ml-auto flex items-center gap-1">
-          {/* Single live status — no parallel pills */}
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-400/20 bg-emerald-400/5 text-emerald-300 text-[10px] font-medium">
-            <Activity size={11} />
-            <span className="tracking-wide uppercase">Testnet</span>
+        <div className="ml-auto flex items-center gap-1.5">
+          {/* Single live status */}
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-os-sm border border-accent-ok/20 bg-accent-ok/10 text-accent-ok text-[10px] font-mono uppercase tracking-wide">
+            <Activity size={10} />
+            Testnet
           </span>
 
-          <span className="w-px h-5 bg-white/10 mx-2" aria-hidden="true" />
+          <span className="w-px h-4 bg-border mx-1" aria-hidden="true" />
 
-          <MenuIconButton label="Notifications" icon={<Bell size={14} />} />
-          <MenuIconButton label="Spotlight search" icon={<Search size={14} />} />
+          <MenuIconButton label="Notifications" icon={<Bell size={13} />} />
+          <MenuIconButton label="Spotlight search" icon={<Search size={13} />} />
 
           <ThemeSwitcher />
 
-          <span className="w-px h-5 bg-white/10 mx-2" aria-hidden="true" />
+          <span className="w-px h-4 bg-border mx-1" aria-hidden="true" />
 
-          {/* Date · time — compact cluster */}
+          {/* Date · time */}
           <div className="flex items-center gap-2 px-1 text-[11px]">
-            <span className="text-zinc-500">{date}</span>
+            <span className="text-zinc-500 font-mono">{date}</span>
             <span className="font-mono tabular-nums text-zinc-100 font-medium">
               {time || "--:--"}
             </span>
@@ -111,7 +105,7 @@ function MenuIconButton({ label, icon }: { label: string; icon: React.ReactNode 
       type="button"
       aria-label={label}
       title={label}
-      className="grid h-8 w-8 place-items-center rounded-md hover:bg-white/5 text-zinc-400 hover:text-zinc-100 transition-colors duration-fast"
+      className="grid h-7 w-7 place-items-center rounded-os-sm hover:bg-white/5 text-zinc-400 hover:text-zinc-100 transition-colors duration-fast"
     >
       {icon}
     </button>

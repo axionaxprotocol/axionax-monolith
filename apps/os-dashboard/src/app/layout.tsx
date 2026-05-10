@@ -28,7 +28,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#05060a",
+  themeColor: "#020617", // updated to match new bg-DEFAULT
 };
 
 export default function RootLayout({
@@ -38,10 +38,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased text-zinc-300">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-teal-400 focus:px-4 focus:py-2 focus:text-obsidian-950 focus:outline-none focus:ring-2 focus:ring-white"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-os-md focus:bg-accent focus:px-4 focus:py-2 focus:text-bg-card focus:outline-none focus:ring-2 focus:ring-white"
         >
           Skip to content
         </a>
@@ -51,7 +51,7 @@ export default function RootLayout({
           className="min-h-screen pt-12 pb-32"
           tabIndex={-1}
         >
-          <div className="mx-auto max-w-5xl px-os-4 sm:px-os-6 py-os-6">
+          <div className="mx-auto max-w-[1600px] px-os-4 sm:px-os-6 py-os-6">
             {children}
           </div>
         </main>

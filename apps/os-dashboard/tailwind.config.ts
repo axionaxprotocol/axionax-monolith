@@ -1,94 +1,72 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Axionax-Dark — "Obsidian Matte Black" design tokens.
+ * Axionax OS — "Data-Dense Dashboard" design tokens.
  *
- * Surfaces (obsidian / matte) are tuned for low eye-strain in long sessions.
- * Accents are the only colors that should appear in critical UI; everything
- * else stays in the gray ladder.
- *
- * Contrast (WCAG):
- *   text-zinc-200 on obsidian-950   = 14.6 : 1  (AAA)
- *   text-zinc-400 on obsidian-950   =  7.2 : 1  (AAA large / AA normal)
- *   text-zinc-500 on obsidian-950   =  4.5 : 1  (AA normal — caption-only)
- *   accent-ai    on obsidian-950    =  9.8 : 1  (AAA)
- *   accent-chain on obsidian-950    =  5.1 : 1  (AA)
- *
- * Spacing / type scale:
- *   Use `p-os-4`, `gap-os-6`, `text-display`, `text-body`, etc. for Obsidian OS layout.
- *   Default Tailwind spacing (rem) stays available — os-* is an additive 4px grid.
+ * Pattern: Real-Time / Operations Landing
+ * Colors: Primary #0F172A, Background #020617, Accent #22C55E
+ * Typography: Fira Code (Mono/Heading), Fira Sans (Body)
  */
 const config: Config = {
   content: ["./src/**/*.{ts,tsx,js,jsx,mdx}"],
   theme: {
     extend: {
       colors: {
-        // Legacy aliases — kept so existing components keep working.
+        // Base — slate/navy theme for data density
         bg: {
-          DEFAULT: "#0a0e14",
-          card: "#11161d",
-          elev: "#161c25",
+          DEFAULT: "#020617",
+          card: "#0F172A",
+          elev: "#1E293B",
         },
-        border: "#1f2731",
+        border: "#334155",
         accent: {
-          DEFAULT: "#5eead4",
-          dim: "#14b8a6",
+          DEFAULT: "#22C55E",
+          dim: "#16A34A",
           ai: "#5eead4", // teal — Neural / Worker / DeAI actions
           chain: "#6366f1", // indigo — Blockchain / consensus
           warn: "#f59e0b", // amber — soft warnings, "outdated", "behind"
-          danger: "#f43f5e", // rose — errors, slashing, fatal states
-          ok: "#22c55e", // emerald — explicit success/healthy
+          danger: "#EF4444", // rose/red — errors, slashing, fatal states
+          ok: "#22C55E", // emerald — explicit success/healthy
         },
-        // Surfaces — go from absolute black up to elevated cards.
+        // Surfaces
         obsidian: {
-          950: "#05060a",
-          900: "#080a10",
-          800: "#0c0f17",
-          700: "#11151f",
+          950: "#020617",
+          900: "#0F172A",
+          800: "#1E293B",
+          700: "#334155",
         },
-        // Borders, dividers, hairlines.
         matte: {
-          900: "#1a1f2a",
-          800: "#222936",
-          700: "#2c3441",
+          900: "#0F172A",
+          800: "#1A1E2F",
+          700: "#1E293B",
         },
       },
       borderColor: {
         hairline: "rgba(255, 255, 255, 0.06)",
       },
       boxShadow: {
-        // Glass surfaces — tuned for depth without noise.
-        glass:
-          "0 1px 0 rgba(255,255,255,0.06) inset, 0 4px 20px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.15)",
-        "glass-strong":
-          "0 1px 0 rgba(255,255,255,0.05) inset, 0 8px 32px rgba(0,0,0,0.45)",
-        "glass-xl":
-          "0 1px 0 rgba(255,255,255,0.06) inset, 0 20px 60px rgba(0,0,0,0.55)",
-        // App icon elevation.
-        "icon-app":
-          "0 1px 0 rgba(255,255,255,0.14) inset, 0 4px 12px rgba(0,0,0,0.35), 0 8px 24px rgba(0,0,0,0.3)",
-        // Accent glows — reserved for active / hovered critical UI.
-        "neon-ai": "0 0 32px rgba(94, 234, 212, 0.35)",
-        "neon-chain": "0 0 32px rgba(99, 102, 241, 0.30)",
-        "neon-rose": "0 0 32px rgba(244, 114, 182, 0.28)",
-        "glow-sm": "0 0 16px rgba(255, 255, 255, 0.08)",
-        "glow-md": "0 0 32px rgba(255, 255, 255, 0.12)",
+        // Solid/minimal shadows for data-dense look, less glow
+        glass: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "glass-strong": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+        "glass-xl": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+        "icon-app": "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+        "neon-ai": "0 0 16px rgba(94, 234, 212, 0.25)",
+        "neon-chain": "0 0 16px rgba(99, 102, 241, 0.20)",
+        "neon-rose": "0 0 16px rgba(239, 68, 68, 0.20)",
+        "glow-sm": "0 0 8px rgba(255, 255, 255, 0.05)",
+        "glow-md": "0 0 16px rgba(255, 255, 255, 0.08)",
       },
       fontFamily: {
         sans: [
+          '"Fira Sans"',
           "ui-sans-serif",
           "system-ui",
-          "-apple-system",
-          "Segoe UI",
-          "Roboto",
           "sans-serif",
         ],
         mono: [
+          '"Fira Code"',
           "ui-monospace",
           "SFMono-Regular",
-          "Menlo",
-          "Consolas",
-          "Liberation Mono",
           "monospace",
         ],
       },
@@ -96,37 +74,37 @@ const config: Config = {
         instant: "100ms",
         fast: "150ms",
         base: "200ms",
-        thoughtful: "400ms",
+        thoughtful: "300ms", // faster animations
       },
       transitionTimingFunction: {
-        os: "cubic-bezier(0.2, 0.8, 0.2, 1)", // Apple-ish ease-out for window motion
-        spring: "cubic-bezier(0.16, 1, 0.3, 1)", // Spring out — for entrance animations
+        os: "cubic-bezier(0.4, 0, 0.2, 1)", // Standard ease
+        spring: "cubic-bezier(0.16, 1, 0.3, 1)", 
       },
       spacing: {
+        // Tighter spacing for data-dense design
         "os-0": "0",
         "os-px": "1px",
         "os-0.5": "2px",
         "os-1": "4px",
-        "os-2": "8px",
-        "os-3": "12px",
-        "os-4": "16px",
-        "os-5": "20px",
-        "os-6": "24px",
-        "os-8": "32px",
-        "os-10": "40px",
-        "os-12": "48px",
-        "os-16": "64px",
-        "os-section": "40px",
-        "os-panel": "24px",
+        "os-2": "6px",
+        "os-3": "8px",
+        "os-4": "12px",
+        "os-5": "16px",
+        "os-6": "20px",
+        "os-8": "24px",
+        "os-10": "32px",
+        "os-12": "40px",
+        "os-16": "48px",
+        "os-section": "32px",
+        "os-panel": "16px",
       },
       fontSize: {
-        /** Hero / shell titles */
-        display: ["2.25rem", { lineHeight: "2.5rem", letterSpacing: "-0.02em", fontWeight: "600" }],
-        headline: ["1.5rem", { lineHeight: "2rem", letterSpacing: "-0.015em", fontWeight: "600" }],
-        title: ["1.125rem", { lineHeight: "1.5rem", letterSpacing: "-0.01em", fontWeight: "500" }],
-        body: ["0.875rem", { lineHeight: "1.5rem" }],
-        caption: ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.06em" }],
-        overline: ["0.625rem", { lineHeight: "0.875rem", letterSpacing: "0.14em", fontWeight: "500" }],
+        display: ["2rem", { lineHeight: "2.25rem", letterSpacing: "-0.02em", fontWeight: "600" }],
+        headline: ["1.25rem", { lineHeight: "1.75rem", letterSpacing: "-0.01em", fontWeight: "600" }],
+        title: ["1rem", { lineHeight: "1.5rem", fontWeight: "500" }],
+        body: ["0.875rem", { lineHeight: "1.25rem" }],
+        caption: ["0.75rem", { lineHeight: "1rem" }],
+        overline: ["0.6875rem", { lineHeight: "1rem", letterSpacing: "0.05em", fontWeight: "500" }],
       },
       lineHeight: {
         tight: "1.2",
@@ -134,11 +112,11 @@ const config: Config = {
         relaxed: "1.75",
       },
       borderRadius: {
-        "os-sm": "6px",
-        "os-md": "10px",
-        "os-lg": "14px",
-        "os-xl": "18px",
-        "os-2xl": "22px",
+        "os-sm": "4px",
+        "os-md": "6px",
+        "os-lg": "8px",
+        "os-xl": "12px",
+        "os-2xl": "16px",
       },
       keyframes: {
         "neon-pulse": {
@@ -159,18 +137,18 @@ const config: Config = {
         },
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-8px)" },
+          "50%": { transform: "translateY(-4px)" },
         },
         "pulse-glow": {
-          "0%, 100%": { opacity: "0.6", transform: "scale(1)" },
+          "0%, 100%": { opacity: "0.8", transform: "scale(1)" },
           "50%": { opacity: "1", transform: "scale(1.05)" },
         },
       },
       animation: {
         "neon-pulse": "neon-pulse 2.5s ease-in-out infinite",
-        "fade-in": "fade-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both",
-        "slide-up": "slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both",
-        "scale-in": "scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "fade-in": "fade-in 150ms ease-out both",
+        "slide-up": "slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) both",
+        "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) both",
         float: "float 4s ease-in-out infinite",
         "pulse-glow": "pulse-glow 3s ease-in-out infinite",
       },

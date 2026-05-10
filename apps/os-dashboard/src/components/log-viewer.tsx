@@ -38,10 +38,13 @@ export function LogViewer({ seedLines }: LogViewerProps) {
   }, [lines.length]);
 
   return (
-    <div className="rounded-2xl border border-matte-800 bg-obsidian-950/90 shadow-glass overflow-hidden">
-      <div className="flex items-center justify-between border-b border-matte-800 px-os-4 py-os-2 bg-obsidian-900/80">
-        <span className="text-caption uppercase text-zinc-500 font-mono">node.log</span>
-        <span className="text-caption text-emerald-400/90 font-mono">streaming · mock tail</span>
+    <div className="rounded-os-sm border border-border bg-bg-card shadow-glass overflow-hidden">
+      <div className="flex items-center justify-between border-b border-border px-os-4 py-os-2 bg-bg-elev">
+        <span className="text-micro uppercase text-zinc-500 font-mono tracking-widest">node.log</span>
+        <span className="text-[10px] text-accent-ok/90 font-mono uppercase tracking-widest flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-ok animate-pulse-glow" />
+          streaming · mock tail
+        </span>
       </div>
       <pre
         className="max-h-[min(480px,52vh)] overflow-y-auto p-os-4 font-mono text-body text-zinc-300 leading-relaxed whitespace-pre-wrap break-all"

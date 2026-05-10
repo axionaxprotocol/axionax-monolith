@@ -30,18 +30,18 @@ interface LauncherApp {
 }
 
 const APP_LAUNCHER: readonly LauncherApp[] = [
-  { href: "/apps", label: "Worker", Icon: Cpu, color: "from-teal-400 to-emerald-500", tone: "ai" },
-  { href: "/apps", label: "Sentinel", Icon: Shield, color: "from-indigo-400 to-violet-500", tone: "chain" },
-  { href: "/apps", label: "Explorer", Icon: Eye, color: "from-sky-400 to-blue-500", tone: "chain" },
-  { href: "/apps", label: "Faucet", Icon: Droplets, color: "from-cyan-400 to-teal-500", tone: "ai" },
-  { href: "/apps", label: "Router", Icon: Workflow, color: "from-fuchsia-400 to-pink-500", tone: "warn" },
-  { href: "/wallet", label: "Wallet", Icon: Wallet, color: "from-amber-400 to-orange-500", tone: "warn" },
-  { href: "/nodes", label: "Nodes", Icon: Server, color: "from-emerald-400 to-green-500", tone: "ai" },
-  { href: "/apps", label: "App Store", Icon: Boxes, color: "from-rose-400 to-red-500", tone: "danger" },
-  { href: "/apps", label: "Storage", Icon: HardDrive, color: "from-slate-400 to-slate-600", tone: "neutral" },
-  { href: "/activity", label: "Activity", Icon: Activity, color: "from-blue-400 to-indigo-500", tone: "chain" },
-  { href: "/apps", label: "Network", Icon: Wifi, color: "from-cyan-400 to-sky-500", tone: "ai" },
-  { href: "/apps", label: "AI Hub", Icon: Sparkles, color: "from-violet-400 to-fuchsia-500", tone: "chain" },
+  { href: "/apps", label: "Worker", Icon: Cpu, color: "text-emerald-400 bg-emerald-400/10", tone: "ai" },
+  { href: "/apps", label: "Sentinel", Icon: Shield, color: "text-indigo-400 bg-indigo-400/10", tone: "chain" },
+  { href: "/apps", label: "Explorer", Icon: Eye, color: "text-sky-400 bg-sky-400/10", tone: "chain" },
+  { href: "/apps", label: "Faucet", Icon: Droplets, color: "text-teal-400 bg-teal-400/10", tone: "ai" },
+  { href: "/apps", label: "Router", Icon: Workflow, color: "text-fuchsia-400 bg-fuchsia-400/10", tone: "warn" },
+  { href: "/wallet", label: "Wallet", Icon: Wallet, color: "text-amber-400 bg-amber-400/10", tone: "warn" },
+  { href: "/nodes", label: "Nodes", Icon: Server, color: "text-emerald-500 bg-emerald-500/10", tone: "ai" },
+  { href: "/apps", label: "App Store", Icon: Boxes, color: "text-rose-400 bg-rose-400/10", tone: "danger" },
+  { href: "/apps", label: "Storage", Icon: HardDrive, color: "text-slate-300 bg-slate-400/10", tone: "neutral" },
+  { href: "/activity", label: "Activity", Icon: Activity, color: "text-blue-400 bg-blue-400/10", tone: "chain" },
+  { href: "/apps", label: "Network", Icon: Wifi, color: "text-cyan-400 bg-cyan-400/10", tone: "ai" },
+  { href: "/apps", label: "AI Hub", Icon: Sparkles, color: "text-violet-400 bg-violet-400/10", tone: "chain" },
 ];
 
 export default async function Home() {
@@ -50,40 +50,37 @@ export default async function Home() {
   const totalPeers = statuses.reduce((a, s) => a + (s.peerCount ?? 0), 0);
   const maxBlock = statuses.reduce((a, s) => Math.max(a, s.blockNumber ?? 0), 0);
 
-  const greeting = (() => {
-    const h = new Date().getHours();
-    if (h < 5) return "Good night";
-    if (h < 12) return "Good morning";
-    if (h < 17) return "Good afternoon";
-    return "Good evening";
-  })();
-
   return (
-    <div className="space-y-os-section animate-slide-up">
-      {/* Hero */}
-      <header className="flex flex-col items-center text-center pt-os-4">
-        <div className="relative mb-os-5">
-          <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-br from-teal-400/20 via-indigo-500/20 to-fuchsia-500/20 blur-3xl scale-110" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo.png"
-            alt="Axionax"
-            className="h-24 w-24 object-contain invert brightness-125 contrast-125 drop-shadow-[0_0_24px_rgba(94,234,212,0.4)]"
-          />
+    <div className="space-y-os-8 animate-slide-up">
+      {/* Hero — Data Dense Technical Header */}
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between border-b border-border pb-os-4">
+        <div>
+          <div className="flex items-center gap-3 mb-os-2">
+            <div className="h-8 w-8 bg-bg-elev border border-border flex items-center justify-center rounded-os-sm">
+              <Server size={16} className="text-zinc-300" />
+            </div>
+            <h1 className="text-display font-mono text-zinc-100 tracking-tight uppercase">
+              AXIONAX_OS
+            </h1>
+          </div>
+          <p className="text-body font-mono text-zinc-500 uppercase tracking-widest">
+            Decentralized AI Operating Environment
+          </p>
         </div>
-        <h1 className="text-display text-zinc-100">
-          {greeting},{" "}
-          <span className="text-zinc-500 font-light">Axionax</span>
-          <span className="text-zinc-500 font-light">.</span>
-        </h1>
-        <p className="mt-os-2 text-caption uppercase text-zinc-500">
-          Decentralized AI Operating System
-        </p>
+        <div className="mt-os-4 sm:mt-0 flex items-center gap-os-4">
+          <div className="text-right">
+            <div className="text-overline text-zinc-500">SYSTEM_STATUS</div>
+            <div className="text-title font-mono text-accent-ok flex items-center justify-end gap-2">
+              <span className="h-2 w-2 rounded-full bg-accent-ok animate-pulse-glow" />
+              OPERATIONAL
+            </div>
+          </div>
+        </div>
       </header>
 
       {/* Live widgets */}
       <section aria-label="System overview">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-os-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-os-4">
           <NetworkWidget
             block={maxBlock}
             online={online}
@@ -97,8 +94,8 @@ export default async function Home() {
 
       {/* App launcher */}
       <section aria-label="Applications">
-        <SectionDivider label="Applications" />
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-x-os-5 gap-y-os-8">
+        <SectionDivider label="MODULES" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-os-4">
           {APP_LAUNCHER.map((app, index) => (
             <AppTile key={`${app.label}-${index}`} app={app} index={index} />
           ))}
@@ -124,17 +121,16 @@ function NetworkWidget({
   peers: number;
 }) {
   return (
-    <WidgetShell accent="teal" eyebrow="Network">
-      <div className="mt-os-3 flex items-baseline gap-2">
-        <span className="text-headline font-semibold tabular-nums text-zinc-100">
+    <WidgetShell accent="teal" eyebrow="NETWORK_SYNC">
+      <div className="mt-os-2 flex items-baseline gap-2">
+        <span className="text-[2rem] leading-none font-mono font-bold tabular-nums text-zinc-100">
           {block.toLocaleString()}
         </span>
-        <span className="text-caption uppercase text-zinc-500">block</span>
+        <span className="text-micro uppercase text-zinc-500">BLK</span>
       </div>
-      <div className="mt-os-4 flex flex-wrap items-center gap-2">
-        <Stat label="Online" value={`${online}/${total}`} dot="emerald" />
+      <div className="mt-os-3 grid grid-cols-2 gap-2">
+        <Stat label="Nodes" value={`${online}/${total}`} dot="emerald" />
         <Stat label="Peers" value={peers} dot="indigo" />
-        <Stat label="Chain" value="86137" dot="cyan" />
       </div>
     </WidgetShell>
   );
@@ -142,18 +138,18 @@ function NetworkWidget({
 
 function SystemWidget() {
   return (
-    <WidgetShell accent="indigo" eyebrow="System">
-      <div className="mt-os-3 grid grid-cols-3 gap-2">
+    <WidgetShell accent="indigo" eyebrow="RESOURCES">
+      <div className="mt-os-2 grid grid-cols-3 gap-2">
         <SysStat label="CPU" value="32%" Icon={Cpu} tone="emerald" />
-        <SysStat label="Mem" value="5.8 GB" Icon={Activity} tone="indigo" />
-        <SysStat label="Disk" value="1.7 TB" Icon={HardDrive} tone="cyan" />
+        <SysStat label="MEM" value="5.8G" Icon={Activity} tone="indigo" />
+        <SysStat label="DSK" value="1.7T" Icon={HardDrive} tone="cyan" />
       </div>
-      <div className="mt-os-4 flex items-center gap-2">
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20 text-emerald-300 text-[10px] font-medium">
-          <span className="h-1 w-1 rounded-full bg-emerald-400 animate-pulse" />
-          Hailo-NPU
+      <div className="mt-os-3 flex items-center justify-between border-t border-border pt-os-2">
+        <span className="text-micro font-mono text-zinc-400 flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-accent-ai animate-pulse-glow" />
+          HAILO-NPU
         </span>
-        <span className="text-[10px] text-zinc-500">4 GB worker pool</span>
+        <span className="text-micro font-mono text-zinc-500">POOL: 4GB</span>
       </div>
     </WidgetShell>
   );
@@ -161,38 +157,32 @@ function SystemWidget() {
 
 function NotificationsWidget({ lastBlock }: { lastBlock: number }) {
   return (
-    <WidgetShell accent="amber" eyebrow="Notifications">
-      <ul className="mt-os-3 space-y-os-3">
+    <WidgetShell accent="amber" eyebrow="EVENT_LOG">
+      <ul className="mt-os-2 space-y-2">
         <NotificationItem
           dot="emerald"
           title="Worker rewarded"
-          subtitle="+0.42 AXIO · 2m ago"
+          subtitle="+0.42 AXIO"
         />
         <NotificationItem
           dot="indigo"
-          title="New block produced"
-          subtitle={`#${lastBlock.toLocaleString()} · just now`}
+          title="Block produced"
+          subtitle={`#${lastBlock.toLocaleString()}`}
         />
         <NotificationItem
           dot="amber"
-          title="System update available"
-          subtitle="v0.1.2 · 1h ago"
+          title="Update available"
+          subtitle="v0.1.2"
         />
       </ul>
     </WidgetShell>
   );
 }
 
-const ACCENT_BG: Record<string, string> = {
-  teal: "from-teal-400/15 to-teal-400/0",
-  indigo: "from-indigo-400/15 to-indigo-400/0",
-  amber: "from-amber-400/15 to-amber-400/0",
-};
-
 const ACCENT_DOT: Record<string, string> = {
-  teal: "bg-teal-400 shadow-[0_0_8px_rgba(94,234,212,0.55)]",
-  indigo: "bg-indigo-400 shadow-[0_0_8px_rgba(99,102,241,0.55)]",
-  amber: "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.55)]",
+  teal: "bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.55)]",
+  indigo: "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.55)]",
+  amber: "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.55)]",
 };
 
 function WidgetShell({
@@ -200,22 +190,17 @@ function WidgetShell({
   eyebrow,
   children,
 }: {
-  accent: keyof typeof ACCENT_BG;
+  accent: keyof typeof ACCENT_DOT;
   eyebrow: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="glass rounded-os-xl p-os-5 relative overflow-hidden group transition-colors duration-base hover:border-white/12">
-      <div
-        className={`pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-to-br ${ACCENT_BG[accent]} blur-2xl opacity-70 group-hover:opacity-100 transition-opacity duration-thoughtful`}
-      />
-      <div className="relative">
-        <div className="flex items-center gap-2 text-overline text-zinc-500 font-medium">
-          <span className={`h-1.5 w-1.5 rounded-full animate-pulse ${ACCENT_DOT[accent]}`} />
-          {eyebrow}
-        </div>
-        {children}
+    <div className="bg-bg-card border border-border rounded-os-md p-os-4 shadow-glass relative group transition-colors duration-fast hover:border-border-strong">
+      <div className="flex items-center justify-between text-micro text-zinc-500 font-mono mb-os-2">
+        <span>{eyebrow}</span>
+        <span className={`h-1.5 w-1.5 rounded-full ${ACCENT_DOT[accent]}`} />
       </div>
+      {children}
     </div>
   );
 }
@@ -225,10 +210,10 @@ function WidgetShell({
 /* -------------------------------------------------------------------------- */
 
 const DOT_CLS: Record<string, string> = {
-  emerald: "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.5)]",
-  indigo: "bg-indigo-400 shadow-[0_0_6px_rgba(129,140,248,0.5)]",
-  cyan: "bg-cyan-400 shadow-[0_0_6px_rgba(34,211,238,0.5)]",
-  amber: "bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.5)]",
+  emerald: "bg-emerald-500",
+  indigo: "bg-indigo-500",
+  cyan: "bg-cyan-500",
+  amber: "bg-amber-500",
 };
 
 function Stat({
@@ -241,11 +226,13 @@ function Stat({
   dot: keyof typeof DOT_CLS;
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] border border-white/5 px-2.5 py-1 text-zinc-300">
-      <span className={`h-1.5 w-1.5 rounded-full ${DOT_CLS[dot]}`} />
-      <span className="text-[10px] uppercase tracking-wide text-zinc-500">{label}</span>
-      <span className="font-mono text-[11px] font-medium">{value}</span>
-    </span>
+    <div className="flex items-center justify-between rounded-os-sm bg-bg-elev border border-border px-2 py-1.5">
+      <div className="flex items-center gap-1.5 text-micro text-zinc-400 uppercase font-mono">
+        <span className={`h-1.5 w-1.5 rounded-full ${DOT_CLS[dot]}`} />
+        {label}
+      </div>
+      <span className="font-mono text-caption text-zinc-200 font-medium">{value}</span>
+    </div>
   );
 }
 
@@ -259,22 +246,20 @@ function NotificationItem({
   subtitle: string;
 }) {
   return (
-    <li className="flex items-start gap-3 group">
-      <span className={`mt-1.5 h-2 w-2 rounded-full ${DOT_CLS[dot]} flex-shrink-0`} />
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-zinc-200 group-hover:text-zinc-100 transition-colors duration-fast truncate">
-          {title}
-        </div>
-        <div className="text-[11px] text-zinc-500 truncate">{subtitle}</div>
+    <li className="flex items-center justify-between group">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className={`h-1.5 w-1.5 rounded-full ${DOT_CLS[dot]} flex-shrink-0`} />
+        <span className="text-body font-mono text-zinc-300 truncate">{title}</span>
       </div>
+      <span className="text-micro font-mono text-zinc-500 shrink-0">{subtitle}</span>
     </li>
   );
 }
 
 const SYS_TONES: Record<string, string> = {
-  emerald: "text-emerald-300",
-  indigo: "text-indigo-300",
-  cyan: "text-cyan-300",
+  emerald: "text-emerald-400",
+  indigo: "text-indigo-400",
+  cyan: "text-cyan-400",
 };
 
 function SysStat({
@@ -289,20 +274,19 @@ function SysStat({
   tone: keyof typeof SYS_TONES;
 }) {
   return (
-    <div className="rounded-os-md bg-white/[0.04] border border-white/5 p-2 text-center">
-      <Icon size={13} className={`mx-auto ${SYS_TONES[tone]}`} strokeWidth={2} />
-      <div className="mt-1 text-sm font-semibold tabular-nums text-zinc-100">{value}</div>
-      <div className="text-overline text-zinc-500">{label}</div>
+    <div className="rounded-os-sm bg-bg-elev border border-border p-2 flex flex-col items-center">
+      <Icon size={14} className={`mb-1 ${SYS_TONES[tone]}`} strokeWidth={2} />
+      <div className="text-body font-mono font-semibold tabular-nums text-zinc-100 leading-tight">{value}</div>
+      <div className="text-[9px] uppercase font-mono text-zinc-500">{label}</div>
     </div>
   );
 }
 
 function SectionDivider({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-3 mb-os-6">
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <span className="text-overline text-zinc-500 font-medium">{label}</span>
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+    <div className="flex items-center gap-3 mb-os-4">
+      <span className="text-micro font-mono text-zinc-500">{label}</span>
+      <div className="h-px flex-1 bg-border" />
     </div>
   );
 }
@@ -311,17 +295,18 @@ function AppTile({ app, index }: { app: LauncherApp; index: number }) {
   return (
     <Link
       href={app.href}
-      className="group flex flex-col items-center gap-os-2 focus:outline-none animate-slide-up"
-      style={{ animationDelay: `${Math.min(index * 40, 400)}ms` }}
+      className="group flex items-center gap-os-3 p-os-3 rounded-os-md bg-bg-elev border border-border focus:outline-none hover:border-zinc-500 transition-colors duration-fast animate-slide-up"
+      style={{ animationDelay: `${Math.min(index * 20, 200)}ms` }}
     >
       <div
-        className={`app-icon-shadow grid h-[76px] w-[76px] place-items-center rounded-os-2xl bg-gradient-to-br ${app.color} text-white transition-transform duration-base ease-os group-hover:-translate-y-1.5 group-hover:scale-[1.03] group-focus-visible:-translate-y-1.5 group-focus-visible:scale-[1.03] relative overflow-hidden`}
+        className={`shrink-0 flex items-center justify-center h-10 w-10 rounded-os-sm ${app.color} transition-transform duration-fast group-hover:scale-105`}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-white/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-base" />
-        <app.Icon size={28} className="relative z-10 drop-shadow" strokeWidth={1.75} />
+        <app.Icon size={18} strokeWidth={2} />
       </div>
-      <div className="text-[11px] text-zinc-400 group-hover:text-zinc-100 font-medium transition-colors duration-fast">
-        {app.label}
+      <div className="min-w-0">
+        <div className="text-body font-mono text-zinc-200 group-hover:text-white transition-colors duration-fast truncate">
+          {app.label}
+        </div>
       </div>
     </Link>
   );
