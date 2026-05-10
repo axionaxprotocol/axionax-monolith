@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # In-Memory State & Pub/Sub Broker for Propsentinel
+  redis:
+    image: redis:7-alpine
+    container_name: axionax-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save "" --appendonly no --maxmemory 2gb --maxmemory-policy allkeys-lru
+    networks:
+      - axionax-net
+
+  # Core API Gateway (FastAPI)
+  propsentinel:
+    build:
+      context: ./services/propsentinel
+      dockerfile: Dockerfile
+    container_name: axionax-propsentinel
+    ports:
+      - "8100:8100"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - API_KEY=dev_secret_key_123
+      - LOG_LEVEL=debug
+    depends_on:
+      - redis
+    volumes:
+      - ./services/propsentinel:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8100 --reload --workers 4
+    networks:
+      - axionax-net
+
+  # Optional: PostgreSQL if persistence is needed later (currently using Redis)
+  db:
+    image: postgres:15-alpine
+    container_name: axionax-db
+    environment:
+      - POSTGRES_USER=axionax
+      - POSTGRES_PASSWORD=brutal_password
+      - POSTGRES_DB=propsentinel
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - axionax-net
+
+networks:
+  axionax-net:
+    driver: bridge
+
+volumes:
+  pgdata:
